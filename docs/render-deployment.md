@@ -1,5 +1,59 @@
 # Deploy GovFix on Render
 
+## Free plan for demos
+
+Use **`render.free.yaml`** to create one free web service containing the API and
+React interface. The default `render.yaml` creates paid web and worker services.
+Render does not offer a free background worker. Keep Supabase for PostgreSQL and
+private evidence storage in either setup.
+
+1. Your migrations and `pilot-citizen` / `pilot-auditor` accounts are already
+   prepared if you followed the local setup below. Do not recreate the accounts.
+2. Commit and push the deployment files to your GitHub branch.
+3. In Render choose **New → Blueprint**, connect your repository and branch, and
+   set **Blueprint Path** to **`render.free.yaml`**.
+4. Confirm the preview contains only **`govfix-web-free`**, with plan **Free**.
+5. Enter `GOVFIX_DATABASE_URL` (restricted runtime URI with `sslmode=require`),
+   `SUPABASE_URL`, and `SUPABASE_SERVICE_ROLE_KEY` from your local `.env`. Do not
+   upload the whole `.env` or add `GOVFIX_MIGRATION_DATABASE_URL`. Render generates
+   the login-rate secret automatically.
+6. Create the Blueprint and wait for deployment. Open
+   `https://YOUR-SERVICE.onrender.com/ready`, then `/app/`, and log in using your
+   existing pilot accounts. The health check should return HTTP 200.
+7. Run the worker on your Mac in a separate terminal connected to the same
+   Supabase database:
+
+   ```sh
+   cd /Users/sohampatil/G-02
+   set -a
+   source .env
+   set +a
+   unset GOVFIX_MIGRATION_DATABASE_URL
+   uv run govfix worker --poll-seconds 30
+   ```
+
+Keep this terminal running and the Mac awake during the demo. When it stops,
+automatic deadline processing, escalation checks and notification delivery pause.
+The API and interface can still run; auditor operations checks will report a
+missing/stale worker. `/ready` checks API dependencies and does not require a
+running worker. Resume the worker to process pending work.
+
+Free web services sleep after 15 minutes without inbound traffic and take about
+one minute to wake. Render provides 750 free instance hours per workspace each
+month, shared between free web services. Bandwidth/build quotas also apply; review
+usage and billing settings if you add a payment method. See
+[Render free-plan limits](https://render.com/docs/free). Live ElevenLabs usage and
+Supabase usage follow those providers' own plans.
+
+If using the manual **New → Web Service** flow instead, select **Docker**,
+**Free**, Dockerfile `./Dockerfile`, Docker Command
+`python scripts/render_start.py web`, and health check `/ready`. Add all environment
+variables listed in `render.free.yaml`; generate a random login-rate secret locally
+with `python3 -c 'import secrets; print(secrets.token_urlsafe(32))'` and paste it into
+`GOVFIX_LOGIN_RATE_SECRET`. The Blueprint flow fills these defaults for you.
+
+## Paid deployment with a hosted worker
+
 The repository includes a Docker image and a Render Blueprint (`render.yaml`).
 The web service serves FastAPI and the built React interface at `/app/`. A separate
 worker monitors deadlines and delivers in-app notifications every 30 seconds.

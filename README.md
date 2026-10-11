@@ -82,3 +82,5 @@ Use the included `render.yaml` Blueprint to deploy the API/interface and worker
 with your existing Supabase database and private Storage bucket. Follow the
 [Render deployment guide](./docs/render-deployment.md) for secrets, migrations,
 account setup and verification.
+For a free demo, select `render.free.yaml` and run the worker on your local machine;
+the guide includes the free-plan steps and limits.
