@@ -11,7 +11,7 @@ from govfix.auth import Actor, load_actor
 from govfix.command_headers import require_key, require_version
 from govfix.database import as_utc, utcnow, write_transaction
 from govfix.errors import Refusal
-from govfix.evidence import EvidenceStore
+from govfix.evidence import make_evidence_store
 from govfix.models import (
     Assignment,
     AuditEvent,
@@ -575,7 +575,7 @@ class Workflow:
                 raise Refusal("EVIDENCE_REQUIRED", "Completed case evidence is required.", 422)
             for item in evidence:
                 if item.content_type is not None:
-                    EvidenceStore(self.settings).read(item)
+                    make_evidence_store(self.settings).read(item)
         elif operation == "verification":
             if not actor.identity_verified or not command.confirmation:
                 raise Refusal(

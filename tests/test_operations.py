@@ -372,3 +372,33 @@ def test_private_store_cannot_be_configured_under_static():
     public = Path(__file__).resolve().parents[1] / "govfix/static/evidence"
     with pytest.raises(ValueError, match="outside the public"):
         EvidenceStore(Settings(evidence_directory=str(public)))
+
+
+def test_resolution_uses_configured_remote_evidence_store(backend, monkeypatch):
+    from dataclasses import replace
+
+    from govfix.evidence import EvidenceStore
+
+    case = backend.in_progress()
+    uploaded = upload(backend, case)
+    assert uploaded.status_code == 201
+    evidence_id = uploaded.json()["evidence"]["id"]
+    local = EvidenceStore(backend.app.state.workflow.settings)
+    selected = []
+
+    def configured_store(settings):
+        selected.append(settings.supabase_service_role_key)
+        return local
+
+    backend.app.state.workflow.settings = replace(
+        backend.app.state.workflow.settings,
+        evidence_directory="/missing/remote-object-must-not-use-local-disk",
+        supabase_service_role_key="test-only-remote-store",
+    )
+    monkeypatch.setattr("govfix.workflow.make_evidence_store", configured_store)
+    response = backend.command(
+        case, "resolution", {"note": "Repaired", "evidence_refs": [evidence_id]}, "officer"
+    )
+    assert response.status_code == 200
+    assert response.json()["case"]["workflow_state"] == "CITIZEN_VERIFICATION"
+    assert selected == ["test-only-remote-store"]
