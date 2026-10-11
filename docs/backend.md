@@ -98,7 +98,7 @@ The authentication implementation follows [FastAPI's security guidance](https://
 This local foundation still needs approved municipal policy, production citizen identity verification, login/request rate limits, production object storage, external notification providers, and release validation before a real pilot.
 # Supabase deployment
 
-The backend supports Supabase as its hosted platform:
+Supabase PostgreSQL is the selected project database. Supabase Auth and Storage integrations are configured separately:
 
 - **Database:** set `GOVFIX_DATABASE_URL` to the Supabase Postgres connection string. The
   application normalizes `postgresql://` and `postgres://` URLs to the installed psycopg driver.
@@ -110,6 +110,4 @@ The backend supports Supabase as its hosted platform:
   Evidence remains checksum-verified and its metadata is committed transactionally with the case
   audit event.
 
-Copy the Supabase values into the deployment environment rather than committing them. Local
-development continues to use SQLite, local sessions, and private filesystem evidence when the
-Supabase variables are absent.
+Export the Supabase PostgreSQL connection string as `GOVFIX_DATABASE_URL` in the app and worker environments; never commit database passwords. `SUPABASE_URL` is the HTTP API URL and cannot replace the PostgreSQL connection string. When `SUPABASE_URL` is set, startup refuses a missing/non-PostgreSQL database setting to prevent accidental SQLite use. SQLite remains available for isolated tests and explicitly selected local demos. The current no-environment fallback is still SQLite; it does not establish a Supabase connection.

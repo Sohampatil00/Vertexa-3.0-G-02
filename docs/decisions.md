@@ -47,3 +47,5 @@ This log distinguishes **accepted product scope** from **proposed engineering ch
 ## Decision template
 
 When resolving an open item, append: **ID, date, owner, decision, alternatives considered, rationale, scope/API/data impact, and verification needed**. Update the [PRD](../prd.md), [workflow](./workflow.md), and [validation plan](./validation.md) together when behavior changes.
+
+**Database choice clarified, 11 October 2026:** The project database is Supabase PostgreSQL, as requested by the project owner. SQLite is limited to isolated tests and explicitly chosen local demos. Supabase connectivity must be configured and verified separately from PostgreSQL compatibility tests.

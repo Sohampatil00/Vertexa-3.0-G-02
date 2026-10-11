@@ -1,6 +1,6 @@
 # Proposed architecture
 
-**Status:** The modular backend uses FastAPI, SQLAlchemy, and Alembic, with SQLite locally and PostgreSQL verified in tests. Phase 2 adds a React client and private local image storage; Phase 3 adds a polling worker and in-app notifications; Phase 4 adds explicit citizen verification and scheduled supervisor wait alerts. Production storage, external notification providers, voice, and deployment remain proposals. See [backend setup](./backend.md) and the [implementation tracker](./implemented.md).
+**Status:** The modular backend uses FastAPI, SQLAlchemy, and Alembic, with Supabase PostgreSQL selected as the project database and SQLite available for isolated tests/local demos. Phase 2 adds a React client and private local image storage; Phase 3 adds a polling worker and in-app notifications; Phase 4 adds explicit citizen verification and scheduled supervisor wait alerts. Production storage, external notification providers, voice, and deployment remain proposals. See [backend setup](./backend.md) and the [implementation tracker](./implemented.md).
 
 ## System context
 
@@ -27,7 +27,7 @@ The **GovFix API is the sole authority** for case mutations. Browser and voice c
 |---|---|---|
 | Web application | Citizen and staff interfaces, accessible text fallback | React with TypeScript, Vite and Tailwind; Phase 2 implemented |
 | API | Auth context, workflow service, policy evaluation, case queries, assignment, evidence metadata, audit writes | FastAPI with Python 3.12, SQLAlchemy, and Alembic; Phase 1 implemented |
-| Database | Cases, versioned policies, assignments, SLA state, event history | PostgreSQL; SQLite for local development; Phase 1 schema implemented |
+| Database | Cases, versioned policies, assignments, SLA state, event history | Supabase PostgreSQL; SQLite for tests/local demos; Phase 1 schema implemented |
 | Object storage | Private evidence and optional voice artifacts | Private local files for the demo; authenticated downloads. S3-compatible production storage remains planned |
 | Job queue and worker | Deadline checks, escalation, notifications, retry handling | Database outbox and indexed polling worker implemented; production process supervision remains open |
 | Voice provider | Speech, conversation, status tools, confirmed action intents, optional outbound calls | ElevenLabs Agents and documented webhook tools |

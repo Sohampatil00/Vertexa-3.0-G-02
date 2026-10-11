@@ -55,7 +55,7 @@ The original [research and concept memo](./info.md) contains background, example
 
 ## Development status
 
-The backend uses Python 3.12, FastAPI, SQLAlchemy, and Alembic. With [uv](https://docs.astral.sh/uv/getting-started/installation/) installed, run from the repository root:
+The backend uses Python 3.12, FastAPI, SQLAlchemy, and Alembic. With [uv](https://docs.astral.sh/uv/getting-started/installation/) installed, first export `GOVFIX_DATABASE_URL` using your Supabase PostgreSQL connection string (see [Supabase setup](./docs/backend.md#supabase-deployment)), then run from the repository root:
 
 ```sh
 npm ci --prefix web
@@ -65,7 +65,7 @@ uv run govfix init-db
 uv run uvicorn govfix.api:app --host 127.0.0.1 --port 8000
 ```
 
-Open the [operations interface](http://127.0.0.1:8000/app/) or [API documentation](http://127.0.0.1:8000/docs). Provision accounts and follow the first case path in [backend.md](./docs/backend.md). Run `uv run pytest -q` for the test suite. The default database is local SQLite; PostgreSQL is also supported and tested. All current policy values are fictional demonstration rules.
+Open the [operations interface](http://127.0.0.1:8000/app/) or [API documentation](http://127.0.0.1:8000/docs). Provision accounts and follow the first case path in [backend.md](./docs/backend.md). Run `uv run pytest -q` for the test suite. The project database is Supabase PostgreSQL. Set `GOVFIX_DATABASE_URL` to your private Supabase PostgreSQL connection string before starting the app; SQLite remains a test/local-demo fallback. All current policy values are fictional demonstration rules.
 
 Run `uv run govfix worker --poll-seconds 30` in a separate terminal to monitor deadlines and verification waits and deliver in-app notifications. See [SLA operations](./docs/sla-operations.md) and [citizen verification](./docs/citizen-verification.md).
 

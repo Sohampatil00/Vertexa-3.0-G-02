@@ -16,7 +16,7 @@ Use the municipality name **Fictional Demo Municipality** and a discreet persist
 
 ## 2. Existing implementation constraints
 
-The frontend is React with TypeScript, Vite, Tailwind CSS, and Radix AlertDialog. The backend is a FastAPI modular application using SQLAlchemy and Alembic. SQLite is the local database default; PostgreSQL is supported. Private evidence is served through authenticated API requests. Optional Supabase authentication and storage adapters exist in the repository, but the design must not depend on a particular provider.
+The frontend is React with TypeScript, Vite, Tailwind CSS, and Radix AlertDialog. The backend is a FastAPI modular application using SQLAlchemy and Alembic. Supabase PostgreSQL is the selected project database; SQLite is a test/local-demo fallback. Private evidence is served through authenticated API requests. Optional Supabase authentication and storage adapters exist in the repository, but the design must not depend on a particular provider.
 
 The backend, rather than browser controls, determines permissions and valid actions. The existing UI is one shared role-aware workspace. Redesign its information architecture into focused role workspaces and reusable case views while retaining the workflow below. Proposed routes are design organization, not a claim that a client router already exists.
 
