@@ -27,11 +27,12 @@ On macOS with Python 3.12.14, 11 October 2026:
 
 | Command | Result |
 |---|---|
-| `uv run pytest -q` | 59 tests passed against SQLite |
-| `uv run --with pgserver python scripts/test_postgres.py` | 59 tests passed against a disposable PostgreSQL instance; process and data cleaned up |
+| `uv run pytest -q` | 62 tests passed against SQLite |
+| `uv run --with pgserver python scripts/test_postgres.py` | 62 tests passed against a disposable PostgreSQL instance; process and data cleaned up |
 | `uv run ruff check .` | Passed |
 | `uv run ruff format --check .` | Passed |
-| `uv run govfix init-db` and `uv run alembic check` | Pending final local verification |
+| `uv run govfix init-db` and `uv run alembic check` | Migrations applied, demo policy imported, and no schema drift detected |
+| Live HTTP smoke | `/health`, `/docs`, and `/openapi.json` passed; 16 documented paths |
 
 Tests cover a submitted → validated → assigned → in-progress case, direct assigned → closed refusal, wrong role/owner, missing or incomplete evidence, cross-citizen and cross-ward access, session expiration/revocation, duplicate requests, concurrent requests by different actors, policy pinning, append-only database protections, audit-failure rollback, and the full backend resolution/dispute graph using trusted evidence fixtures. These tests do not establish that all [P0 release gates](./validation.md) have passed.
 
