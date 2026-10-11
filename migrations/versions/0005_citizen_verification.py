@@ -39,7 +39,7 @@ def upgrade():
         sa.select(cases.c.id, policies.c.definition)
         .join(policies, cases.c.policy_version == policies.c.version)
         .where(cases.c.workflow_state == "CITIZEN_VERIFICATION")
-    )
+    ).all()
     for case_id, definition in pending:
         latest = connection.execute(
             sa.select(events.c.occurred_at)

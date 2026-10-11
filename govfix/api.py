@@ -285,6 +285,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         offset: Annotated[int, Query(ge=0)] = 0,
         state: Annotated[str | None, Query(max_length=40)] = None,
         owned: bool = False,
+        verification_waiting: bool = False,
     ):
         with sessions() as session:
             filters = [visibility_filter(actor)]
@@ -292,6 +293,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 filters.append(Case.workflow_state == state)
             if owned:
                 filters.append(Case.owner_id == actor.id)
+            if verification_waiting:
+                filters.extend(
+                    [
+                        Case.workflow_state == "CITIZEN_VERIFICATION",
+                        Case.verification_alerted_at.is_not(None),
+                    ]
+                )
             cases = session.scalars(
                 select(Case)
                 .where(*filters)
@@ -386,18 +394,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 .order_by(AuditEvent.case_version.desc())
                 .limit(1)
             )
-            dispute = None
-            if case.workflow_state == "SUPERVISOR_REVIEW":
-                dispute = session.scalar(
-                    select(AuditEvent)
-                    .where(
-                        AuditEvent.case_id == case.id,
-                        AuditEvent.operation == "verification",
-                        AuditEvent.result == "ACCEPTED",
-                    )
-                    .order_by(AuditEvent.case_version.desc())
-                    .limit(1)
+            dispute = session.scalar(
+                select(AuditEvent)
+                .where(
+                    AuditEvent.case_id == case.id,
+                    AuditEvent.operation == "verification",
+                    AuditEvent.result == "ACCEPTED",
                 )
+                .order_by(AuditEvent.case_version.desc())
+                .limit(1)
+            )
             return {
                 "resolution": {
                     "note": event.details["note"],
@@ -407,7 +413,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 if event
                 else None,
                 "dispute_statement": dispute.details.get("statement")
-                if dispute and dispute.details.get("outcome") == "DISPUTE"
+                if dispute
+                and dispute.details.get("outcome") == "DISPUTE"
+                and (event is None or dispute.case_version > event.case_version)
                 else None,
                 "request_id": request.state.request_id,
             }

@@ -175,6 +175,7 @@ function Workspace({
   const [intake, setIntake] = useState(false);
   const [state, setState] = useState("");
   const [owned, setOwned] = useState(officer);
+  const [waitingOnly, setWaitingOnly] = useState(false);
   const [offset, setOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -185,7 +186,7 @@ function Workspace({
     setError("");
     api<{ cases: Case[] }>(
       token,
-      `/cases?limit=20&offset=${offset}&owned=${owned}&state=${state}`,
+      `/cases?limit=20&offset=${offset}&owned=${owned}&state=${state}&verification_waiting=${waitingOnly}`,
     )
       .then((list) => {
         if (live) setItems(list.cases);
@@ -202,7 +203,7 @@ function Workspace({
     return () => {
       live = false;
     };
-  }, [token, state, owned, offset, revision]);
+  }, [token, state, owned, waitingOnly, offset, revision]);
   useEffect(() => {
     let live = true;
     Promise.all([
@@ -354,6 +355,19 @@ function Workspace({
                 My assignments only
               </label>
             )}
+            {supervisor && (
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={waitingOnly}
+                  onChange={(e) => {
+                    setWaitingOnly(e.target.checked);
+                    setOffset(0);
+                  }}
+                />
+                Verification needs review
+              </label>
+            )}
             <button
               className={cn(secondary, "ml-auto")}
               onClick={() => setRevision((r) => r + 1)}
@@ -371,17 +385,27 @@ function Workspace({
             <div className="p-10 text-center">
               <h2 className="font-semibold">No cases in this view</h2>
               <p className="mt-2 text-sm text-slate-500">
-                {citizen
-                  ? "Submit a grievance to get started."
-                  : "Refresh after a case is routed to your scope."}
+                {waitingOnly
+                  ? "No unanswered verification requests need review."
+                  : citizen
+                    ? "Submit a grievance to get started."
+                    : "Refresh after a case is routed to your scope."}
               </p>
               <button
                 className={cn(secondary, "mt-4")}
                 onClick={() =>
-                  citizen ? setIntake(true) : setRevision((r) => r + 1)
+                  waitingOnly
+                    ? setWaitingOnly(false)
+                    : citizen
+                      ? setIntake(true)
+                      : setRevision((r) => r + 1)
                 }
               >
-                {citizen ? "New grievance" : "Refresh"}
+                {waitingOnly
+                  ? "Show all cases"
+                  : citizen
+                    ? "New grievance"
+                    : "Refresh"}
               </button>
             </div>
           ) : (

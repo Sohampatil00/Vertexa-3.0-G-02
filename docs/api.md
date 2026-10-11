@@ -37,7 +37,7 @@ Read responses are projections; a citizen must never receive another citizen's c
 | `POST /v1/cases/{id}/assign` | Dispatcher/supervisor | Officer, department, reason | `ASSIGNED` case version and assignment ID |
 | `POST /v1/cases/{id}/accept-assignment` | Assigned officer | Explicit acceptance | `IN_PROGRESS` case version |
 | `POST /v1/cases/{id}/resolution` | Assigned officer | Approved note, completed evidence refs | `RESOLUTION_SUBMITTED` then workflow verification request |
-| `POST /v1/cases/{id}/verification` | Verified citizen | `ACCEPT` or `DISPUTE`, explicit confirmation, optional statement | `CLOSED` or `DISPUTED` case version |
+| `POST /v1/cases/{id}/verification` | Verified citizen | `ACCEPT` or `DISPUTE`, explicit confirmation; statement required for dispute | `CLOSED` or internally routed `SUPERVISOR_REVIEW` case version |
 | `POST /v1/cases/{id}/review` | Supervisor | Rework decision, owner, reason | `ASSIGNED` or `IN_PROGRESS` case version |
 | `POST /v1/cases/{id}/deadline-extension` | Authorized supervisor | New deadline and reason | Updated SLA, audit event, citizen notification request |
 | `POST /v1/cases/{id}/evidence?kind=...` | Current assigned officer, in progress | Raw image bytes; MIME type, SHA-256 header, idempotency key, case version | Verified private evidence record; workflow version unchanged |
@@ -46,7 +46,7 @@ The `resolution` endpoint should commit the officer action and enqueue or perfor
 
 Phase 3 implements `GET /v1/notifications` and `GET /v1/cases/{id}/sla`. A scoped supervisor can also call `POST /v1/cases/{id}/notification-retry` with `message_id` and `reason`, an idempotency key, and current case version. The message must belong to the case and be `FAILED`. See [SLA operations](./sla-operations.md) for delivery and retry contracts.
 
-Phase 4 adds `GET /v1/cases/{id}/resolution`, returning the latest accepted resolution note, its evidence IDs, submission time, and the current dispute statement during supervisor review. The read uses the same case scope check as the case detail. Private evidence still requires authenticated download. Case responses include `verification_due_at` and `verification_alerted_at`; `GET /v1/operations/summary` includes `verification_waiting` for scoped pending cases flagged after the policy window.
+Phase 4 adds `GET /v1/cases/{id}/resolution`, returning the latest accepted resolution note, its evidence IDs, submission time, and the current dispute statement through rework until a newer resolution is submitted. The read uses the same case scope check as the case detail. Private evidence still requires authenticated download. Case responses include `verification_due_at` and `verification_alerted_at`; `GET /v1/operations/summary` includes `verification_waiting` for scoped pending cases flagged after the policy window. `GET /v1/cases?verification_waiting=true` filters the caller's visible queue to those flagged cases.
 
 ## Voice integration endpoints
 

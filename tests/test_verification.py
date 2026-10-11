@@ -1,12 +1,16 @@
 """Citizen decisions and unanswered verification stay explicit and auditable."""
 
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 from sqlalchemy import func, select
 
-from govfix.database import as_utc
-from govfix.models import AuditEvent, Case, Notification, OutboxMessage
+from govfix.cli import import_policy, migrate
+from govfix.database import as_utc, make_engine, make_sessions, utcnow, write_transaction
+from govfix.models import AuditEvent, Case, Notification, OutboxMessage, User, new_id
+from govfix.settings import Settings
 from govfix.worker import Worker
+from tests.conftest import POLICY_PATH
 from tests.test_workflow import confirmed_evidence, verification_case
 
 
@@ -50,8 +54,10 @@ def test_resolution_presentation_and_explicit_acceptance(backend):
 def test_unanswered_verification_alerts_supervisor_once_without_closure(backend):
     case = verification_case(backend)
     due = as_utc(datetime.fromisoformat(case["verification_due_at"]))
+
     def clock():
         return due - timedelta(microseconds=1)
+
     worker = Worker(backend.sessions, backend.app.state.workflow.settings, clock=clock)
     assert worker.scan_verification()["cases_flagged"] == 0
     worker.clock = lambda: due
@@ -91,10 +97,26 @@ def test_unanswered_verification_alerts_supervisor_once_without_closure(backend)
         ]
         == 1
     )
+    queue = backend.client.get(
+        "/v1/cases?verification_waiting=true", headers=backend.headers("supervisor")
+    ).json()["cases"]
+    assert [item["id"] for item in queue] == [case["id"]]
+    assert (
+        backend.client.get(
+            "/v1/cases?verification_waiting=true", headers=backend.headers("outside-supervisor")
+        ).json()["cases"]
+        == []
+    )
     accepted = backend.command(
         waiting, "verification", {"outcome": "ACCEPT", "confirmation": True}, "citizen"
     )
     assert accepted.status_code == 200
+    assert (
+        backend.client.get(
+            "/v1/cases?verification_waiting=true", headers=backend.headers("supervisor")
+        ).json()["cases"]
+        == []
+    )
     assert (
         backend.client.get("/v1/operations/summary", headers=backend.headers("supervisor")).json()[
             "verification_waiting"
@@ -140,6 +162,12 @@ def test_dispute_supervisor_rework_and_second_verification_cycle(backend):
     assigned = rework.json()["case"]
     assert assigned["workflow_state"] == "ASSIGNED"
     assert assigned["owner_id"] == backend.users["other-officer"]
+    assert (
+        backend.client.get(
+            f"/v1/cases/{case['id']}/resolution", headers=backend.headers("other-officer")
+        ).json()["dispute_statement"]
+        == "Repair still uneven"
+    )
     in_progress = backend.command(
         assigned, "accept-assignment", {"confirmation": True}, "other-officer"
     ).json()["case"]
@@ -155,14 +183,96 @@ def test_dispute_supervisor_rework_and_second_verification_cycle(backend):
     assert pending["workflow_state"] == "CITIZEN_VERIFICATION"
     assert pending["verification_due_at"] is not None
     assert pending["verification_alerted_at"] is None
-    assert (
-        backend.client.get(f"/v1/cases/{case['id']}/resolution", headers=backend.headers()).json()[
-            "resolution"
-        ]["note"]
-        == "Repaired the uneven surface"
-    )
+    latest = backend.client.get(
+        f"/v1/cases/{case['id']}/resolution", headers=backend.headers()
+    ).json()
+    assert latest["resolution"]["note"] == "Repaired the uneven surface"
+    assert latest["dispute_statement"] is None
     closed = backend.command(
         pending, "verification", {"outcome": "ACCEPT", "confirmation": True}, "citizen"
     )
     assert closed.status_code == 200
     assert closed.json()["case"]["workflow_state"] == "CLOSED"
+
+
+def test_concurrent_wait_workers_flag_once(backend):
+    case = verification_case(backend)
+    due = datetime.fromisoformat(case["verification_due_at"])
+    workers = [
+        Worker(backend.sessions, backend.app.state.workflow.settings, clock=lambda: due)
+        for _ in range(2)
+    ]
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        counts = list(pool.map(lambda worker: worker.scan_verification()["cases_flagged"], workers))
+    assert sorted(counts) == [0, 1]
+    with backend.sessions() as session:
+        assert (
+            session.scalar(
+                select(func.count())
+                .select_from(AuditEvent)
+                .where(AuditEvent.operation == "verification-wait-review")
+            )
+            == 1
+        )
+
+
+def test_migration_schedules_existing_pending_verification(tmp_path):
+    url = f"sqlite:///{tmp_path / 'verification-upgrade.db'}"
+    migrate(url, "0004")
+    engine = make_engine(url)
+    sessions = make_sessions(engine)
+    started = utcnow()
+    identifier = new_id()
+    with write_transaction(sessions) as session:
+        version = import_policy(session, POLICY_PATH)
+        user = User(username="upgrade-citizen", display_name="Citizen", password_hash="unused")
+        session.add(user)
+        session.flush()
+        session.execute(
+            Case.__table__.insert().values(
+                id=identifier,
+                public_id=f"GF-{identifier}",
+                citizen_id=user.id,
+                workflow_state="CITIZEN_VERIFICATION",
+                category="POTHOLE",
+                department="PUBLIC_WORKS",
+                ward="WARD-A",
+                description="Pending verification",
+                location="Demo road",
+                policy_version=version,
+                submitted_at=started - timedelta(hours=2),
+                original_deadline=started + timedelta(hours=70),
+                current_deadline=started + timedelta(hours=70),
+                version=6,
+            )
+        )
+        session.add(
+            AuditEvent(
+                case_id=identifier,
+                operation="request-verification",
+                result="ACCEPTED",
+                actor_role="WORKFLOW_ENGINE",
+                channel="TEXT",
+                occurred_at=started,
+                case_version=6,
+                policy_version=version,
+                request_id="req_upgrade",
+                details={},
+            )
+        )
+    engine.dispose()
+    migrate(url)
+    engine = make_engine(url)
+    sessions = make_sessions(engine)
+    try:
+        with sessions() as session:
+            case = session.get(Case, identifier)
+            assert as_utc(case.verification_due_at) == started + timedelta(hours=72)
+            assert case.verification_alerted_at is None
+            assert case.version == 6
+        worker = Worker(
+            sessions, Settings(database_url=url), clock=lambda: started + timedelta(hours=72)
+        )
+        assert worker.scan_verification()["cases_flagged"] == 1
+    finally:
+        engine.dispose()

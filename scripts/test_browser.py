@@ -107,6 +107,7 @@ def run_browser(url, password, photo, worker):
             worker.deliver(failed_id)
         sign_out()
         login("supervisor")
+        page.get_by_label("Verification needs review").check()
         open_case()
         expect(
             page.get_by_text("A supervisor has been alerted to the wait.", exact=False)
@@ -183,6 +184,7 @@ def run_browser(url, password, photo, worker):
         sign_out()
         login("officer")
         open_case()
+        expect(page.get_by_text("The surface is still uneven")).to_be_visible()
         page.get_by_role("button", name="resolution", exact=True).click()
         page.get_by_label("Work completed").fill("Reworked and levelled the road surface")
         page.locator('input[name="evidence"]').check()

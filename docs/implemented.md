@@ -28,8 +28,8 @@ On macOS with Python 3.12.14, 11 October 2026:
 
 | Command | Result |
 |---|---|
-| `uv run pytest -q` | 109 tests passed against SQLite; 2 PostgreSQL lock tests skipped |
-| `uv run --with pgserver python scripts/test_postgres.py` | 111 tests passed against a disposable PostgreSQL instance; process and data cleaned up |
+| `uv run pytest -q` | 111 tests passed against SQLite; 2 PostgreSQL lock tests skipped |
+| `uv run --with pgserver python scripts/test_postgres.py` | 113 tests passed against a disposable PostgreSQL instance; process and data cleaned up |
 | `uv run ruff check .` | Passed |
 | `uv run ruff format --check .` | Passed |
 | `uv run govfix init-db` and `uv run alembic check` | Migrations applied, demo policy imported, and no schema drift detected |
