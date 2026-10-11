@@ -20,9 +20,11 @@ def make_engine(url: str):
         url = "postgresql+psycopg://" + url.removeprefix("postgres://")
     elif url.startswith("postgresql://"):
         url = "postgresql+psycopg://" + url.removeprefix("postgresql://")
-    options = {"pool_pre_ping": True}
+    options = {"pool_pre_ping": True, "pool_timeout": 5}
     if url.startswith("sqlite"):
         options["connect_args"] = {"check_same_thread": False, "timeout": 30}
+    elif url.startswith("postgresql"):
+        options["connect_args"] = {"connect_timeout": 5}
     engine = create_engine(url, **options)
     if engine.dialect.name == "sqlite":
 

@@ -14,6 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from govfix.auth import password_hasher
 from govfix.database import make_engine, make_sessions, verify_runtime_role, write_transaction
 from govfix.models import PolicyVersion, RoleGrant, User
+from govfix.observability import operations_status
 from govfix.policy import PolicyError, load_policy
 from govfix.settings import Settings
 from govfix.worker import Worker
@@ -89,6 +90,7 @@ def main():
     worker.add_argument("--once", action="store_true", help="Process one bounded batch and exit")
     worker.add_argument("--poll-seconds", type=float, default=30)
     worker.add_argument("--batch-size", type=int, default=100)
+    subparsers.add_parser("check-operations", help="Report readiness, worker and delivery alerts")
     args = parser.parse_args()
     password = (
         getpass.getpass("Password (12+ characters): ") if args.operation == "create-user" else None
@@ -96,12 +98,16 @@ def main():
     settings = Settings.from_env()
     database_url = (
         settings.database_url
-        if args.operation == "worker"
+        if args.operation in {"worker", "check-operations"}
         else settings.migration_database_url or settings.database_url
     )
     engine = make_engine(database_url)
     sessions = make_sessions(engine)
     try:
+        if args.operation == "check-operations":
+            result = operations_status(sessions, settings)
+            print(json.dumps(result), flush=True)
+            raise SystemExit(0 if result["status"] == "healthy" else 1)
         if args.operation == "worker":
             if settings.require_restricted_role:
                 with engine.connect() as connection:
@@ -111,8 +117,13 @@ def main():
             runner = Worker(sessions, settings)
             try:
                 while True:
-                    print(json.dumps(runner.run_once(args.batch_size)), flush=True)
+                    result = runner.run_once(args.batch_size)
+                    print(json.dumps(result), flush=True)
                     if args.once:
+                        if result.get("error") or result.get("notifications", {}).get(
+                            "UNAVAILABLE"
+                        ):
+                            raise SystemExit(1)
                         break
                     time.sleep(args.poll_seconds)
             except KeyboardInterrupt:

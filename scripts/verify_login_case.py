@@ -30,10 +30,10 @@ def verify(settings):
                 bind=connection, expire_on_commit=False, join_transaction_mode="create_savepoint"
             )
             password = secrets.token_urlsafe(24)
-            names = ["smoke-" + secrets.token_hex(8) for _ in range(2)]
+            names = ["smoke-" + secrets.token_hex(8) for _ in range(3)]
             try:
                 with sessions() as session, session.begin():
-                    for name in names:
+                    for name in names[:2]:
                         provision_user(
                             session,
                             username=name,
@@ -41,6 +41,14 @@ def verify(settings):
                             password=password,
                             role="CITIZEN",
                         )
+                    provision_user(
+                        session,
+                        username=names[2],
+                        display_name="Rollback auditor",
+                        password=password,
+                        role="AUDITOR",
+                        wards=("WARD-A",),
+                    )
                 if settings.migration_database_url:
                     # Seed with administration rights, then verify under backend RLS/privileges.
                     connection.exec_driver_sql("SET LOCAL ROLE govfix_backend")
@@ -56,6 +64,12 @@ def verify(settings):
                         return {"Authorization": "Bearer " + response.json()["access_token"]}
 
                     headers, other = login(names[0]), login(names[1])
+                    auditor = login(names[2])
+                    assert client.get("/ready").status_code == 200
+                    assert client.get("/v1/operations/status", headers=headers).status_code == 403
+                    monitor = client.get("/v1/operations/status", headers=auditor)
+                    assert monitor.status_code == 200
+                    assert monitor.json()["readiness"]["status"] == "ready"
                     assert client.get("/v1/me", headers=headers).status_code == 200
                     assert client.get("/v1/intake-options", headers=headers).status_code == 200
                     response = client.post(

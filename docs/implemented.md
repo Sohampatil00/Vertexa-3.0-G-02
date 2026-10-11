@@ -76,3 +76,19 @@ Move an item to **Implemented** only when its code exists. Move it to **Verified
 - SQLite: 137 passed, 4 PostgreSQL checks skipped. Disposable PostgreSQL: 141 passed.
 - Full operations browser workflow passed. This completes the authentication slice of
   Phase 6; observability, backup/restore, load/accessibility sessions and live voice gates remain.
+
+
+## Phase 6 readiness and observability — 11 October 2026
+
+- Public `/ready` checks database, migration, policy and restricted role; `/health` is liveness.
+- Auditor-only `/v1/operations/status` and `govfix check-operations` report durable worker
+  success/staleness/failure, notification retry/failure/backlog, and operational alert codes.
+- Safe JSON request/worker logs, generated request correlation, and per-process API counters.
+- Migration `0009` applied to Supabase; 16/16 public tables pass the permission audit.
+- SQLite: 147 passed, 4 PostgreSQL-only checks skipped. Disposable PostgreSQL: 151 passed.
+- Full operations browser workflow passed. API/worker restarted with restricted credentials.
+- See [monitoring setup](./observability.md). External alert routing/log export remains a
+  deployment task; no messages or scheduled monitoring jobs were configured.
+
+- Live Supabase `/ready` returned 200; `check-operations` reported healthy with no alerts.
+  Auditor operational access and citizen denial passed in a rolled-back live API smoke.

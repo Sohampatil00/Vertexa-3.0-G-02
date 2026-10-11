@@ -46,5 +46,6 @@ A feature moves into P0 only if its acceptance criterion, owner, and impact on t
 
 Supabase Data API permissions and login-to-case verification are complete. The authentication
 hardening slice adds shared login rate limits, a restricted PostgreSQL backend login and
-separate migration/administration credentials. Next: readiness checks, structured logs and
-worker failure visibility, followed by backup/restore and pilot load/accessibility validation.
+separate migration/administration credentials. Readiness checks, structured request/worker logs, durable worker heartbeats and operational
+alerts are implemented. Next: backup/restore and pilot load/accessibility validation; live
+voice/provider validation and pilot approval remain required before release.

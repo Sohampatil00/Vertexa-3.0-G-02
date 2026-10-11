@@ -2,6 +2,7 @@
 
 import os
 from dataclasses import dataclass
+from datetime import timedelta
 
 
 @dataclass(frozen=True)
@@ -13,6 +14,9 @@ class Settings:
     login_ip_limit: int = 30
     login_window_seconds: int = 900
     login_rate_secret: str = "local-demo-login-budget"
+    readiness_timeout_ms: int = 2000
+    worker_stale_seconds: int = 120
+    notification_backlog_seconds: int = 300
     policy_version: str = "demo-pilot-v1"
     session_minutes: int = 60
     evidence_directory: str = "./var/evidence"
@@ -29,7 +33,17 @@ class Settings:
     elevenlabs_agent_hi: str | None = None
     elevenlabs_agent_mr: str | None = None
 
+    @property
+    def notification_backlog_delta(self):
+        return timedelta(seconds=self.notification_backlog_seconds)
+
     def __post_init__(self):
+        if not 100 <= self.readiness_timeout_ms <= 10000:
+            raise ValueError("Readiness timeout must be 100–10000 milliseconds")
+        if not 1 <= self.worker_stale_seconds <= 86400:
+            raise ValueError("Worker staleness must be 1–86400 seconds")
+        if not 1 <= self.notification_backlog_seconds <= 86400:
+            raise ValueError("Notification backlog threshold must be 1–86400 seconds")
         if not 1 <= self.login_account_limit <= 100 or not 1 <= self.login_ip_limit <= 1000:
             raise ValueError("Login limits must be within account 1–100 and IP 1–1000")
         if not 1 <= self.login_window_seconds <= 86400:
@@ -62,6 +76,11 @@ class Settings:
             elevenlabs_agent_hi=os.getenv("GOVFIX_ELEVENLABS_AGENT_HI"),
             elevenlabs_agent_mr=os.getenv("GOVFIX_ELEVENLABS_AGENT_MR"),
             database_url=database_url,
+            readiness_timeout_ms=int(os.getenv("GOVFIX_READINESS_TIMEOUT_MS", "2000")),
+            worker_stale_seconds=int(os.getenv("GOVFIX_WORKER_STALE_SECONDS", "120")),
+            notification_backlog_seconds=int(
+                os.getenv("GOVFIX_NOTIFICATION_BACKLOG_SECONDS", "300")
+            ),
             require_restricted_role=os.getenv("GOVFIX_REQUIRE_RESTRICTED_ROLE", "false").lower()
             in {"true", "1", "yes"},
             migration_database_url=os.getenv("GOVFIX_MIGRATION_DATABASE_URL"),

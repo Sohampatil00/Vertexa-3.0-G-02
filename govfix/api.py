@@ -2,6 +2,7 @@
 
 from contextlib import asynccontextmanager
 from pathlib import Path
+from time import perf_counter
 from typing import Annotated
 
 from fastapi import Body, Depends, FastAPI, Header, Query, Request
@@ -25,6 +26,7 @@ from govfix.errors import Refusal
 from govfix.login_limits import reserve_login
 from govfix.models import AuditEvent, AuthSession, Case, PolicyVersion, new_id
 from govfix.notifications import register_notifications
+from govfix.observability import SCHEMA_REVISION, RequestMetrics, emit, operations_status, readiness
 from govfix.operations import register_operations
 from govfix.schemas import COMMAND_SCHEMAS, Login
 from govfix.settings import Settings
@@ -63,7 +65,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     verify_runtime_role(session.connection())
                 revision = session.execute(text("SELECT version_num FROM alembic_version")).scalar()
                 if (
-                    revision != "0008"
+                    revision != SCHEMA_REVISION
                     or session.get(PolicyVersion, settings.policy_version) is None
                 ):
                     raise RuntimeError("Run 'uv run govfix init-db' before starting the API")
@@ -79,11 +81,41 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
     app.state.sessions = sessions
     app.state.workflow = workflow
+    metrics = RequestMetrics()
+    app.state.metrics = metrics
 
     @app.middleware("http")
     async def request_id(request: Request, call_next):
         request.state.request_id = f"req_{new_id()}"
-        response = await call_next(request)
+        started = perf_counter()
+        try:
+            response = await call_next(request)
+        except Exception as exc:
+            emit(
+                "api_unhandled_error",
+                level=40,
+                request_id=request.state.request_id,
+                error_type=type(exc).__name__,
+            )
+            response = JSONResponse(
+                Refusal("INTERNAL_ERROR", "The request could not be completed.", 500).response(
+                    request.state.request_id
+                ),
+                status_code=500,
+            )
+        route = getattr(request.scope.get("route"), "path", "unmatched")
+        method = (
+            request.method
+            if request.method in {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
+            else "OTHER"
+        )
+        metrics.record(
+            method,
+            route,
+            response.status_code,
+            (perf_counter() - started) * 1000,
+            request.state.request_id,
+        )
         response.headers["X-Request-ID"] = request.state.request_id
         response.headers["Cache-Control"] = "no-store"
         return response
@@ -214,6 +246,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/health")
     def health(request: Request):
         return {"status": "ok", "mode": "DEMO_ONLY", "request_id": request.state.request_id}
+
+    @app.get("/ready")
+    def ready(request: Request):
+        result = readiness(sessions, settings)
+        return JSONResponse(
+            {**result, "request_id": request.state.request_id},
+            status_code=200 if result["status"] == "ready" else 503,
+        )
+
+    @app.get("/v1/operations/status")
+    def operational_status(request: Request, actor: Annotated[Actor, Depends(require_actor)]):
+        if not actor.has_role("AUDITOR"):
+            raise Refusal("ROLE_NOT_ALLOWED", "An auditor role is required.", 403)
+        return {
+            **operations_status(sessions, settings),
+            "api": metrics.snapshot(),
+            "request_id": request.state.request_id,
+        }
 
     @app.post("/v1/auth/login")
     def sign_in(body: Login, request: Request):

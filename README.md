@@ -62,7 +62,7 @@ npm ci --prefix web
 npm run build --prefix web
 uv sync --locked
 uv run govfix init-db
-uv run uvicorn govfix.api:app --host 127.0.0.1 --port 8000
+uv run uvicorn govfix.api:app --host 127.0.0.1 --port 8000 --no-proxy-headers --no-access-log
 ```
 
 Open the [operations interface](http://127.0.0.1:8000/app/) or [API documentation](http://127.0.0.1:8000/docs). Provision accounts and follow the first case path in [backend.md](./docs/backend.md). Run `uv run pytest -q` for the test suite. The project database is Supabase PostgreSQL. Set `GOVFIX_DATABASE_URL` to your private Supabase PostgreSQL connection string before starting the app; SQLite remains a test/local-demo fallback. All current policy values are fictional demonstration rules.
@@ -72,3 +72,6 @@ Run `uv run govfix worker --poll-seconds 30` in a separate terminal to monitor d
 ## Design principle
 
 **AI assists communication. Workflow rules enforce accountability.** Every action that changes a case must pass authentication, role and ownership checks, transition validation, and audit recording in the backend.
+
+Readiness probes use `/ready`; operational checks use `uv run govfix check-operations`.
+See [observability and monitoring](./docs/observability.md) for worker alerts and safe logs.

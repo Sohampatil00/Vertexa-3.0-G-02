@@ -16,8 +16,10 @@ from govfix.models import (
     OutboxMessage,
     RoleGrant,
     User,
+    WorkerStatus,
     new_id,
 )
+from govfix.observability import emit
 from govfix.sla import record_due
 from govfix.workflow import Workflow, snapshot, visible
 
@@ -29,6 +31,7 @@ class Worker:
         self.sessions = sessions
         self.workflow = Workflow(sessions, settings)
         self.clock = clock
+        self.worker_id = new_id()
 
     def scan(self, limit=100):
         now = as_utc(self.clock())
@@ -260,14 +263,64 @@ class Worker:
                 )
         return len(keys)
 
+    def record_status(self, *, started=False, error=None):
+        now = as_utc(self.clock())
+        with write_transaction(self.sessions) as session:
+            row = session.get(WorkerStatus, self.worker_id)
+            if row is None:
+                row = WorkerStatus(id=self.worker_id, started_at=now)
+                session.add(row)
+            if started:
+                row.started_at = now
+                row.finished_at = None
+            else:
+                row.finished_at = now
+                row.last_error = error
+                if error is None:
+                    row.last_success_at = now
+            # One row per process; old process entries do not grow indefinitely.
+            session.execute(
+                delete(WorkerStatus).where(
+                    WorkerStatus.id != self.worker_id,
+                    WorkerStatus.started_at < now - timedelta(days=7),
+                )
+            )
+
     def run_once(self, limit=100):
+        error = None
         try:
-            return {
+            self.record_status(started=True)
+            result = {
                 "sla": self.scan(limit),
                 "verification": self.scan_verification(limit),
                 "notifications": self.dispatch(limit),
                 "login_budgets_pruned": self.prune_login_budgets(limit),
             }
+            if result["notifications"]["UNAVAILABLE"]:
+                error = "DEPENDENCY_UNAVAILABLE"
+            self.record_status(error=error)
         except SQLAlchemyError:
-            # Keep polling through transient database failure; no transaction can partially commit.
-            return {"error": "DEPENDENCY_UNAVAILABLE"}
+            error = "DEPENDENCY_UNAVAILABLE"
+            result = {"error": error}
+            try:
+                self.record_status(error=error)
+            except SQLAlchemyError:
+                # The last durable heartbeat ages out while the database is offline.
+                pass
+        except Exception:
+            error = "WORKER_INTERNAL_ERROR"
+            try:
+                self.record_status(error=error)
+            except SQLAlchemyError:
+                pass
+            result = {"error": error}
+        failed_delivery = result.get("notifications", {}).get("FAILED", 0)
+        retries = result.get("notifications", {}).get("RETRY", 0)
+        emit(
+            "worker_cycle",
+            level=40 if error else 30 if failed_delivery or retries else 20,
+            worker_id=self.worker_id,
+            error=error,
+            result=result,
+        )
+        return result
