@@ -1,0 +1,287 @@
+{
+  "version": "demo-pilot-v2",
+  "status": "DEMO_ONLY",
+  "municipality": "Fictional Demo Municipality",
+  "timezone": "Asia/Kolkata",
+  "calendar": {
+    "basis": "ELAPSED_HOURS",
+    "description": "Continuous elapsed time, including weekends and holidays. Demonstration only."
+  },
+  "wards": [
+    "WARD-A",
+    "WARD-B"
+  ],
+  "departments": [
+    "PUBLIC_WORKS",
+    "SANITATION",
+    "ELECTRICAL",
+    "WATER_SUPPLY",
+    "DRAINAGE"
+  ],
+  "roles": [
+    "CITIZEN",
+    "INTAKE_OFFICER",
+    "DISPATCHER",
+    "OFFICER",
+    "SUPERVISOR",
+    "WARD_HEAD",
+    "WORKFLOW_ENGINE",
+    "AUDITOR"
+  ],
+  "categories": [
+    {
+      "code": "POTHOLE",
+      "title": "Pothole",
+      "description": "A pothole on a public road creates a hazard for vehicles or pedestrians.",
+      "example": "Pothole filled with rainwater near the bus stop.",
+      "department": "PUBLIC_WORKS",
+      "sla_hours": 72,
+      "resolution_evidence": [
+        "AFTER_PHOTO"
+      ],
+      "image": "/demo/civic-issues/pothole.jpg"
+    },
+    {
+      "code": "DAMAGED_ROAD",
+      "title": "Damaged road surface",
+      "description": "Broken asphalt, ruts, or loose road material need repair.",
+      "example": "Road surface has crumbled across the junction.",
+      "department": "PUBLIC_WORKS",
+      "sla_hours": 120,
+      "resolution_evidence": [
+        "AFTER_PHOTO"
+      ],
+      "image": "/demo/civic-issues/pothole.jpg"
+    },
+    {
+      "code": "BROKEN_FOOTPATH",
+      "title": "Broken footpath",
+      "description": "Uneven or broken pavement blocks safe walking.",
+      "example": "Footpath tiles are broken beside the clinic.",
+      "department": "PUBLIC_WORKS",
+      "sla_hours": 120,
+      "resolution_evidence": [
+        "AFTER_PHOTO"
+      ],
+      "image": "/demo/civic-issues/broken-footpath.jpg"
+    },
+    {
+      "code": "OPEN_MANHOLE",
+      "title": "Open or damaged manhole",
+      "description": "A missing or unsafe manhole cover creates an urgent hazard.",
+      "example": "Manhole cover is missing near the school crossing.",
+      "department": "PUBLIC_WORKS",
+      "sla_hours": 12,
+      "resolution_evidence": [
+        "AFTER_PHOTO"
+      ],
+      "image": "/demo/civic-issues/broken-footpath.jpg"
+    },
+    {
+      "code": "MISSED_WASTE_COLLECTION",
+      "title": "Missed waste collection",
+      "description": "Scheduled household waste has not been collected.",
+      "example": "Waste bags were not picked up on the usual collection day.",
+      "department": "SANITATION",
+      "sla_hours": 48,
+      "resolution_evidence": [
+        "AFTER_PHOTO"
+      ],
+      "image": "/demo/civic-issues/garbage.jpg"
+    },
+    {
+      "code": "OVERFLOWING_BIN",
+      "title": "Overflowing public bin",
+      "description": "A public waste bin is full and litter is spreading.",
+      "example": "Community bin is overflowing onto the footpath.",
+      "department": "SANITATION",
+      "sla_hours": 24,
+      "resolution_evidence": [
+        "AFTER_PHOTO"
+      ],
+      "image": "/demo/civic-issues/garbage.jpg"
+    },
+    {
+      "code": "GARBAGE_DUMPING",
+      "title": "Garbage dumping",
+      "description": "Waste has been dumped at a public place or roadside.",
+      "example": "Mixed waste has been dumped on the vacant roadside.",
+      "department": "SANITATION",
+      "sla_hours": 48,
+      "resolution_evidence": [
+        "AFTER_PHOTO"
+      ],
+      "image": "/demo/civic-issues/garbage.jpg"
+    },
+    {
+      "code": "BROKEN_STREETLIGHT",
+      "title": "Broken streetlight",
+      "description": "A public streetlight is not working after dark.",
+      "example": "Streetlight beside the lane has been off for three nights.",
+      "department": "ELECTRICAL",
+      "sla_hours": 48,
+      "resolution_evidence": [
+        "AFTER_PHOTO"
+      ],
+      "image": "/demo/civic-issues/streetlight.jpg"
+    },
+    {
+      "code": "WATER_PIPE_LEAK",
+      "title": "Water pipe leak",
+      "description": "Water is leaking from a public supply pipe or valve.",
+      "example": "Water is flowing from a broken pipe near the pavement.",
+      "department": "WATER_SUPPLY",
+      "sla_hours": 24,
+      "resolution_evidence": [
+        "AFTER_PHOTO"
+      ],
+      "image": "/demo/civic-issues/water-leak.jpg"
+    },
+    {
+      "code": "NO_WATER_SUPPLY",
+      "title": "No water supply",
+      "description": "A locality has lost its expected municipal water supply.",
+      "example": "No water reached the building taps since yesterday morning.",
+      "department": "WATER_SUPPLY",
+      "sla_hours": 24,
+      "resolution_evidence": [
+        "AFTER_PHOTO"
+      ],
+      "image": "/demo/civic-issues/water-leak.jpg"
+    },
+    {
+      "code": "BLOCKED_DRAIN",
+      "title": "Blocked stormwater drain",
+      "description": "A roadside drain is clogged and rainwater is pooling.",
+      "example": "Drain grate is blocked with silt and leaves after rainfall.",
+      "department": "DRAINAGE",
+      "sla_hours": 48,
+      "resolution_evidence": [
+        "AFTER_PHOTO"
+      ],
+      "image": "/demo/civic-issues/blocked-drain.jpg"
+    },
+    {
+      "code": "SEWAGE_OVERFLOW",
+      "title": "Sewage overflow",
+      "description": "Wastewater is overflowing from a public sewer or drain.",
+      "example": "Wastewater is coming out of the roadside chamber.",
+      "department": "DRAINAGE",
+      "sla_hours": 24,
+      "resolution_evidence": [
+        "AFTER_PHOTO"
+      ],
+      "image": "/demo/civic-issues/blocked-drain.jpg"
+    }
+  ],
+  "rejection_reason_codes": [
+    "OUT_OF_JURISDICTION",
+    "DUPLICATE",
+    "INSUFFICIENT_INFORMATION"
+  ],
+  "verification_review_after_hours": 72,
+  "thresholds": [
+    {
+      "key": "WARNING",
+      "percent_of_sla": 80,
+      "recipient_role": "OFFICER"
+    },
+    {
+      "key": "SUPERVISOR_ESCALATION",
+      "percent_of_sla": 100,
+      "recipient_role": "SUPERVISOR"
+    },
+    {
+      "key": "WARD_HEAD_ESCALATION",
+      "percent_of_sla": 150,
+      "recipient_role": "WARD_HEAD"
+    }
+  ],
+  "transitions": [
+    {
+      "from": "NEW",
+      "to": "SUBMITTED",
+      "roles": [
+        "CITIZEN"
+      ]
+    },
+    {
+      "from": "SUBMITTED",
+      "to": "VALIDATED",
+      "roles": [
+        "INTAKE_OFFICER"
+      ]
+    },
+    {
+      "from": "SUBMITTED",
+      "to": "REJECTED",
+      "roles": [
+        "INTAKE_OFFICER"
+      ]
+    },
+    {
+      "from": "VALIDATED",
+      "to": "ASSIGNED",
+      "roles": [
+        "DISPATCHER",
+        "SUPERVISOR"
+      ]
+    },
+    {
+      "from": "ASSIGNED",
+      "to": "IN_PROGRESS",
+      "roles": [
+        "OFFICER"
+      ]
+    },
+    {
+      "from": "IN_PROGRESS",
+      "to": "RESOLUTION_SUBMITTED",
+      "roles": [
+        "OFFICER"
+      ]
+    },
+    {
+      "from": "RESOLUTION_SUBMITTED",
+      "to": "CITIZEN_VERIFICATION",
+      "roles": [
+        "WORKFLOW_ENGINE"
+      ]
+    },
+    {
+      "from": "CITIZEN_VERIFICATION",
+      "to": "CLOSED",
+      "roles": [
+        "CITIZEN"
+      ]
+    },
+    {
+      "from": "CITIZEN_VERIFICATION",
+      "to": "DISPUTED",
+      "roles": [
+        "CITIZEN"
+      ]
+    },
+    {
+      "from": "DISPUTED",
+      "to": "SUPERVISOR_REVIEW",
+      "roles": [
+        "WORKFLOW_ENGINE"
+      ]
+    },
+    {
+      "from": "SUPERVISOR_REVIEW",
+      "to": "ASSIGNED",
+      "roles": [
+        "SUPERVISOR"
+      ]
+    },
+    {
+      "from": "SUPERVISOR_REVIEW",
+      "to": "IN_PROGRESS",
+      "roles": [
+        "SUPERVISOR"
+      ]
+    }
+  ]
+}

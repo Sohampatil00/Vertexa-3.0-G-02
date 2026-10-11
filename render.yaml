@@ -56,7 +56,7 @@ envVarGroups:
       - key: GOVFIX_REQUIRE_RESTRICTED_ROLE
         value: "true"
       - key: GOVFIX_POLICY_VERSION
-        value: demo-pilot-v1
+        value: demo-pilot-v2
       - key: GOVFIX_WORKER_STALE_SECONDS
         value: "120"
       - key: GOVFIX_READINESS_TIMEOUT_MS

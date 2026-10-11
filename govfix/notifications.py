@@ -43,6 +43,9 @@ def register_notifications(app, sessions, require_actor, read_case, scope_filter
                         "reason": message.payload.get("reason")
                         if item.kind == "DEADLINE_EXTENDED"
                         else None,
+                        "intake_officer": message.payload.get("intake_officer")
+                        if item.kind == "INTAKE_VALIDATED"
+                        else None,
                         "created_at": as_utc(item.created_at).isoformat(),
                         "timezone": policies[case.policy_version]["timezone"],
                     }

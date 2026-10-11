@@ -22,7 +22,7 @@ def validate_image(data: bytes, content_type: str, expected_hash: str):
             with Image.open(io.BytesIO(data)) as image:
                 if CONTENT_TYPES.get(image.format) != content_type:
                     raise Refusal("INVALID_IMAGE", "Choose a PNG, JPEG, or WebP image.", 422)
-                if image.width * image.height > 20_000_000 or image.n_frames != 1:
+                if image.width * image.height > 20_000_000 or getattr(image, "n_frames", 1) != 1:
                     raise Refusal(
                         "INVALID_IMAGE", "Use a still image of at most 20 megapixels.", 422
                     )

@@ -135,7 +135,7 @@ uv run govfix init-db
 ```
 
 `init-db` uses `GOVFIX_MIGRATION_DATABASE_URL` to apply Alembic migrations and load
-the configured demo policy. The current schema head is `0009`. Keep the migration
+the configured demo policy. The current schema head is `0010`. Keep the migration
 connection on your trusted administration machine. The running services receive
 only `GOVFIX_DATABASE_URL` with the restricted `govfix_runtime` login. If this role
 has not been provisioned, follow [authentication hardening](./backend.md#phase-6-authentication-hardening)

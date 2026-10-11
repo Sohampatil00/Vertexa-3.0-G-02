@@ -31,7 +31,8 @@ export function DispatcherDashboard({
   );
   const [loadingOps, setLoadingOps] = useState<boolean>(false);
 
-  const selectedCase = activeCase || validatedCases[0] || null;
+  const selectedCase =
+    validatedCases.find((item) => item.id === activeCase?.id) || validatedCases[0] || null;
 
   // Load eligible officers when active case changes
   useEffect(() => {
@@ -125,10 +126,10 @@ export function DispatcherDashboard({
               Available Officers in Roster
             </span>
             <span className="text-3xl font-bold text-[#0b1c30] mt-1 block">
-              {officers.length || 2}
+              {officers.length}
             </span>
             <span className="font-mono text-[11px] text-[#0037b0] font-semibold">
-              Wards A & B Rostered
+              Eligible for the selected case
             </span>
           </div>
           <div className="w-12 h-12 rounded-lg bg-[#dce9ff] flex items-center justify-center text-[#0037b0]">
@@ -144,10 +145,13 @@ export function DispatcherDashboard({
               SLA Unassigned Breaches
             </span>
             <span className="text-3xl font-bold text-[#0b1c30] mt-1 block">
-              0
+              {
+                validatedCases.filter((item) => item.sla_status === "OVERDUE")
+                  .length
+              }
             </span>
             <span className="font-mono text-[11px] text-emerald-700 font-semibold">
-              100% SLA Compliant
+              Awaiting assignment past deadline
             </span>
           </div>
           <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-800">
@@ -286,7 +290,7 @@ export function DispatcherDashboard({
                   onClick={() => onOpenCase(selectedCase)}
                   className="text-xs text-[#0037b0] hover:underline font-semibold flex items-center gap-1"
                 >
-                  <span>Details</span>
+                  <span>View case</span>
                   <span className="material-symbols-outlined text-[14px]">
                     open_in_new
                   </span>
@@ -297,6 +301,9 @@ export function DispatcherDashboard({
                 <span className="text-xs font-semibold text-[#434655] block mb-1">
                   Validated Grievance Summary
                 </span>
+                <p className="text-xs text-[#0037b0] mb-2">
+                  Intake validation received. This case is ready for dispatch.
+                </p>
                 <p className="text-xs text-[#0b1c30] bg-[#eff4ff] p-3 rounded-lg leading-relaxed">
                   {selectedCase.description}
                 </p>
@@ -319,6 +326,7 @@ export function DispatcherDashboard({
                     </div>
                   ) : officers.length > 0 ? (
                     <select
+                      aria-label="Select field officer in department"
                       value={selectedOfficer}
                       onChange={(e) => setSelectedOfficer(e.target.value)}
                       className="w-full text-xs font-semibold p-2.5 rounded-lg bg-white border border-[#d9cdba] text-[#0b1c30] focus:ring-1 focus:ring-[#f77f00]"

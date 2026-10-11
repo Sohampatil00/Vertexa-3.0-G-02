@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
 
 
 class Input(BaseModel):
@@ -25,6 +25,17 @@ class Submit(Command):
     category: str = Field(min_length=1, max_length=100)
     ward: str = Field(min_length=1, max_length=100)
     confirmation: bool
+    latitude: float | None = Field(default=None, ge=-90, le=90, allow_inf_nan=False)
+    longitude: float | None = Field(default=None, ge=-180, le=180, allow_inf_nan=False)
+    accuracy_m: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+
+    @model_validator(mode="after")
+    def complete_coordinates(self):
+        if (self.latitude is None) != (self.longitude is None):
+            raise ValueError("Latitude and longitude must be provided together")
+        if self.accuracy_m is not None and self.latitude is None:
+            raise ValueError("Accuracy requires coordinates")
+        return self
 
 
 class Validate(Command):

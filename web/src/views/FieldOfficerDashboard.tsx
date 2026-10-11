@@ -313,9 +313,7 @@ export function FieldOfficerDashboard({
                     onClick={() => onOpenCase(item)}
                     className="px-4 py-2 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0b1c30] text-xs font-semibold rounded border border-[#d9cdba] transition-colors cursor-pointer"
                   >
-                    {item.workflow_state === "IN_PROGRESS"
-                      ? "Resolve & Upload Evidence"
-                      : "Inspect Case"}
+                    View case
                   </button>
                 </div>
               </div>

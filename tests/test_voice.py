@@ -119,6 +119,53 @@ def test_expiry_cancel_and_confirmation(backend):
     assert confirm(backend, sid, digest).status_code == 409
 
 
+def test_recover_active_voice_session_is_private_and_can_be_discarded(backend):
+    path = "/v1/voice/session"
+    assert backend.client.get(path, headers=backend.headers()).json() is None
+    sid, digest = prepare(backend)
+    response = backend.client.get(path, headers=backend.headers())
+    assert response.status_code == 200
+    assert response.json()["session_id"] == sid
+    assert response.json()["review"] == {
+        "draft": {key: value for key, value in DRAFT.items() if key != "transcript"},
+        "draft_hash": digest,
+    }
+    assert "signed_url" not in response.json()
+    assert "transcript" not in response.text
+    with backend.sessions() as db, db.begin():
+        db.get(User, backend.users["other-citizen"]).identity_verified = True
+    assert backend.client.get(path, headers=backend.headers("other-citizen")).json() is None
+    assert backend.client.get(path, headers=backend.headers("officer")).status_code == 403
+
+    def unexpected_signing(_):
+        raise AssertionError("An active session must be recoverable without provider signing")
+
+    backend.app.state.voice_signer = unexpected_signing
+    assert (
+        backend.client.post(
+            path, json={"consent": True, "language": "en"}, headers=backend.headers()
+        ).status_code
+        == 409
+    )
+    assert (
+        backend.client.post(f"/v1/voice/{sid}/cancel", headers=backend.headers()).status_code == 200
+    )
+    assert backend.client.get(path, headers=backend.headers()).json() is None
+    assert start(backend).status_code == 201
+
+
+def test_recovery_excludes_expired_and_completed_sessions(backend):
+    sid = start(backend).json()["session_id"]
+    response = backend.client.get("/v1/voice/session", headers=backend.headers())
+    assert response.json()["review"] is None
+    with backend.sessions() as db, db.begin():
+        db.get(VoiceSession, sid).expires_at = utcnow() - timedelta(seconds=1)
+    assert backend.client.get("/v1/voice/session", headers=backend.headers()).json() is None
+    sid, digest = prepare(backend)
+    assert confirm(backend, sid, digest).status_code == 201
+    assert backend.client.get("/v1/voice/session", headers=backend.headers()).json() is None
+
+
 def test_voice_status_and_drafts_are_scoped_to_citizen(backend):
     own = backend.submit().json()["case"]
     other = backend.submit(who="other-citizen").json()["case"]

@@ -20,6 +20,7 @@ import {
   type User,
 } from "./api";
 import { ErrorText, Field } from "./ui";
+import { AccessibilityControls } from "./accessibility";
 import "./style.css";
 
 function App() {
@@ -73,9 +74,13 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30]">
+    <div className="min-h-dvh bg-[#f8f9ff] text-[#0b1c30]">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:p-3">Skip to main content</a>
       {!user ? (
-        <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12">
+        <div className="min-h-dvh flex flex-col justify-center items-center px-4 py-12">
+          <div className="absolute right-4 top-4 z-10">
+            <AccessibilityControls />
+          </div>
           {/* Institutional Header Banner */}
           <div className="mb-8 text-center max-w-md">
             <div className="w-14 h-14 rounded-2xl bg-[#f77f00] flex items-center justify-center text-white shadow-md mx-auto mb-3">
@@ -96,7 +101,7 @@ function App() {
             </p>
           </div>
 
-          <main className="w-full max-w-md">
+          <main id="main-content" tabIndex={-1} className="w-full max-w-md">
             <div className="rounded-xl border border-[#d9cdba] bg-white p-7 shadow-sm">
               <div className="mb-5">
                 <span className="text-[10px] font-bold tracking-wider text-[#0037b0] uppercase">
@@ -206,6 +211,7 @@ function Workspace({
     states: Record<string, number>;
     verification_waiting: number;
   } | null>(null);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [showNewGrievance, setShowNewGrievance] = useState(false);
@@ -213,6 +219,12 @@ function Workspace({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [revision, setRevision] = useState(0);
+
+  useEffect(() => {
+    if (currentView === "notifications") return;
+    const timer = window.setInterval(() => setRevision((value) => value + 1), 15000);
+    return () => window.clearInterval(timer);
+  }, [currentView]);
 
   // Command execution ref
   const attempt = useRef<{ digest: string; key: string } | null>(null);
@@ -266,6 +278,20 @@ function Workspace({
       live = false;
     };
   }, [token, revision]);
+
+  useEffect(() => {
+    let live = true;
+    api<{ notifications: { id: string }[] }>(token, "/notifications?limit=1")
+      .then((result) => {
+        if (live) setNotificationCount(result.notifications.length);
+      })
+      .catch(() => {
+        if (live) setNotificationCount(0);
+      });
+    return () => {
+      live = false;
+    };
+  }, [token, revision, currentView]);
 
   // Action helpers
   async function handleValidate(item: Case) {
@@ -368,6 +394,9 @@ function Workspace({
     category: string;
     ward: string;
     confirmation: boolean;
+    latitude?: number;
+    longitude?: number;
+    accuracy_m?: number;
   }) {
     setBusy(true);
     try {
@@ -397,8 +426,6 @@ function Workspace({
     }
   }
 
-  const notificationCount = summary?.verification_waiting || 0;
-
   return (
     <div className="min-h-screen bg-[#f8f9ff]">
       {/* Top Header */}
@@ -418,7 +445,7 @@ function Workspace({
       />
 
       {/* Main Dashboard Workspace */}
-      <main className="md:pl-72 md:pt-24 min-h-screen bg-[#f8f9ff] px-4 py-6 pb-16 min-w-0">
+      <main id="main-content" tabIndex={-1} className="md:pl-72 md:pt-24 min-h-dvh bg-[#f8f9ff] px-4 py-6 pb-16 min-w-0">
         <div className="max-w-7xl mx-auto">
           {error && (
             <div className="mb-4">

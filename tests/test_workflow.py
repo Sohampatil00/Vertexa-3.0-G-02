@@ -10,6 +10,8 @@ from sqlalchemy.exc import OperationalError
 from govfix.cli import import_policy
 from govfix.database import as_utc
 from govfix.models import Assignment, AuditEvent, Case, Evidence, OutboxMessage
+from govfix.settings import Settings
+from govfix.worker import Worker
 from tests.conftest import POLICY_PATH
 
 
@@ -75,6 +77,68 @@ def test_valid_foundation_path_with_one_owner(backend):
         )
         assert session.scalar(select(func.count()).select_from(Assignment)) == 1
     assert len(audits(backend, result="ACCEPTED")) == 4
+
+
+def test_intake_validation_notifies_scoped_dispatcher(backend):
+    submitted = backend.submit().json()["case"]
+    response = backend.command(
+        submitted,
+        "validate",
+        {
+            "category": submitted["category"],
+            "ward": submitted["ward"],
+            "department": submitted["department"],
+            "jurisdiction": "Fictional Demo Municipality",
+        },
+        "intake",
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["case"]["workflow_state"] == "VALIDATED"
+    with backend.sessions() as session:
+        message = session.scalar(
+            select(OutboxMessage).where(OutboxMessage.kind == "INTAKE_VALIDATED")
+        )
+        assert message.payload["intake_officer"] == "intake"
+        message_id = message.id
+    worker = Worker(backend.sessions, Settings(database_url=backend.url))
+    assert worker.deliver(message_id) == "DELIVERED"
+    inbox = backend.client.get("/v1/notifications", headers=backend.headers("dispatcher"))
+    assert inbox.status_code == 200
+    assert inbox.json()["notifications"][0]["kind"] == "INTAKE_VALIDATED"
+    assert inbox.json()["notifications"][0]["intake_officer"] == "intake"
+    assert (
+        backend.client.get("/v1/notifications", headers=backend.headers("other-citizen")).json()[
+            "notifications"
+        ]
+        == []
+    )
+
+
+def test_report_coordinates_reach_scoped_authority(backend):
+    response = backend.submit(latitude=18.5204, longitude=73.8567, accuracy_m=12.5)
+    assert response.status_code == 201, response.text
+    case = response.json()["case"]
+    assert (case["latitude"], case["longitude"], case["accuracy_m"]) == (18.5204, 73.8567, 12.5)
+    authority = backend.client.get(f"/v1/cases/{case['id']}", headers=backend.headers("intake"))
+    assert authority.status_code == 200
+    assert authority.json()["case"]["latitude"] == 18.5204
+    with backend.sessions() as session:
+        stored = session.scalar(select(Case).where(Case.public_id == case["id"]))
+        assert stored.longitude == 73.8567
+
+
+@pytest.mark.parametrize(
+    "coordinates",
+    [
+        {"latitude": 18.52},
+        {"latitude": 91, "longitude": 73},
+        {"latitude": 18, "longitude": 181},
+        {"accuracy_m": 5},
+    ],
+)
+def test_invalid_report_coordinates_are_rejected(backend, coordinates):
+    response = backend.submit(**coordinates)
+    assert response.status_code == 422
 
 
 def test_skipped_closure_is_refused_and_audited(backend):
@@ -338,7 +402,14 @@ def test_resolution_and_verification_request_commit_once(backend):
     assert first.json()["case"]["version"] == 6
     assert len(audits(backend, operation="request-verification")) == 1
     with backend.sessions() as session:
-        assert session.scalar(select(func.count()).select_from(OutboxMessage)) == 1
+        assert (
+            session.scalar(
+                select(func.count())
+                .select_from(OutboxMessage)
+                .where(OutboxMessage.kind == "CITIZEN_VERIFICATION_REQUEST")
+            )
+            == 1
+        )
 
 
 def test_verified_citizen_acceptance_closes_case(backend):

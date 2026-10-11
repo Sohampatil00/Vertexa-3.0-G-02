@@ -4,20 +4,20 @@
 
 GovFix is a proposed municipal grievance workflow system. Citizens can report an issue by text or voice, staff can validate and resolve it, and citizens can verify the result. A deterministic backend is responsible for status changes, assignments, deadlines, escalations, and the audit trail. AI and ElevenLabs help people communicate with the system; they do not independently change a case.
 
-> **Project status:** Phases 1–4 run locally. Citizens can inspect submitted resolutions, explicitly accept or dispute them, and supervisors can send disputed cases for rework. Unanswered verification stays open and is flagged for supervisor review after the configured window. The policy is fictional and voice integration remains planned. See the [implementation tracker](./docs/implemented.md).
+> **Project status:** Phases 1–4 run locally. Citizens can inspect submitted resolutions, explicitly accept or dispute them, and supervisors can send disputed cases for rework. Unanswered verification stays open and is flagged for supervisor review after the configured window. The policy is fictional. Private ElevenLabs intake is configured for English, Hindi and Marathi; browser dictation and read-aloud supplement the text workflow. Backup/restore, retry/load checks, accessible dialogs and an optional embedded worker are implemented. See the [implementation tracker](./docs/implemented.md).
 
 ## Why this project
 
 Municipal requests often cross teams and deadlines. GovFix aims to make the current owner, next action, SLA status, and evidence of resolution visible while rejecting invalid or unauthorized actions. The initial scope is one complete **municipal grievance resolution** workflow, designed so policies can later be configured for other public institutions.
 
-## Planned first release
+## Implemented demonstration
 
 - Citizen text and multilingual voice intake with read-back and explicit confirmation.
 - Backend state machine and role-based access control that refuse skipped or unauthorized transitions.
 - Category-specific deadlines, automatic overdue escalation, and visible audit events.
 - Officer assignment, field evidence, resolution submission, and citizen acceptance or dispute.
 - Case status and timeline for citizens, officers, supervisors, and auditors.
-- AI suggestions for extraction, routing, translation, and drafting, reviewed by an authorized person.
+- Voice draft preparation and read-back, followed by explicit citizen confirmation.
 
 ## How the workflow works
 
@@ -41,6 +41,7 @@ An intake officer can reject a submitted case with a coded reason. `OVERDUE` is 
 | [Documentation index](./docs/README.md) | Reading order and document ownership |
 | [Roadmap](./docs/roadmap.md) | Delivery phases and exit criteria |
 | [Implementation tracker](./docs/implemented.md) | What exists today and what remains |
+| [Submission workflow](./docs/submission-workflow.md) | Short role-by-role demo, deployment and recovery instructions |
 | [Architecture](./docs/architecture.md) | Proposed system components and request flow |
 | [Workflow](./docs/workflow.md) | States, permissions, deadlines, and escalation |
 | [Database](./docs/database.md) | Proposed data model and integrity rules |
@@ -66,6 +67,8 @@ uv run uvicorn govfix.api:app --host 127.0.0.1 --port 8000 --no-proxy-headers --
 ```
 
 Open the [operations interface](http://127.0.0.1:8000/app/) or [API documentation](http://127.0.0.1:8000/docs). Provision accounts and follow the first case path in [backend.md](./docs/backend.md). Run `uv run pytest -q` for the test suite. The project database is Supabase PostgreSQL. Set `GOVFIX_DATABASE_URL` to your private Supabase PostgreSQL connection string before starting the app; SQLite remains a test/local-demo fallback. All current policy values are fictional demonstration rules.
+
+The web interface includes English, Hindi, and Marathi language options and a high-contrast toggle on sign-in and dashboard pages. Both preferences persist in the browser. Interface text is translated locally; citizen-entered content stays in its original language.
 
 Run `uv run govfix worker --poll-seconds 30` in a separate terminal to monitor deadlines and verification waits and deliver in-app notifications. See [SLA operations](./docs/sla-operations.md) and [citizen verification](./docs/citizen-verification.md).
 

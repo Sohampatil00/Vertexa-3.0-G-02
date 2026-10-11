@@ -158,6 +158,18 @@ def validate_policy(policy: object) -> dict:
         _unique_nonempty_strings(
             category.get("resolution_evidence"), f"category {code} resolution_evidence"
         )
+        for field in ("title", "description", "example"):
+            if field in category:
+                _require(
+                    isinstance(category[field], str) and bool(category[field].strip()),
+                    f"category {code} {field} must be nonempty text",
+                )
+        if "image" in category:
+            _require(
+                isinstance(category["image"], str)
+                and bool(re.fullmatch(r"/demo/civic-issues/[a-z0-9-]+\.jpg", category["image"])),
+                f"category {code} image must be a demo image path",
+            )
     _require(
         isinstance(policy["thresholds"], list) and bool(policy["thresholds"]),
         "thresholds must be a nonempty list",

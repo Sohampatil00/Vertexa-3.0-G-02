@@ -26,6 +26,61 @@ from govfix.worker import Worker
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def check_accessibility(page, stage):
+    page.add_script_tag(path=str(ROOT / "web/node_modules/axe-core/axe.min.js"))
+    violations = page.evaluate("""async () => (await axe.run(document, {
+        runOnly: {type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']}
+    })).violations.map(v => ({id: v.id, impact: v.impact,
+      nodes: v.nodes.map(n => ({target: n.target, html: n.html}))}))""")
+    assert not violations, {"stage": stage, "violations": violations}
+
+
+def test_voice_recovery(page, case):
+    """A fresh browser can discard an orphaned session and retrieve its saved draft."""
+    cancellations = []
+    draft = {key: case[key] for key in ("description", "location", "category", "ward")}
+
+    def handler_for(review):
+        def endpoint(route):
+            if route.request.method == "GET":
+                route.fulfill(
+                    json={
+                        "session_id": "orphaned-session",
+                        "language": "mr",
+                        "expires_at": (datetime.now(UTC) + timedelta(minutes=15)).isoformat(),
+                        "review": review,
+                    }
+                )
+            elif route.request.url.endswith("/cancel"):
+                cancellations.append(route.request.url)
+                route.fulfill(json={"cancelled": True})
+            else:
+                route.fulfill(
+                    status=409,
+                    json={"error": {"message": "End your current voice session first."}},
+                )
+
+        return endpoint
+
+    for review in [None, {"draft": draft, "draft_hash": "a" * 64}]:
+        endpoint = handler_for(review)
+        page.route("**/v1/voice/**", endpoint)
+        page.get_by_role("button", name="Start voice", exact=True).click()
+        expect(page.get_by_role("alert").filter(has_text="previous voice session")).to_be_visible()
+        expect(page.get_by_role("button", name="Start voice", exact=True)).not_to_be_visible()
+        if review:
+            expect(page.get_by_role("heading", name="Review your grievance")).to_be_visible()
+            expect(page.get_by_role("button", name="Confirm voice grievance")).to_be_disabled()
+        page.get_by_role("button", name="Discard voice session", exact=True).click()
+        expect(page.get_by_role("button", name="Start voice", exact=True)).to_be_enabled()
+        expect(
+            page.get_by_role("alert").filter(has_text="previous voice session")
+        ).not_to_be_visible()
+        expect(page.get_by_role("heading", name="Review your grievance")).not_to_be_visible()
+        page.unroute("**/v1/voice/**", endpoint)
+    assert len(cancellations) == 2
+
+
 def test_voice_sdk(page, case, handlers):
     """Exercise real SDK callbacks with fake ASR/tool events, never a paid call."""
     page.context.grant_permissions(["microphone"])
@@ -131,10 +186,23 @@ def run_browser(url, password, photo, worker):
         handlers = []
         page.route_web_socket("**", lambda socket: handlers[0](socket))
         errors = []
+        page.add_init_script("""
+            window.SpeechRecognition = class {
+                start() { window.testRecognition = this; }
+                stop() { this.onend?.(); }
+                abort() { this.onend?.(); }
+            };
+            window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
+            Object.defineProperty(window, 'speechSynthesis', {value: {
+                speak(utterance) { window.testSpokenText = utterance.text; utterance.onend?.(); },
+                cancel() {}
+            }});
+        """)
         page.on("pageerror", lambda exc: errors.append(str(exc)))
         page.goto(url)
         page.wait_for_load_state("networkidle")
         expect(page.get_by_role("heading", name="Sign in to GovFix")).to_be_visible()
+        check_accessibility(page, "login")
 
         def login(username):
             page.set_viewport_size({"width": 1440, "height": 1000})
@@ -152,6 +220,7 @@ def run_browser(url, password, photo, worker):
             }.get(username, "Ward Operations & Supervisor Oversight")
             expect(page.get_by_role("heading", name=title, exact=True, level=1)).to_be_visible()
             expect(page.get_by_role("navigation", name="Dashboard navigation")).to_be_visible()
+            check_accessibility(page, username + " dashboard")
             target = ROOT / "artifacts" / f"dashboard-{username}.png"
             target.parent.mkdir(exist_ok=True)
             page.screenshot(path=str(target), full_page=True)
@@ -173,6 +242,7 @@ def run_browser(url, password, photo, worker):
             expect(page.get_by_text(re.compile(r"Audit Timeline \(\d+\)"))).to_be_visible()
 
         login("citizen")
+        check_accessibility(page, "citizen dashboard")
         page.get_by_role("button", name="Voice Grievance", exact=False).click()
         expect(page.get_by_role("heading", name="Voice assistance")).to_be_visible()
         expect(page.get_by_role("button", name="Start voice", exact=True)).to_be_disabled()
@@ -183,6 +253,13 @@ def run_browser(url, password, photo, worker):
             page.get_by_role("alert").filter(has_text="text form remains available")
         ).to_be_visible()
         expect(page.get_by_role("status").filter(has_text="Microphone off.")).to_be_visible()
+        page.get_by_role("button", name="Report New Grievance", exact=False).first.click()
+        check_accessibility(page, "new grievance dialog")
+        for key in ["Tab", "Shift+Tab", "Tab"]:
+            page.keyboard.press(key)
+            assert page.evaluate("document.activeElement.closest('[role=dialog]') !== null")
+        page.keyboard.press("Escape")
+        expect(page.get_by_role("dialog", name="New grievance", exact=True)).not_to_be_visible()
         page.get_by_role("button", name="Report New Grievance", exact=False).first.click()
         page.get_by_label("Detailed Description").fill("Pothole near demo bus stop")
         page.get_by_label("Location Details").fill("Demo main road")
@@ -198,6 +275,7 @@ def run_browser(url, password, photo, worker):
         created = submission.value.json()["case"]
         expect(page.get_by_role("button", name="Close modal", exact=True)).to_be_visible()
         close_case()
+        test_voice_recovery(page, created)
         test_voice_sdk(page, created, handlers)
         expect(page.get_by_role("heading", name="Pothole near demo bus stop").last).to_be_visible()
         sign_out()
@@ -207,7 +285,13 @@ def run_browser(url, password, photo, worker):
         page.get_by_role("button", name="Confirm validate", exact=True).click()
         expect(page.get_by_role("button", name="validate", exact=True)).not_to_be_visible()
         sign_out()
+        assert worker.dispatch()["DELIVERED"] == 1
         login("dispatcher")
+        page.get_by_title("Notifications & SLA Alerts").click()
+        expect(
+            page.get_by_text("Demo intake validated this grievance", exact=False)
+        ).to_be_visible()
+        page.get_by_label("Switch dashboard").select_option("dispatcher")
         open_case()
         page.get_by_role("button", name="assign", exact=True).click()
         page.get_by_label("Assign to Officer").select_option(label="Demo officer")
@@ -229,13 +313,24 @@ def run_browser(url, password, photo, worker):
         page.get_by_role("button", name="Upload Evidence", exact=True).click()
         expect(page.get_by_role("button", name="Download", exact=True)).to_be_visible()
         page.get_by_role("button", name="resolution", exact=True).click()
-        page.get_by_label("Work Completed Description").fill(
+        page.get_by_label("I consent to microphone processing", exact=False).check()
+        page.get_by_role("button", name="Dictate resolution note", exact=True).click()
+        page.evaluate(
+            "window.testRecognition.onresult({results: "
+            "[[{transcript: 'Repaired pothole and verified the surface'}]]})"
+        )
+        page.get_by_role("button", name="Stop dictation", exact=True).click()
+        expect(page.get_by_label("Work Completed Description")).to_have_value(
             "Repaired pothole and verified the surface"
         )
         page.locator('input[name="evidence"]').check()
         page.get_by_role("button", name="Confirm resolution", exact=True).click()
         expect(page.get_by_text("Field Resolution Submitted", exact=True)).to_be_visible()
         expect(page.get_by_text("Repaired pothole and verified the surface")).to_be_visible()
+        page.get_by_role("button", name="Read resolution aloud", exact=True).click()
+        assert "Repaired pothole" in page.evaluate("window.testSpokenText")
+        page.get_by_role("button", name="Read case timeline aloud", exact=True).click()
+        assert "resolution" in page.evaluate("window.testSpokenText")
         sign_out()
         login("mixed")
         expect(page.get_by_label("Switch dashboard").locator("option")).to_have_count(5)
@@ -246,6 +341,7 @@ def run_browser(url, password, photo, worker):
             page.get_by_role("heading", name="Field Operations Console", level=1)
         ).to_be_visible()
         page.get_by_label("Switch dashboard").select_option("supervisor-queue")
+        page.get_by_role("button", name=re.compile(r"All Ward Cases")).click()
         open_case()
         expect(page.get_by_role("button", name="deadline extension", exact=True)).to_be_visible()
         close_case()

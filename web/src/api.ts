@@ -3,6 +3,9 @@ export type Case = {
   workflow_state: string;
   description: string;
   location: string;
+  latitude: number | null;
+  longitude: number | null;
+  accuracy_m: number | null;
   category: string;
   ward: string;
   department: string;
@@ -29,11 +32,17 @@ export type User = {
 };
 export type Policy = {
   version: string;
+  checksum?: string;
   municipality: string;
   timezone: string;
   wards: string[];
   categories: {
     code: string;
+    title?: string;
+    description?: string;
+    example?: string;
+    image?: string;
+    sla_hours?: number;
     department: string;
     resolution_evidence: string[];
   }[];

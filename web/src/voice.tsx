@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Conversation } from "@elevenlabs/client";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { api, human, type Case, type Policy } from "./api";
+import { api, ApiError, human, type Case, type Policy } from "./api";
 import { button, secondary, ErrorText, Field } from "./ui";
 
 type Draft = {
@@ -11,6 +11,12 @@ type Draft = {
   ward: string;
 };
 type Review = { draft: Draft; draft_hash: string };
+type ActiveSession = {
+  session_id: string;
+  language: string;
+  expires_at: string;
+  review: Review | null;
+};
 
 export function VoiceAccess({
   token,
@@ -70,6 +76,7 @@ export function VoiceAccess({
   async function discard() {
     generation.current++;
     setBusy(true);
+    setError("");
     try {
       await conversation.current?.endSession();
       conversation.current = null;
@@ -194,6 +201,25 @@ export function VoiceAccess({
           () => {},
         );
         session.current = null;
+      }
+      if (!id && err instanceof ApiError && err.status === 409) {
+        try {
+          const previous = await api<ActiveSession | null>(token, "/voice/session");
+          if (previous && current === generation.current) {
+            session.current = previous.session_id;
+            setLanguage(previous.language);
+            setExpiresAt(previous.expires_at);
+            setReview(previous.review);
+            setError(
+              previous.review
+                ? "Your previous voice session has a saved draft. Review it below or discard the session to start again."
+                : "Your previous voice session is still open. Discard it to start again.",
+            );
+            return;
+          }
+        } catch {
+          // Preserve the original error if recovery is temporarily unavailable.
+        }
       }
       if (current === generation.current)
         setError(

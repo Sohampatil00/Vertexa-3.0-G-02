@@ -8,6 +8,7 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -87,6 +88,9 @@ class Case(Base):
     ward: Mapped[str] = mapped_column(String(100))
     description: Mapped[str] = mapped_column(Text)
     location: Mapped[str] = mapped_column(Text)
+    latitude: Mapped[float | None] = mapped_column(Float)
+    longitude: Mapped[float | None] = mapped_column(Float)
+    accuracy_m: Mapped[float | None] = mapped_column(Float)
     owner_id: Mapped[str | None] = mapped_column(ForeignKey("users.id"))
     policy_version: Mapped[str] = mapped_column(ForeignKey("policy_versions.version"))
     submitted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

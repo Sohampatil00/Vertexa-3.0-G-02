@@ -1,6 +1,7 @@
 import type React from "react";
 import type { User } from "../api";
 import { human } from "../api";
+import { AccessibilityControls } from "../accessibility";
 
 export function Header({
   user,
@@ -20,7 +21,7 @@ export function Header({
     : "Citizen";
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 z-50 bg-[#f8f9ff]/90 backdrop-blur-xl border-b border-[#d9cdba] shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex items-center justify-between px-6">
+    <header className="fixed top-0 left-0 right-0 min-h-16 z-50 bg-[#f8f9ff]/90 backdrop-blur-xl border-b border-[#d9cdba] shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex items-center justify-between gap-2 px-3 py-2 sm:px-6">
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 rounded-lg bg-[#f77f00] flex items-center justify-center text-white shadow-sm shrink-0">
           <span className="material-symbols-outlined text-[22px]">
@@ -32,7 +33,7 @@ export function Header({
             <span className="hidden sm:inline font-semibold text-sm md:text-base text-[#0b1c30] tracking-tight">
               Fictional Demo Municipality
             </span>
-            <span className="px-2 py-0.5 rounded bg-[#e5eeff] text-[#434655] font-mono text-[10px] tracking-wide uppercase font-semibold">
+            <span className="hidden sm:inline px-2 py-0.5 rounded bg-[#e5eeff] text-[#434655] font-mono text-[10px] tracking-wide uppercase font-semibold">
               Demo policy
             </span>
           </div>
@@ -42,11 +43,13 @@ export function Header({
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dce9ff] text-[#0b1c30] text-xs font-medium">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dce9ff] text-[#0b1c30] text-xs font-medium">
           <span className="w-2 h-2 rounded-full bg-[#f77f00] animate-pulse"></span>
           <span>Ward A & B • Operations</span>
         </div>
+
+        <AccessibilityControls />
 
         {user && (
           <>
@@ -65,14 +68,17 @@ export function Header({
 
             <div className="flex items-center gap-3 pl-2 border-l border-[#d9cdba]/50">
               <div className="text-right hidden sm:block">
-                <div className="text-xs font-semibold text-[#0b1c30] leading-tight">
+                <div
+                  data-no-translate
+                  className="text-xs font-semibold text-[#0b1c30] leading-tight"
+                >
                   {user.display_name}
                 </div>
                 <div className="text-[11px] text-[#434655] leading-tight">
                   {roleDisplay}
                 </div>
               </div>
-              <div className="w-8 h-8 rounded-full bg-[#f77f00] flex items-center justify-center text-white font-medium text-xs shadow-sm">
+              <div className="hidden sm:flex w-8 h-8 rounded-full bg-[#f77f00] items-center justify-center text-white font-medium text-xs shadow-sm">
                 <span className="material-symbols-outlined text-[18px]">
                   person
                 </span>
@@ -80,10 +86,17 @@ export function Header({
               <button
                 onClick={logout}
                 disabled={busy}
-                className="px-2.5 py-1 text-xs font-medium rounded border border-[#d9cdba] text-[#434655] hover:bg-[#ffdad6] hover:text-[#ba1a1a] transition-colors"
+                aria-label="Sign out"
+                className="px-1.5 py-1 sm:px-2.5 text-xs font-medium rounded border border-[#d9cdba] text-[#434655] hover:bg-[#ffdad6] hover:text-[#ba1a1a] transition-colors"
                 title="Sign out of GovFix"
               >
-                Sign out
+                <span
+                  className="sm:hidden material-symbols-outlined"
+                  aria-hidden="true"
+                >
+                  logout
+                </span>
+                <span className="hidden sm:inline">Sign out</span>
               </button>
             </div>
           </>

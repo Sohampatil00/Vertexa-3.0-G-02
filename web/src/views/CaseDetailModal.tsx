@@ -10,7 +10,9 @@ import type {
 } from "../api";
 import { api, ApiError, command, date, human } from "../api";
 import { SlaPanel } from "../sla";
-import { StatusBadge, ErrorText, Field } from "../ui";
+import { Dictation, ReadAloud } from "../speech";
+import { StatusBadge, ErrorText, Field, Modal } from "../ui";
+import { CaseMap } from "../components/CaseMap";
 
 export function CaseDetailModal({
   token,
@@ -135,352 +137,361 @@ export function CaseDetailModal({
   );
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0b1c30]/50 backdrop-blur-sm flex items-center justify-center p-4 md:p-6 overflow-y-auto">
-      <div className="bg-white rounded-xl border border-[#d9cdba] shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden my-auto">
-        {/* Modal Header */}
-        <div className="p-4 md:px-6 bg-[#eff4ff] border-b border-[#d9cdba] flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="font-mono text-xs font-bold bg-[#e5eeff] text-[#0037b0] px-2.5 py-1 rounded">
-              Case {current.id}
-            </span>
-            <StatusBadge state={current.workflow_state} />
-            <span className="text-xs text-[#434655]">v{current.version}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setRevision((r) => r + 1)}
-              className="p-1.5 rounded hover:bg-[#dce9ff] text-[#434655]"
-              title="Refresh case"
-              aria-label="Refresh case"
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                refresh
-              </span>
-            </button>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded hover:bg-[#ffdad6] text-[#434655] hover:text-[#ba1a1a]"
-              title="Close modal"
-              aria-label="Close modal"
-            >
-              <span className="material-symbols-outlined text-[20px]">
-                close
-              </span>
-            </button>
-          </div>
+    <Modal
+      title={`Case ${current.id}`}
+      description="Review case details, evidence, permitted actions and its audit timeline."
+      onClose={onClose}
+      busy={busy}
+      className="max-w-4xl"
+    >
+      {/* Modal Header */}
+      <div className="p-4 md:px-6 bg-[#eff4ff] border-b border-[#d9cdba] flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <span className="font-mono text-xs font-bold bg-[#e5eeff] text-[#0037b0] px-2.5 py-1 rounded">
+            Case {current.id}
+          </span>
+          <StatusBadge state={current.workflow_state} />
+          <span className="text-xs text-[#434655]">v{current.version}</span>
         </div>
-
-        {/* Modal Body */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-6">
-          <ErrorText message={error} />
-          <ErrorText message={cmdError} />
-
-          {loading ? (
-            <div className="py-12 text-center text-xs text-[#434655]">
-              <span className="material-symbols-outlined text-3xl animate-spin text-[#f77f00] mb-2">
-                sync
-              </span>
-              <p>Loading case telemetry and operations…</p>
-            </div>
-          ) : (
-            ops && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                {/* Left/Main Column: Case Details & Actions */}
-                <div className="lg:col-span-2 space-y-6">
-                  {/* Summary Box */}
-                  <div className="p-4 rounded-lg bg-[#eff4ff] border border-[#d9cdba]/50">
-                    <h2 className="text-base font-bold text-[#0b1c30]">
-                      {current.description}
-                    </h2>
-                    <p className="text-xs text-[#434655] mt-1">
-                      Location: {current.location}
-                    </p>
-
-                    <dl className="grid grid-cols-2 gap-3 mt-4 text-xs pt-3 border-t border-[#d9cdba]/40">
-                      <div>
-                        <dt className="text-[10px] text-[#434655] uppercase font-bold">
-                          Ward Jurisdiction
-                        </dt>
-                        <dd className="font-semibold text-[#0b1c30] mt-0.5">
-                          Ward {current.ward}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-[10px] text-[#434655] uppercase font-bold">
-                          Assigned Department
-                        </dt>
-                        <dd className="font-semibold text-[#0b1c30] mt-0.5">
-                          {human(current.department)}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-[10px] text-[#434655] uppercase font-bold">
-                          Assigned Officer
-                        </dt>
-                        <dd className="font-semibold text-[#0b1c30] mt-0.5">
-                          {ops.owner_name || "Awaiting assignment"}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-[10px] text-[#434655] uppercase font-bold">
-                          Current SLA Deadline
-                        </dt>
-                        <dd
-                          className={`font-mono font-bold mt-0.5 ${current.sla_status === "OVERDUE" ? "text-[#ba1a1a]" : "text-[#0037b0]"}`}
-                        >
-                          {date(current.current_deadline, current.timezone)}
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  {/* Submitted Resolution Note */}
-                  {resolution && (
-                    <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-900 mb-1">
-                        <span className="material-symbols-outlined text-[16px]">
-                          check_circle
-                        </span>
-                        <span>Field Resolution Submitted</span>
-                      </div>
-                      <p className="text-xs text-emerald-800 leading-relaxed whitespace-pre-wrap">
-                        {resolution.note}
-                      </p>
-                      <span className="font-mono text-[10px] text-emerald-700 block mt-2">
-                        Submitted:{" "}
-                        {date(resolution.submitted_at, current.timezone)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Citizen Dispute Statement */}
-                  {disputeStatement && (
-                    <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900 mb-1">
-                        <span className="material-symbols-outlined text-[16px]">
-                          report_problem
-                        </span>
-                        <span>Citizen Dispute Statement</span>
-                      </div>
-                      <p className="text-xs text-amber-800 leading-relaxed whitespace-pre-wrap">
-                        {disputeStatement}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Citizen Verification Waiting State Notice */}
-                  {current.workflow_state === "CITIZEN_VERIFICATION" && (
-                    <div className="p-3.5 rounded-lg bg-[#e5eeff] text-xs text-[#0037b0] border border-[#d9cdba]/60 flex items-start gap-2">
-                      <span className="material-symbols-outlined text-[18px] text-[#f77f00] shrink-0 mt-0.5">
-                        info
-                      </span>
-                      <div>
-                        <p className="font-semibold">
-                          Case awaiting citizen verification sign-off.
-                        </p>
-                        {current.verification_alerted_at && (
-                          <p>A supervisor has been alerted to the wait.</p>
-                        )}
-                        {current.verification_due_at && (
-                          <p className="text-[11px] mt-0.5">
-                            Supervisor review scheduled after{" "}
-                            {date(
-                              current.verification_due_at,
-                              current.timezone,
-                            )}{" "}
-                            if unconfirmed.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Action Bar (State Machine transitions) */}
-                  {available.length > 0 && (
-                    <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
-                      <span className="text-xs font-bold text-[#0b1c30] uppercase tracking-wider block mb-2.5">
-                        Authorized Next Actions
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {available.map((a) => (
-                          <button
-                            key={a}
-                            onClick={() => setAction(action === a ? "" : a)}
-                            className={`px-3 py-1.5 text-xs font-semibold rounded transition-all cursor-pointer ${
-                              action === a
-                                ? "bg-[#f77f00] text-white shadow-sm"
-                                : "bg-[#eff4ff] text-[#0b1c30] hover:bg-[#dce9ff] border border-[#d9cdba]/50"
-                            }`}
-                          >
-                            {human(a)}
-                          </button>
-                        ))}
-                      </div>
-
-                      {action && (
-                        <div className="mt-4 pt-4 border-t border-[#eff4ff]">
-                          <ActionExecutor
-                            key={action}
-                            action={action}
-                            current={current}
-                            ops={ops}
-                            evidence={evidence}
-                            busy={busy}
-                            run={(body) => runCommand(action, body)}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* SLA Tracker & Delivery Alerts */}
-                  <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
-                    <SlaPanel
-                      token={token}
-                      item={current}
-                      revision={revision}
-                      canRetry={
-                        !readOnly && actions.includes("notification-retry")
-                      }
-                      retry={(body) => runCommand("notification-retry", body)}
-                      busy={busy}
-                      commandError={cmdError}
-                    />
-                  </div>
-
-                  {/* Evidence Uploads */}
-                  <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-bold text-[#0b1c30] uppercase tracking-wider">
-                        Cryptographic Evidence Files
-                      </span>
-                      <span className="text-[10px] text-[#434655]">
-                        Private Supabase Storage
-                      </span>
-                    </div>
-
-                    {evidence.length === 0 ? (
-                      <p className="text-xs text-[#434655] italic">
-                        No evidence uploaded yet.
-                      </p>
-                    ) : (
-                      <ul className="space-y-2">
-                        {evidence.map((file) => (
-                          <li
-                            key={file.id}
-                            className="p-3 rounded-lg bg-[#eff4ff] border border-[#d9cdba]/50 flex items-center justify-between text-xs"
-                          >
-                            <div>
-                              <span className="font-semibold text-[#0b1c30]">
-                                {human(file.kind)}
-                              </span>
-                              <span className="text-[#434655] ml-2 font-mono text-[11px]">
-                                {(file.size_bytes / 1024).toFixed(1)} KB
-                              </span>
-                              <div className="font-mono text-[10px] text-[#434655] truncate max-w-xs mt-0.5">
-                                SHA-256: {file.sha256}
-                              </div>
-                            </div>
-                            <DownloadEvidence
-                              token={token}
-                              caseId={current.id}
-                              file={file}
-                            />
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-
-                    {!readOnly &&
-                      current.owner_id === user.id &&
-                      current.workflow_state === "IN_PROGRESS" && (
-                        <div className="mt-4 pt-3 border-t border-[#eff4ff]">
-                          <UploadEvidence
-                            token={token}
-                            item={current}
-                            ops={ops}
-                            done={() => setRevision((r) => r + 1)}
-                          />
-                        </div>
-                      )}
-                  </div>
-                </div>
-
-                {/* Right Column: Case Timeline & Ownership */}
-                <div className="space-y-6">
-                  {/* Timeline */}
-                  <div className="p-4 rounded-lg bg-[#eff4ff] border border-[#d9cdba]/50">
-                    <span className="text-xs font-bold text-[#0b1c30] uppercase tracking-wider block mb-3">
-                      Audit Timeline ({events.length})
-                    </span>
-                    <ol className="space-y-3 relative border-l border-[#d9cdba] ml-2">
-                      {events.map((e) => (
-                        <li key={e.id} className="ml-3 text-xs">
-                          <div className="flex items-center gap-1.5 font-semibold text-[#0b1c30]">
-                            <span>{human(e.operation)}</span>
-                            <span
-                              className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
-                                e.result === "REFUSED"
-                                  ? "bg-[#ffdad6] text-[#ba1a1a]"
-                                  : "bg-emerald-100 text-emerald-800"
-                              }`}
-                            >
-                              {human(e.result)}
-                            </span>
-                          </div>
-                          <span className="font-mono text-[10px] text-[#434655] block mt-0.5">
-                            {date(e.occurred_at, current.timezone)}
-                          </span>
-                          {e.actor_role && (
-                            <span className="text-[10px] text-[#565e74] capitalize block">
-                              Actor: {human(e.actor_role)}
-                            </span>
-                          )}
-                          {e.reason_code && (
-                            <span className="text-[10px] text-[#ba1a1a] block font-semibold">
-                              Reason: {human(e.reason_code)}
-                            </span>
-                          )}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-
-                  {/* Assignment History */}
-                  {ops.assignments.length > 0 && (
-                    <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
-                      <span className="text-xs font-bold text-[#0b1c30] uppercase tracking-wider block mb-2.5">
-                        Officer Assignment Log
-                      </span>
-                      <ul className="space-y-2 text-xs">
-                        {ops.assignments.map((a, idx) => (
-                          <li
-                            key={idx}
-                            className="p-2.5 rounded bg-[#eff4ff] border border-[#d9cdba]/40"
-                          >
-                            <span className="font-semibold text-[#0b1c30] block">
-                              {a.ended_at
-                                ? "Previous Assignment"
-                                : "Active Officer"}
-                            </span>
-                            <p className="text-[#434655] text-[11px] mt-0.5">
-                              {a.reason}
-                            </p>
-                            <span className="font-mono text-[10px] text-[#565e74] block mt-1">
-                              Officer: {a.officer_id.slice(0, 8)}…
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          )}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setRevision((r) => r + 1)}
+            className="p-1.5 rounded hover:bg-[#dce9ff] text-[#434655]"
+            title="Refresh case"
+            aria-label="Refresh case"
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              refresh
+            </span>
+          </button>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded hover:bg-[#ffdad6] text-[#434655] hover:text-[#ba1a1a]"
+            title="Close modal"
+            aria-label="Close modal"
+            disabled={busy}
+          >
+            <span className="material-symbols-outlined text-[20px]">close</span>
+          </button>
         </div>
       </div>
-    </div>
+
+      {/* Modal Body */}
+      <div className="p-6 overflow-y-auto flex-1 space-y-6">
+        <ErrorText message={error} />
+        <ErrorText message={cmdError} />
+
+        {loading ? (
+          <div className="py-12 text-center text-xs text-[#434655]">
+            <span className="material-symbols-outlined text-3xl animate-spin text-[#f77f00] mb-2">
+              sync
+            </span>
+            <p>Loading case telemetry and operations…</p>
+          </div>
+        ) : (
+          ops && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+              {/* Left/Main Column: Case Details & Actions */}
+              <div className="lg:col-span-2 space-y-6">
+                {/* Summary Box */}
+                <div className="p-4 rounded-lg bg-[#eff4ff] border border-[#d9cdba]/50">
+                  <h2 className="text-base font-bold text-[#0b1c30]">
+                    {current.description}
+                  </h2>
+                  <p className="text-xs text-[#434655] mt-1">
+                    Location: {current.location}
+                  </p>
+                  <CaseMap item={current} />
+
+                  <dl className="grid grid-cols-2 gap-3 mt-4 text-xs pt-3 border-t border-[#d9cdba]/40">
+                    <div>
+                      <dt className="text-[10px] text-[#434655] uppercase font-bold">
+                        Ward Jurisdiction
+                      </dt>
+                      <dd className="font-semibold text-[#0b1c30] mt-0.5">
+                        Ward {current.ward}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] text-[#434655] uppercase font-bold">
+                        Assigned Department
+                      </dt>
+                      <dd className="font-semibold text-[#0b1c30] mt-0.5">
+                        {human(current.department)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] text-[#434655] uppercase font-bold">
+                        Assigned Officer
+                      </dt>
+                      <dd className="font-semibold text-[#0b1c30] mt-0.5">
+                        {ops.owner_name || "Awaiting assignment"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] text-[#434655] uppercase font-bold">
+                        Current SLA Deadline
+                      </dt>
+                      <dd
+                        className={`font-mono font-bold mt-0.5 ${current.sla_status === "OVERDUE" ? "text-[#ba1a1a]" : "text-[#0037b0]"}`}
+                      >
+                        {date(current.current_deadline, current.timezone)}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+
+                {/* Submitted Resolution Note */}
+                {resolution && (
+                  <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-900 mb-1">
+                      <span className="material-symbols-outlined text-[16px]">
+                        check_circle
+                      </span>
+                      <span>Field Resolution Submitted</span>
+                    </div>
+                    <p className="text-xs text-emerald-800 leading-relaxed whitespace-pre-wrap">
+                      {resolution.note}
+                    </p>
+                    <ReadAloud
+                      label="Read resolution aloud"
+                      text={`The officer submitted this resolution: ${resolution.note}. Review the attached evidence. Accept and close the case if the issue is resolved, or dispute the resolution if more work is needed. Only your explicit screen confirmation changes the case.`}
+                    />
+                    <span className="font-mono text-[10px] text-emerald-700 block mt-2">
+                      Submitted:{" "}
+                      {date(resolution.submitted_at, current.timezone)}
+                    </span>
+                  </div>
+                )}
+
+                {/* Citizen Dispute Statement */}
+                {disputeStatement && (
+                  <div className="p-4 rounded-lg bg-amber-50 border border-amber-200">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900 mb-1">
+                      <span className="material-symbols-outlined text-[16px]">
+                        report_problem
+                      </span>
+                      <span>Citizen Dispute Statement</span>
+                    </div>
+                    <p className="text-xs text-amber-800 leading-relaxed whitespace-pre-wrap">
+                      {disputeStatement}
+                    </p>
+                  </div>
+                )}
+
+                {/* Citizen Verification Waiting State Notice */}
+                {current.workflow_state === "CITIZEN_VERIFICATION" && (
+                  <div className="p-3.5 rounded-lg bg-[#e5eeff] text-xs text-[#0037b0] border border-[#d9cdba]/60 flex items-start gap-2">
+                    <span className="material-symbols-outlined text-[18px] text-[#f77f00] shrink-0 mt-0.5">
+                      info
+                    </span>
+                    <div>
+                      <p className="font-semibold">
+                        Case awaiting citizen verification sign-off.
+                      </p>
+                      {current.verification_alerted_at && (
+                        <p>A supervisor has been alerted to the wait.</p>
+                      )}
+                      {current.verification_due_at && (
+                        <p className="text-[11px] mt-0.5">
+                          Supervisor review scheduled after{" "}
+                          {date(current.verification_due_at, current.timezone)}{" "}
+                          if unconfirmed.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Bar (State Machine transitions) */}
+                {available.length > 0 && (
+                  <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
+                    <span className="text-xs font-bold text-[#0b1c30] uppercase tracking-wider block mb-2.5">
+                      Authorized Next Actions
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {available.map((a) => (
+                        <button
+                          key={a}
+                          onClick={() => setAction(action === a ? "" : a)}
+                          className={`px-3 py-1.5 text-xs font-semibold rounded transition-all cursor-pointer ${
+                            action === a
+                              ? "bg-[#f77f00] text-white shadow-sm"
+                              : "bg-[#eff4ff] text-[#0b1c30] hover:bg-[#dce9ff] border border-[#d9cdba]/50"
+                          }`}
+                        >
+                          {human(a)}
+                        </button>
+                      ))}
+                    </div>
+
+                    {action && (
+                      <div className="mt-4 pt-4 border-t border-[#eff4ff]">
+                        <ActionExecutor
+                          key={action}
+                          action={action}
+                          current={current}
+                          ops={ops}
+                          evidence={evidence}
+                          busy={busy}
+                          run={(body) => runCommand(action, body)}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* SLA Tracker & Delivery Alerts */}
+                <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
+                  <SlaPanel
+                    token={token}
+                    item={current}
+                    revision={revision}
+                    canRetry={
+                      !readOnly && actions.includes("notification-retry")
+                    }
+                    retry={(body) => runCommand("notification-retry", body)}
+                    busy={busy}
+                    commandError={cmdError}
+                  />
+                </div>
+
+                {/* Evidence Uploads */}
+                <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold text-[#0b1c30] uppercase tracking-wider">
+                      Cryptographic Evidence Files
+                    </span>
+                    <span className="text-[10px] text-[#434655]">
+                      Private Supabase Storage
+                    </span>
+                  </div>
+
+                  {evidence.length === 0 ? (
+                    <p className="text-xs text-[#434655] italic">
+                      No evidence uploaded yet.
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {evidence.map((file) => (
+                        <li
+                          key={file.id}
+                          className="p-3 rounded-lg bg-[#eff4ff] border border-[#d9cdba]/50 flex items-center justify-between text-xs"
+                        >
+                          <div>
+                            <span className="font-semibold text-[#0b1c30]">
+                              {human(file.kind)}
+                            </span>
+                            <span className="text-[#434655] ml-2 font-mono text-[11px]">
+                              {(file.size_bytes / 1024).toFixed(1)} KB
+                            </span>
+                            <div className="font-mono text-[10px] text-[#434655] truncate max-w-xs mt-0.5">
+                              SHA-256: {file.sha256}
+                            </div>
+                          </div>
+                          <DownloadEvidence
+                            token={token}
+                            caseId={current.id}
+                            file={file}
+                          />
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {!readOnly &&
+                    current.owner_id === user.id &&
+                    current.workflow_state === "IN_PROGRESS" && (
+                      <div className="mt-4 pt-3 border-t border-[#eff4ff]">
+                        <UploadEvidence
+                          token={token}
+                          item={current}
+                          ops={ops}
+                          done={() => setRevision((r) => r + 1)}
+                        />
+                      </div>
+                    )}
+                </div>
+              </div>
+
+              {/* Right Column: Case Timeline & Ownership */}
+              <div className="space-y-6">
+                {/* Timeline */}
+                <div className="p-4 rounded-lg bg-[#eff4ff] border border-[#d9cdba]/50">
+                  <ReadAloud
+                    label="Read case timeline aloud"
+                    text={`Case ${current.id}. Current status: ${current.workflow_state === "SUBMITTED" ? "Submitted, awaiting authority review" : human(current.workflow_state)}. ${events.map((event) => `${human(event.operation)}: ${event.result === "ACCEPTED" ? "Recorded" : human(event.result)}, ${date(event.occurred_at, current.timezone)}.`).join(" ")}`}
+                  />
+                  <span className="text-xs font-bold text-[#0b1c30] uppercase tracking-wider block mb-3">
+                    Audit Timeline ({events.length})
+                  </span>
+                  <ol className="space-y-3 relative border-l border-[#d9cdba] ml-2">
+                    {events.map((e) => (
+                      <li key={e.id} className="ml-3 text-xs">
+                        <div className="flex items-center gap-1.5 font-semibold text-[#0b1c30]">
+                          <span>{human(e.operation)}</span>
+                          <span
+                            className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
+                              e.result === "REFUSED"
+                                ? "bg-[#ffdad6] text-[#ba1a1a]"
+                                : "bg-emerald-100 text-emerald-800"
+                            }`}
+                          >
+                            {e.result === "ACCEPTED" ? "Recorded" : human(e.result)}
+                          </span>
+                        </div>
+                        <span className="font-mono text-[10px] text-[#434655] block mt-0.5">
+                          {date(e.occurred_at, current.timezone)}
+                        </span>
+                        {e.actor_role && (
+                          <span className="text-[10px] text-[#565e74] capitalize block">
+                            Actor: {human(e.actor_role)}
+                          </span>
+                        )}
+                        {e.reason_code && (
+                          <span className="text-[10px] text-[#ba1a1a] block font-semibold">
+                            Reason: {human(e.reason_code)}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+
+                {/* Assignment History */}
+                {ops.assignments.length > 0 && (
+                  <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
+                    <span className="text-xs font-bold text-[#0b1c30] uppercase tracking-wider block mb-2.5">
+                      Officer Assignment Log
+                    </span>
+                    <ul className="space-y-2 text-xs">
+                      {ops.assignments.map((a, idx) => (
+                        <li
+                          key={idx}
+                          className="p-2.5 rounded bg-[#eff4ff] border border-[#d9cdba]/40"
+                        >
+                          <span className="font-semibold text-[#0b1c30] block">
+                            {a.ended_at
+                              ? "Previous Assignment"
+                              : "Active Officer"}
+                          </span>
+                          <p className="text-[#434655] text-[11px] mt-0.5">
+                            {a.reason}
+                          </p>
+                          <span className="font-mono text-[10px] text-[#565e74] block mt-1">
+                            Officer: {a.officer_id.slice(0, 8)}…
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        )}
+      </div>
+    </Modal>
   );
 }
 
@@ -502,9 +513,12 @@ function ActionExecutor({
   const [outcome, setOutcome] = useState<"ACCEPT" | "DISPUTE">("ACCEPT");
   const [decision, setDecision] = useState<"RETAIN" | "REASSIGN">("RETAIN");
   const [confirmationBody, setConfirmationBody] = useState<unknown>(null);
+  const [note, setNote] = useState("");
+  const [dictating, setDictating] = useState(false);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (dictating) return;
     const data = new FormData(e.currentTarget);
     let body: unknown;
     if (action === "validate") {
@@ -661,9 +675,20 @@ function ActionExecutor({
 
         {action === "resolution" && (
           <div className="space-y-2">
+            <Dictation
+              disabled={busy}
+              onListeningChange={setDictating}
+              append={(text) =>
+                setNote((value) =>
+                  `${value}${value ? " " : ""}${text}`.slice(0, 5000),
+                )
+              }
+            />
             <Field label="Work Completed Description">
               <textarea
                 name="note"
+                value={note}
+                onChange={(event) => setNote(event.target.value)}
                 required
                 maxLength={5000}
                 rows={3}
@@ -790,7 +815,7 @@ function ActionExecutor({
 
         <button
           type="submit"
-          disabled={busy}
+          disabled={busy || dictating}
           className="w-full py-2 bg-[#f77f00] hover:bg-[#d96e00] text-white font-semibold text-xs rounded shadow-sm transition-all"
         >
           {busy ? "Executing State Transition…" : `Confirm ${human(action)}`}

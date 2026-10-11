@@ -13,7 +13,7 @@
 | 5b. P1 voice operations | Outbound citizen verification, officer dictation, and spoken timeline explanations | Explicit intent and identity checks pass for every action; failed or ambiguous calls leave case state unchanged |
 | 6. Pilot hardening | Security review, accessibility sessions, load/retry tests, observability, backup/restore exercise | [Validation gates](./validation.md) pass and pilot owner accepts known limits |
 
-Phase 5 application integration is implemented locally; provider provisioning and live multilingual validation remain open. See [voice access](./voice-access.md). The next P0 step is Phase 6 pilot hardening after completing the live voice gate; Phase 5b remains optional P1 work.
+Phase 5 application integration and private agent provisioning are complete. Real speaker validation in English, Hindi and Marathi remains a pilot gate. Browser officer dictation and spoken timelines cover part of Phase 5b; outbound telephone verification requires a connected phone provider and consent. See [voice access](./voice-access.md) and the [submission workflow](./submission-workflow.md).
 
 ## Build order within P0
 
@@ -47,5 +47,4 @@ A feature moves into P0 only if its acceptance criterion, owner, and impact on t
 Supabase Data API permissions and login-to-case verification are complete. The authentication
 hardening slice adds shared login rate limits, a restricted PostgreSQL backend login and
 separate migration/administration credentials. Readiness checks, structured request/worker logs, durable worker heartbeats and operational
-alerts are implemented. Next: backup/restore and pilot load/accessibility validation; live
-voice/provider validation and pilot approval remain required before release.
+alerts are implemented. Private database/evidence snapshots, an actual Supabase snapshot restore into isolated PostgreSQL, concurrent load/retry drills, keyboard dialogs and automated WCAG checks are implemented. The free service can run its worker while awake. Human accessibility/language sessions and municipal approval remain release gates. Deploy the verified frontend/backend together with migration `0010`; see the [submission workflow](./submission-workflow.md).

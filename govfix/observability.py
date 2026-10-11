@@ -13,7 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from govfix.database import as_utc, utcnow, verify_runtime_role
 from govfix.models import OutboxMessage, PolicyVersion, WorkerStatus
 
-SCHEMA_REVISION = "0009"
+SCHEMA_REVISION = "0010"
 logger = logging.getLogger("govfix.operations")
 if not logger.handlers:
     handler = logging.StreamHandler(sys.stderr)

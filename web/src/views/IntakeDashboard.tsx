@@ -50,7 +50,8 @@ export function IntakeDashboard({
     return true;
   });
 
-  const selectedCase = activeItem || filteredCases[0] || null;
+  const selectedCase =
+    filteredCases.find((item) => item.id === activeItem?.id) || filteredCases[0] || null;
 
   return (
     <div className="flex flex-col w-full gap-6">
@@ -139,11 +140,12 @@ export function IntakeDashboard({
               </div>
               <div className="flex items-center gap-2">
                 <select
+                aria-label="Filter intake category"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="h-9 px-2.5 bg-[#eff4ff] rounded-lg text-xs text-[#0b1c30] border border-[#d9cdba]/50 focus:outline-none"
                 >
-                  <option value="ALL">All Categories</option>
+                <option value="ALL">All Categories</option>
                   {policy?.categories.map((c) => (
                     <option key={c.code} value={c.code}>
                       {human(c.code)}
@@ -277,8 +279,8 @@ export function IntakeDashboard({
                   onClick={() => onOpenCase(selectedCase)}
                   className="text-xs text-[#0037b0] hover:underline font-semibold flex items-center gap-1"
                 >
-                  <span>Full Record</span>
-                  <span className="material-symbols-outlined text-[14px]">
+                  <span>View case</span>
+                  <span aria-hidden="true" className="material-symbols-outlined text-[14px]">
                     open_in_new
                   </span>
                 </button>

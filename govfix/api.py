@@ -1,5 +1,6 @@
 """Authenticated API for the Phase 1 backend foundation."""
 
+import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 from time import perf_counter
@@ -15,6 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 
 from govfix.auth import Actor, authenticate, login, login_supabase, token_hash
+from govfix.background import worker_loop
 from govfix.database import (
     as_utc,
     make_engine,
@@ -60,6 +62,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def lifespan(_app):
+        stop = asyncio.Event()
+        worker_task = None
         try:
             with sessions() as session:
                 if settings.require_restricted_role:
@@ -70,8 +74,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     or session.get(PolicyVersion, settings.policy_version) is None
                 ):
                     raise RuntimeError("Run 'uv run govfix init-db' before starting the API")
+            if settings.embedded_worker:
+                worker_task = asyncio.create_task(worker_loop(sessions, settings, stop))
             yield
         finally:
+            stop.set()
+            if worker_task:
+                await worker_task
             engine.dispose()
 
     app = FastAPI(

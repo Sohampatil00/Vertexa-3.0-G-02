@@ -94,15 +94,17 @@ export function GovernanceDashboard({
               Read-Only Governance Rail
             </span>
             <span className="px-2.5 py-0.5 rounded bg-[#d3e4fe] text-[#434655] font-mono text-[11px]">
-              SHA-256: 9e8a..4f02
+              {policy?.checksum
+                ? `Policy SHA-256: ${policy.checksum.slice(0, 12)}…`
+                : "Policy version pinned"}
             </span>
           </div>
           <h1 className="text-xl lg:text-2xl font-bold text-[#0b1c30] tracking-tight">
             Executive Governance & Ward Oversight — Ward A & B
           </h1>
           <p className="text-xs text-[#434655]">
-            Command console for {user.display_name} with immutable cryptographic
-            audit trail.
+            Command console for {user.display_name} with an append-only audit
+            trail.
           </p>
         </div>
 
@@ -260,8 +262,10 @@ export function GovernanceDashboard({
             </div>
           </div>
           <div className="mt-4 pt-2 border-t border-[#eff4ff] flex items-center justify-between text-xs text-[#434655]">
-            <span>Compliant Target: 90%</span>
-            <span className="text-emerald-700 font-bold">MEETS SLA</span>
+            <span>Active overdue cases: {overdue}</span>
+            <span className="font-bold">
+              {overdue ? "NEEDS ATTENTION" : "NO ACTIVE BREACHES"}
+            </span>
           </div>
         </div>
 
@@ -308,7 +312,7 @@ export function GovernanceDashboard({
             </div>
           </div>
           <div className="mt-4 pt-2 border-t border-[#eff4ff] flex items-center justify-between text-xs text-[#434655]">
-            <span>100% Citizen Sign-Off</span>
+            <span>Closure requires citizen acceptance</span>
             <span className="text-[#0037b0] font-bold">AUDITED</span>
           </div>
         </div>
@@ -382,7 +386,7 @@ export function GovernanceDashboard({
                       onClick={() => onOpenCase(item)}
                       className="px-2.5 py-1 bg-[#eff4ff] hover:bg-[#dce9ff] text-[#0b1c30] rounded border border-[#d9cdba] text-xs font-semibold cursor-pointer"
                     >
-                      Inspect
+                      View case
                     </button>
                   </td>
                 </tr>

@@ -5,14 +5,17 @@ import getpass
 import json
 import time
 from pathlib import Path
+from zipfile import BadZipFile
 
 from alembic import command
 from alembic.config import Config
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import SQLAlchemyError
 
 from govfix.auth import password_hasher
+from govfix.backup import backup_database, restore_database
 from govfix.database import make_engine, make_sessions, verify_runtime_role, write_transaction
+from govfix.errors import Refusal
 from govfix.models import PolicyVersion, RoleGrant, User
 from govfix.observability import operations_status
 from govfix.policy import PolicyError, load_policy
@@ -70,7 +73,7 @@ def main():
     parser = argparse.ArgumentParser(description="GovFix local administration")
     subparsers = parser.add_subparsers(dest="operation", required=True)
     init = subparsers.add_parser("init-db", help="Apply migrations and import the demo policy")
-    init.add_argument("--policy", type=Path, default=ROOT / "config/policies/demo-pilot-v1.json")
+    init.add_argument("--policy", type=Path, default=ROOT / "config/policies/demo-pilot-v2.json")
     policy = subparsers.add_parser(
         "import-policy", help="Import a new immutable demo policy version"
     )
@@ -91,6 +94,12 @@ def main():
     worker.add_argument("--poll-seconds", type=float, default=30)
     worker.add_argument("--batch-size", type=int, default=100)
     subparsers.add_parser("check-operations", help="Report readiness, worker and delivery alerts")
+    backup = subparsers.add_parser("backup", help="Create a private database and evidence snapshot")
+    backup.add_argument("path", type=Path)
+    restore = subparsers.add_parser(
+        "restore", help="Restore a snapshot into an empty migrated database"
+    )
+    restore.add_argument("path", type=Path)
     args = parser.parse_args()
     password = (
         getpass.getpass("Password (12+ characters): ") if args.operation == "create-user" else None
@@ -104,6 +113,13 @@ def main():
     engine = make_engine(database_url)
     sessions = make_sessions(engine)
     try:
+        if args.operation == "backup":
+            print(json.dumps(backup_database(sessions, settings, args.path)), flush=True)
+            return
+        if args.operation == "restore":
+            migrate(database_url)
+            print(json.dumps(restore_database(sessions, settings, args.path)), flush=True)
+            return
         if args.operation == "check-operations":
             result = operations_status(sessions, settings)
             print(json.dumps(result), flush=True)
@@ -163,10 +179,20 @@ def main():
                     verified=args.verified,
                 )
                 print(f"Created {args.role} account {user.username}: {user.id}")
-    except (PolicyError, ValueError, IntegrityError) as exc:
+    except (
+        PolicyError,
+        ValueError,
+        SQLAlchemyError,
+        OSError,
+        Refusal,
+        BadZipFile,
+        KeyError,
+    ) as exc:
         message = (
-            "Account or policy conflicts with existing data"
-            if isinstance(exc, IntegrityError)
+            "Snapshot operation failed; check the archive, storage access and empty restore target"
+            if args.operation in {"backup", "restore"}
+            else "Database operation failed"
+            if isinstance(exc, SQLAlchemyError)
             else str(exc)
         )
         parser.exit(

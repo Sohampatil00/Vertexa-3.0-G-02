@@ -28,10 +28,9 @@ export function CitizenDashboard({
   );
   const inProgressCases = cases.filter(
     (c) =>
-      c.workflow_state === "IN_PROGRESS" ||
-      c.workflow_state === "ASSIGNED" ||
-      c.workflow_state === "VALIDATED" ||
-      c.workflow_state === "SUBMITTED",
+      c.workflow_state !== "CLOSED" &&
+      c.workflow_state !== "REJECTED" &&
+      c.workflow_state !== "CITIZEN_VERIFICATION",
   );
   const closedCases = cases.filter(
     (c) => c.workflow_state === "CLOSED" || c.workflow_state === "REJECTED",
@@ -146,10 +145,10 @@ export function CitizenDashboard({
             <div className="flex items-start justify-between mb-3">
               <div>
                 <span className="text-[11px] text-[#434655] uppercase font-bold tracking-wider">
-                  Active Dispatch
+                  Open Reports
                 </span>
                 <span className="text-sm font-semibold text-[#0b1c30] block mt-0.5">
-                  In Progress & Assigned
+                  Awaiting Review or In Progress
                 </span>
               </div>
               <div className="w-10 h-10 rounded-lg bg-[#ffdcc6] text-[#954a00] flex items-center justify-center shrink-0">
@@ -163,7 +162,7 @@ export function CitizenDashboard({
                 {String(inProgressCases.length).padStart(2, "0")}
               </span>
               <span className="text-xs text-[#434655]">
-                Active municipal work orders
+                Reports still moving through the workflow
               </span>
             </div>
           </div>
@@ -174,7 +173,7 @@ export function CitizenDashboard({
               </span>
               <span>Under municipal SLA</span>
             </div>
-            <span className="font-semibold text-[#0037b0]">Active</span>
+            <span className="font-semibold text-[#0037b0]">Open</span>
           </div>
         </div>
 
@@ -207,7 +206,7 @@ export function CitizenDashboard({
             </div>
           </div>
           <div className="bg-[#eff4ff] p-2.5 rounded flex items-center justify-between text-xs text-[#434655]">
-            <span>100% verified resolution track</span>
+            <span>Closed after your acceptance</span>
             <span className="font-mono text-[11px]">ARCHIVED</span>
           </div>
         </div>
@@ -406,7 +405,7 @@ export function CitizenDashboard({
                     onClick={() => onOpenCase(item)}
                     className="px-4 py-2 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0b1c30] text-xs font-semibold rounded border border-[#d9cdba] transition-colors cursor-pointer"
                   >
-                    View Details
+                    View case
                   </button>
                 </div>
               </div>

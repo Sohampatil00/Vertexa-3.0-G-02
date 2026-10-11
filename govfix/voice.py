@@ -112,6 +112,34 @@ def verified(actor):
 def register_voice(app, sessions, settings, workflow, require_actor, read_case):
     app.state.voice_signer = lambda language: signed_url(settings, language)
 
+    def active_session(session, actor):
+        return session.scalar(
+            select(VoiceSession).where(
+                VoiceSession.actor_id == actor.id,
+                VoiceSession.cancelled.is_(False),
+                VoiceSession.result.is_(None),
+                VoiceSession.expires_at > utcnow(),
+            )
+        )
+
+    @app.get("/v1/voice/session")
+    def recover(actor: Annotated[Actor, Depends(require_actor)]):
+        verified(actor)
+        with sessions() as session:
+            voice = active_session(session, actor)
+            if voice is None:
+                return None
+            return {
+                "session_id": voice.id,
+                "language": voice.language,
+                "expires_at": as_utc(voice.expires_at).isoformat(),
+                "review": (
+                    {"draft": voice.draft, "draft_hash": voice.draft_hash}
+                    if voice.draft and voice.draft_hash
+                    else None
+                ),
+            }
+
     def owned(session, actor, session_id, *, allow_completed=False):
         actor = load_actor(session, actor.id, lock=True)
         verified(actor)
@@ -131,18 +159,14 @@ def register_voice(app, sessions, settings, workflow, require_actor, read_case):
     @app.post("/v1/voice/session", status_code=201)
     def start(body: StartVoice, request: Request, actor: Annotated[Actor, Depends(require_actor)]):
         verified(actor)
+        with sessions() as session:
+            if active_session(session, actor):
+                raise Refusal("VOICE_SESSION_ACTIVE", "End your current voice session first.", 409)
         provider = app.state.voice_signer(body.language)
         with write_transaction(sessions) as session:
             fresh = load_actor(session, actor.id, lock=True)
             verified(fresh)
-            active = session.scalar(
-                select(VoiceSession).where(
-                    VoiceSession.actor_id == actor.id,
-                    VoiceSession.cancelled.is_(False),
-                    VoiceSession.result.is_(None),
-                    VoiceSession.expires_at > utcnow(),
-                )
-            )
+            active = active_session(session, actor)
             if active:
                 raise Refusal("VOICE_SESSION_ACTIVE", "End your current voice session first.", 409)
             voice = VoiceSession(

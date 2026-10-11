@@ -48,7 +48,13 @@ def read_case(backend, case):
 
 def messages(backend):
     with backend.sessions() as session:
-        return list(session.scalars(select(OutboxMessage).order_by(OutboxMessage.created_at)).all())
+        return list(
+            session.scalars(
+                select(OutboxMessage)
+                .where(OutboxMessage.kind == "SLA_THRESHOLD")
+                .order_by(OutboxMessage.created_at)
+            ).all()
+        )
 
 
 def ward_head(backend):
@@ -78,7 +84,14 @@ def test_threshold_boundaries_and_retry_once(backend):
         assert current["version"] == case["version"] + expected_count
     with backend.sessions() as session:
         assert session.scalar(select(func.count()).select_from(SlaThreshold)) == 3
-        assert session.scalar(select(func.count()).select_from(OutboxMessage)) == 3
+        assert (
+            session.scalar(
+                select(func.count())
+                .select_from(OutboxMessage)
+                .where(OutboxMessage.kind == "SLA_THRESHOLD")
+            )
+            == 3
+        )
         assert (
             session.scalar(select(Case.next_sla_check).where(Case.public_id == case["id"])) is None
         )
@@ -91,16 +104,17 @@ def test_jump_records_all_thresholds_and_delivers_to_scoped_recipients(backend):
     clock.value += timedelta(hours=109)
     result = worker.run_once()
     assert result["sla"]["thresholds_recorded"] == 3
-    assert result["notifications"]["DELIVERED"] == 3
+    assert result["notifications"]["DELIVERED"] == 4
     assert worker.run_once()["notifications"]["DELIVERED"] == 0
     with backend.sessions() as session:
         notices = session.scalars(select(Notification)).all()
         assert {n.recipient_id for n in notices} == {
+            backend.users["dispatcher"],
             backend.users["officer"],
             backend.users["supervisor"],
             head,
         }
-        assert len(notices) == 3
+        assert len(notices) == 4
     inbox = backend.client.get("/v1/notifications", headers=backend.headers("officer")).json()
     assert len(inbox["notifications"]) == 1
     assert inbox["notifications"][0]["case_id"] == case["id"]
@@ -362,10 +376,15 @@ def test_concurrent_workers_create_and_deliver_once(backend):
         results = list(executor.map(lambda _: worker.scan(), range(2)))
     assert sum(result["thresholds_recorded"] for result in results) == 3
     with ThreadPoolExecutor(max_workers=2) as executor:
-        list(executor.map(lambda _: worker.dispatch(), range(2)))
+        deliveries = list(executor.map(lambda _: worker.dispatch(), range(2)))
+    assert all(result["UNAVAILABLE"] == 0 for result in deliveries)
+    # Concurrent workers intentionally skip a locked case. Its pending messages
+    # are delivered by the next poll after the owning transaction completes.
+    assert worker.dispatch()["UNAVAILABLE"] == 0
+    assert worker.dispatch()["DELIVERED"] == 0
     with backend.sessions() as session:
         assert session.scalar(select(func.count()).select_from(SlaThreshold)) == 3
-        assert session.scalar(select(func.count()).select_from(Notification)) == 3
+        assert session.scalar(select(func.count()).select_from(Notification)) == 4
 
 
 def test_sla_audit_failure_rolls_back_threshold_and_schedule(backend):
@@ -387,7 +406,14 @@ def test_sla_audit_failure_rolls_back_threshold_and_schedule(backend):
     assert read_case(backend, case)["version"] == case["version"]
     with backend.sessions() as session:
         assert session.scalar(select(func.count()).select_from(SlaThreshold)) == 0
-        assert session.scalar(select(func.count()).select_from(OutboxMessage)) == 0
+        assert (
+            session.scalar(
+                select(func.count())
+                .select_from(OutboxMessage)
+                .where(OutboxMessage.kind == "SLA_THRESHOLD")
+            )
+            == 0
+        )
     assert worker.scan()["thresholds_recorded"] == 3
 
 
@@ -405,7 +431,7 @@ def test_delivery_audit_failure_rolls_back_inbox_and_job(backend):
 
     event.listen(engine, "before_cursor_execute", fail)
     try:
-        assert worker.dispatch()["UNAVAILABLE"] == 1
+        assert worker.dispatch()["UNAVAILABLE"] == 2
     finally:
         event.remove(engine, "before_cursor_execute", fail)
     with backend.sessions() as session:

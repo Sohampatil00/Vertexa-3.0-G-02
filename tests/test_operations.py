@@ -139,6 +139,21 @@ def test_real_upload_reaches_resolution_with_history(backend):
         )
 
 
+def test_jpeg_evidence_upload_and_download(backend):
+    case = backend.in_progress()
+    stream = io.BytesIO()
+    Image.new("RGB", (16, 12), "orange").save(stream, format="JPEG")
+    data = stream.getvalue()
+    response = upload(backend, case, data=data, content_type="image/jpeg", key="jpeg-photo")
+    assert response.status_code == 201, response.text
+    evidence_id = response.json()["evidence"]["id"]
+    downloaded = backend.client.get(
+        f"/v1/cases/{case['id']}/evidence/{evidence_id}", headers=backend.headers()
+    )
+    assert downloaded.status_code == 200
+    assert downloaded.content == data
+
+
 @pytest.mark.parametrize(
     "who,status",
     [

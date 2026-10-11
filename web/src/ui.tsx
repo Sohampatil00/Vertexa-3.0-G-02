@@ -1,4 +1,5 @@
-import type React from "react";
+import { useRef, type ReactNode } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -16,8 +17,13 @@ export const outlineBtn =
 
 export function ErrorText({ message }: { message: string }) {
   return message ? (
-    <div role="alert" className="flex items-center gap-2 rounded bg-error-container p-3 text-sm text-on-error-container border border-error/20">
-      <span className="material-symbols-outlined text-[18px] text-error shrink-0">error</span>
+    <div
+      role="alert"
+      className="flex items-center gap-2 rounded bg-error-container p-3 text-sm text-on-error-container border border-error/20"
+    >
+      <span className="material-symbols-outlined text-[18px] text-error shrink-0">
+        error
+      </span>
       <span>{message}</span>
     </div>
   ) : null;
@@ -29,14 +35,70 @@ export function Field({
   className,
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
 }) {
   return (
-    <label className={cn("block space-y-1.5 text-xs font-semibold uppercase tracking-wider text-[#434655]", className)}>
+    <label
+      className={cn(
+        "block space-y-1.5 text-xs font-semibold uppercase tracking-wider text-[#434655]",
+        className,
+      )}
+    >
       <span>{label}</span>
       <div className="font-normal normal-case tracking-normal">{children}</div>
     </label>
+  );
+}
+
+export function Modal({
+  title,
+  description,
+  onClose,
+  busy = false,
+  children,
+  className,
+}: {
+  title: string;
+  description: string;
+  onClose: () => void;
+  busy?: boolean;
+  children: ReactNode;
+  className?: string;
+}) {
+  const returnFocus = useRef(document.activeElement as HTMLElement | null);
+  return (
+    <Dialog.Root
+      open
+      onOpenChange={(open) => {
+        if (!open && !busy) onClose();
+      }}
+    >
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-[#0b1c30]/50 p-4 md:p-6">
+          <Dialog.Content
+            className={cn(
+              "my-auto flex max-h-[90dvh] w-full flex-col overflow-hidden rounded-xl border border-[#d9cdba] bg-white shadow-xl",
+              className,
+            )}
+            onEscapeKeyDown={(event) => {
+              if (busy) event.preventDefault();
+            }}
+            onPointerDownOutside={(event) => event.preventDefault()}
+            onCloseAutoFocus={(event) => {
+              event.preventDefault();
+              returnFocus.current?.focus();
+            }}
+          >
+            <Dialog.Title className="sr-only">{title}</Dialog.Title>
+            <Dialog.Description className="sr-only">
+              {description}
+            </Dialog.Description>
+            {children}
+          </Dialog.Content>
+        </Dialog.Overlay>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
@@ -46,7 +108,7 @@ export function StatusBadge({ state }: { state: string }) {
       return (
         <span className="inline-flex items-center gap-1 rounded px-2.5 py-0.5 text-xs font-semibold bg-[#e5eeff] text-[#0037b0]">
           <span className="w-1.5 h-1.5 rounded-full bg-[#0037b0]"></span>
-          Submitted
+          Submitted · Awaiting Review
         </span>
       );
     case "VALIDATED":

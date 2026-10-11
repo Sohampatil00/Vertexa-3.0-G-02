@@ -1,4 +1,4 @@
-# Free demo: web/API on Render, worker runs separately on your local machine.
+# Free demo: the web/API also processes durable jobs while the service is awake.
 services:
   - type: web
     name: govfix-web-free
@@ -17,7 +17,7 @@ services:
       - key: GOVFIX_REQUIRE_RESTRICTED_ROLE
         value: "true"
       - key: GOVFIX_POLICY_VERSION
-        value: demo-pilot-v1
+        value: demo-pilot-v2
       - key: GOVFIX_READINESS_TIMEOUT_MS
         value: "2000"
       - key: GOVFIX_LOGIN_IP_LIMIT
@@ -30,3 +30,7 @@ services:
         value: evidence
       - key: GOVFIX_AUTH_PROVIDER
         value: local
+      - key: GOVFIX_EMBEDDED_WORKER
+        value: "true"
+      - key: GOVFIX_WORKER_POLL_SECONDS
+        value: "30"

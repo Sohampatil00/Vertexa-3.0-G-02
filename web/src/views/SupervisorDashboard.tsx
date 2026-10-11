@@ -21,8 +21,11 @@ export function SupervisorDashboard({
   const disputes = cases.filter(
     (c) =>
       c.workflow_state === "SUPERVISOR_REVIEW" ||
-      c.workflow_state === "CITIZEN_VERIFICATION" ||
-      c.sla_status === "OVERDUE",
+      (c.workflow_state === "CITIZEN_VERIFICATION" &&
+        c.verification_alerted_at !== null) ||
+      (c.sla_status === "OVERDUE" &&
+        c.workflow_state !== "CLOSED" &&
+        c.workflow_state !== "REJECTED"),
   );
 
   const [activeTab, setActiveTab] = useState<"DISPUTES" | "ALL">("DISPUTES");
@@ -104,7 +107,7 @@ export function SupervisorDashboard({
                   <span className="w-2 h-2 rounded-full bg-[#ba1a1a] animate-ping"></span>
                 </div>
                 <div className="text-[11px] text-[#434655]">
-                  {disputes.length} case(s) requiring supervisor arbitration
+                  {disputes.length} case(s) requiring supervisor attention
                 </div>
               </div>
             </div>
@@ -124,13 +127,13 @@ export function SupervisorDashboard({
           </div>
           <div className="p-3 bg-[#ffdad6]/40 rounded-lg">
             <span className="text-[10px] text-[#ba1a1a] uppercase font-bold block">
-              Disputes / Reviews
+              Priority Cases
             </span>
             <span className="text-2xl font-bold text-[#ba1a1a] mt-0.5 block">
               {disputes.length}
             </span>
             <span className="text-[10px] text-[#ba1a1a]">
-              Immediate Arbitration
+              Disputes, overdue cases and unanswered verification
             </span>
           </div>
           <div className="p-3 bg-[#eff4ff] rounded-lg">
@@ -154,7 +157,7 @@ export function SupervisorDashboard({
             <span className="text-2xl font-bold text-emerald-800 mt-0.5 block">
               {cases.filter((c) => c.workflow_state === "CLOSED").length}
             </span>
-            <span className="text-[10px] text-emerald-700">100% Certified</span>
+            <span className="text-[10px] text-emerald-700">Closed after citizen acceptance</span>
           </div>
         </div>
       </div>
@@ -179,7 +182,7 @@ export function SupervisorDashboard({
                   : "bg-[#eff4ff] text-[#434655]"
               }`}
             >
-              Disputes & Waits ({disputes.length})
+              Needs Attention ({disputes.length})
             </button>
             <button
               onClick={() => setActiveTab("ALL")}
@@ -200,11 +203,10 @@ export function SupervisorDashboard({
               verified
             </span>
             <p className="text-sm font-semibold text-[#0b1c30]">
-              No active disputes in queue
+              No cases need supervisor attention
             </p>
             <p className="text-xs text-[#434655] mt-1">
-              All grievances are running on schedule with zero unhandled citizen
-              disputes.
+              There are no disputes, overdue open cases or flagged verification waits.
             </p>
           </div>
         ) : (
@@ -273,7 +275,7 @@ export function SupervisorDashboard({
                     <span className="material-symbols-outlined text-[16px]">
                       gavel
                     </span>
-                    <span>Arbitrate / Rework</span>
+                    <span>View case</span>
                   </button>
                 </div>
               </div>

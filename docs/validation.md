@@ -1,6 +1,6 @@
 # Validation and release gates
 
-**Status:** Phase 1 backend tests have run on SQLite and PostgreSQL; commands and results are recorded in [implemented.md](./implemented.md). The full P0 plan below is still a release target: voice, workers, operational interfaces, private storage, and pilot sessions are not yet verified.
+**Status:** Automated backend, browser, worker retry/load, private evidence and snapshot restore checks are recorded in [implemented.md](./implemented.md). ElevenLabs agents are provisioned, with simulated browser/provider contracts tested. Human multilingual/accessibility sessions, municipal approval and the latest deployment remain release gates.
 
 ## Test levels
 

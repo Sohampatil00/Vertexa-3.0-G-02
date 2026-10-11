@@ -1,0 +1,225 @@
+{
+  "policy_version": "demo-pilot-v2",
+  "synthetic": true,
+  "cases": [
+    {
+      "key": "case-01",
+      "category": "POTHOLE",
+      "ward": "WARD-A",
+      "description": "Deep pothole near the demo bus stop fills with water after rain and forces two-wheelers into oncoming traffic.",
+      "location": "Ward A, Demo Bus Stop Road",
+      "target_state": "CLOSED",
+      "after_photo": "/demo/civic-issues/pothole-repaired.jpg",
+      "resolution_note": "The demo field team completed the reported work and uploaded an illustrative after-work photograph."
+    },
+    {
+      "key": "case-02",
+      "category": "POTHOLE",
+      "ward": "WARD-B",
+      "description": "The repaired patch near the market junction is still uneven and cyclists have reported another fall.",
+      "location": "Ward B, Fictional Market Junction",
+      "target_state": "SUPERVISOR_REVIEW",
+      "after_photo": "/demo/civic-issues/pothole-repaired.jpg",
+      "resolution_note": "The demo field team completed the reported work and uploaded an illustrative after-work photograph.",
+      "dispute_statement": "The patch remains uneven. Please inspect the edges and schedule supervised rework."
+    },
+    {
+      "key": "case-03",
+      "category": "POTHOLE",
+      "ward": "WARD-A",
+      "description": "Several shallow potholes have formed across the lane used by school buses.",
+      "location": "Ward A, Sample School Lane",
+      "target_state": "SUBMITTED"
+    },
+    {
+      "key": "case-04",
+      "category": "DAMAGED_ROAD",
+      "ward": "WARD-B",
+      "description": "Loose gravel and a broken road edge make the bend difficult for ambulances to use.",
+      "location": "Ward B, Demo Clinic Bend",
+      "target_state": "VALIDATED"
+    },
+    {
+      "key": "case-05",
+      "category": "DAMAGED_ROAD",
+      "ward": "WARD-A",
+      "description": "The road surface has cracked and sunk around the turning area for public buses.",
+      "location": "Ward A, Fictional Depot Turn",
+      "target_state": "IN_PROGRESS"
+    },
+    {
+      "key": "case-06",
+      "category": "BROKEN_FOOTPATH",
+      "ward": "WARD-A",
+      "description": "Uneven footpath slabs block wheelchair access between the clinic and bus shelter.",
+      "location": "Ward A, Demo Health Centre Footpath",
+      "target_state": "ASSIGNED"
+    },
+    {
+      "key": "case-07",
+      "category": "BROKEN_FOOTPATH",
+      "ward": "WARD-B",
+      "description": "Multiple paving tiles are missing beside the market entrance.",
+      "location": "Ward B, Fictional Market Footpath",
+      "target_state": "SUBMITTED"
+    },
+    {
+      "key": "case-08",
+      "category": "OPEN_MANHOLE",
+      "ward": "WARD-A",
+      "description": "A manhole cover is missing next to a pedestrian crossing and the opening is unguarded.",
+      "location": "Ward A, Sample Crossing Road",
+      "target_state": "IN_PROGRESS"
+    },
+    {
+      "key": "case-09",
+      "category": "OPEN_MANHOLE",
+      "ward": "WARD-B",
+      "description": "The inspection chamber cover rocks when vehicles pass over it.",
+      "location": "Ward B, Demo Park Road",
+      "target_state": "VALIDATED"
+    },
+    {
+      "key": "case-10",
+      "category": "MISSED_WASTE_COLLECTION",
+      "ward": "WARD-A",
+      "description": "Household waste on the scheduled route remained uncollected for two days.",
+      "location": "Ward A, Sample Housing Lane",
+      "target_state": "CLOSED",
+      "after_photo": "/demo/civic-issues/garbage-cleared.jpg",
+      "resolution_note": "The demo field team completed the reported work and uploaded an illustrative after-work photograph."
+    },
+    {
+      "key": "case-11",
+      "category": "MISSED_WASTE_COLLECTION",
+      "ward": "WARD-B",
+      "description": "Waste bags were left outside the community collection point after the morning route.",
+      "location": "Ward B, Fictional Community Block",
+      "target_state": "CITIZEN_VERIFICATION",
+      "after_photo": "/demo/civic-issues/garbage-cleared.jpg",
+      "resolution_note": "The demo field team completed the reported work and uploaded an illustrative after-work photograph."
+    },
+    {
+      "key": "case-12",
+      "category": "OVERFLOWING_BIN",
+      "ward": "WARD-A",
+      "description": "The public bin beside the bus shelter is overflowing onto the walking path.",
+      "location": "Ward A, Demo Bus Shelter",
+      "target_state": "SUBMITTED"
+    },
+    {
+      "key": "case-13",
+      "category": "OVERFLOWING_BIN",
+      "ward": "WARD-B",
+      "description": "Overflowing bins behind the market are attracting insects and blocking the service lane.",
+      "location": "Ward B, Fictional Market Service Lane",
+      "target_state": "VALIDATED"
+    },
+    {
+      "key": "case-14",
+      "category": "GARBAGE_DUMPING",
+      "ward": "WARD-A",
+      "description": "Mixed construction and household waste has been dumped on an empty roadside plot.",
+      "location": "Ward A, Sample Canal Approach",
+      "target_state": "ASSIGNED"
+    },
+    {
+      "key": "case-15",
+      "category": "GARBAGE_DUMPING",
+      "ward": "WARD-B",
+      "description": "Unsorted bags are repeatedly dumped near the pedestrian underpass.",
+      "location": "Ward B, Demo Underpass Approach",
+      "target_state": "IN_PROGRESS"
+    },
+    {
+      "key": "case-16",
+      "category": "BROKEN_STREETLIGHT",
+      "ward": "WARD-B",
+      "description": "A streetlight beside the residential lane has stayed dark for three nights.",
+      "location": "Ward B, Fictional Lotus Lane",
+      "target_state": "ASSIGNED"
+    },
+    {
+      "key": "case-17",
+      "category": "BROKEN_STREETLIGHT",
+      "ward": "WARD-A",
+      "description": "Two lamps near the playground do not switch on after sunset.",
+      "location": "Ward A, Demo Playground Road",
+      "target_state": "SUBMITTED"
+    },
+    {
+      "key": "case-18",
+      "category": "WATER_PIPE_LEAK",
+      "ward": "WARD-A",
+      "description": "Clean water is flowing from a cracked supply pipe and pooling at the curb.",
+      "location": "Ward A, Sample Library Road",
+      "target_state": "IN_PROGRESS"
+    },
+    {
+      "key": "case-19",
+      "category": "WATER_PIPE_LEAK",
+      "ward": "WARD-B",
+      "description": "A valve box near the crossing leaks continuously into the road.",
+      "location": "Ward B, Fictional Station Link",
+      "target_state": "SUBMITTED"
+    },
+    {
+      "key": "case-20",
+      "category": "NO_WATER_SUPPLY",
+      "ward": "WARD-A",
+      "description": "The upper-floor taps in the demo housing block have had no municipal supply since yesterday morning.",
+      "location": "Ward A, Sample Housing Block",
+      "target_state": "VALIDATED"
+    },
+    {
+      "key": "case-21",
+      "category": "NO_WATER_SUPPLY",
+      "ward": "WARD-B",
+      "description": "Residents on the last lane of the supply route report no water during the scheduled window.",
+      "location": "Ward B, Demo East Lane",
+      "target_state": "ASSIGNED"
+    },
+    {
+      "key": "case-22",
+      "category": "BLOCKED_DRAIN",
+      "ward": "WARD-A",
+      "description": "Silt and leaves block the roadside grate, leaving standing rainwater across the junction.",
+      "location": "Ward A, Fictional Monsoon Junction",
+      "target_state": "SUBMITTED"
+    },
+    {
+      "key": "case-23",
+      "category": "BLOCKED_DRAIN",
+      "ward": "WARD-B",
+      "description": "Rainwater cannot enter the storm drain and is collecting in front of shop entrances.",
+      "location": "Ward B, Demo Market Drain",
+      "target_state": "IN_PROGRESS"
+    },
+    {
+      "key": "case-24",
+      "category": "SEWAGE_OVERFLOW",
+      "ward": "WARD-A",
+      "description": "Wastewater is overflowing from a public chamber and running along the gutter.",
+      "location": "Ward A, Sample Service Road",
+      "target_state": "SUBMITTED"
+    },
+    {
+      "key": "case-25",
+      "category": "SEWAGE_OVERFLOW",
+      "ward": "WARD-B",
+      "description": "A blocked sewer line is backing up near the community hall entrance.",
+      "location": "Ward B, Fictional Community Hall",
+      "target_state": "VALIDATED"
+    },
+    {
+      "key": "case-26",
+      "category": "GARBAGE_DUMPING",
+      "ward": "WARD-B",
+      "description": "This is a duplicate report of the same previously recorded dumping point.",
+      "location": "Ward B, Demo Underpass Approach",
+      "target_state": "REJECTED",
+      "rejection_reason_code": "DUPLICATE",
+      "rejection_explanation": "This fictional report repeats the underpass dumping case already in the demo queue."
+    }
+  ]
+}

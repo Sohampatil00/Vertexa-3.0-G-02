@@ -29,6 +29,15 @@ For a provider 401/403, check the key's validity and ElevenAgents permissions;
 for a 404, check the agent ID and workspace. The logs never include the API key,
 signed URL, or provider error body. Test with a verified citizen account.
 
+### Recovering an unfinished voice session
+
+If starting voice reports that a previous session is still open, the dashboard
+retrieves only your active session and restores its **Discard voice session**
+button. Any saved draft is restored for review and deliberate confirmation.
+Discard the session to start again. Recovery does not reconnect the microphone,
+issue a signed URL, or submit a grievance. Cancelled, completed, and expired
+sessions are excluded; sessions expire after 15 minutes.
+
 Sources: [signed URL authentication](https://elevenlabs.io/docs/eleven-agents/customization/authentication), [JavaScript SDK](https://elevenlabs.io/docs/eleven-agents/libraries/java-script), and [signed webhook contracts](https://elevenlabs.io/docs/eleven-api/resources/webhooks).
 
 ## Citizen flow

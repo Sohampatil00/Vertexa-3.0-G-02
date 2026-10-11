@@ -97,6 +97,8 @@ class Worker:
             role, recipient_id = "CITIZEN", case.citizen_id
         elif message.kind in {"SUPERVISOR_REVIEW_REQUEST", "VERIFICATION_WAIT_REVIEW"}:
             role = "SUPERVISOR"
+        elif message.kind == "INTAKE_VALIDATED":
+            role = "DISPATCHER"
         elif message.kind != "SLA_THRESHOLD":
             raise Refusal("UNSUPPORTED_NOTIFICATION", "No notification adapter for this kind.", 503)
         if role == "CITIZEN":

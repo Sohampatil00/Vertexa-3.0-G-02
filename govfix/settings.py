@@ -16,6 +16,9 @@ class Settings:
     login_rate_secret: str = "local-demo-login-budget"
     readiness_timeout_ms: int = 2000
     worker_stale_seconds: int = 120
+    embedded_worker: bool = False
+    worker_poll_seconds: float = 30
+    worker_batch_size: int = 100
     notification_backlog_seconds: int = 300
     policy_version: str = "demo-pilot-v1"
     session_minutes: int = 60
@@ -38,6 +41,10 @@ class Settings:
         return timedelta(seconds=self.notification_backlog_seconds)
 
     def __post_init__(self):
+        if not 1 <= self.worker_poll_seconds <= 3600:
+            raise ValueError("Worker poll interval must be 1–3600 seconds")
+        if not 1 <= self.worker_batch_size <= 1000:
+            raise ValueError("Worker batch size must be 1–1000")
         if not 100 <= self.readiness_timeout_ms <= 10000:
             raise ValueError("Readiness timeout must be 100–10000 milliseconds")
         if not 1 <= self.worker_stale_seconds <= 86400:
@@ -70,6 +77,10 @@ class Settings:
                 "SQLite fallback is disabled when SUPABASE_URL is configured"
             )
         return cls(
+            embedded_worker=os.getenv("GOVFIX_EMBEDDED_WORKER", "false").lower()
+            in {"true", "1", "yes"},
+            worker_poll_seconds=float(os.getenv("GOVFIX_WORKER_POLL_SECONDS", "30")),
+            worker_batch_size=int(os.getenv("GOVFIX_WORKER_BATCH_SIZE", "100")),
             elevenlabs_webhook_secret=os.getenv("GOVFIX_ELEVENLABS_WEBHOOK_SECRET"),
             elevenlabs_api_key=os.getenv("ELEVENLABS_API_KEY"),
             elevenlabs_agent_en=os.getenv("GOVFIX_ELEVENLABS_AGENT_EN"),
@@ -89,7 +100,7 @@ class Settings:
             login_window_seconds=int(os.getenv("GOVFIX_LOGIN_WINDOW_SECONDS", "900")),
             login_rate_secret=os.getenv("GOVFIX_LOGIN_RATE_SECRET", "local-demo-login-budget"),
             auth_provider=os.getenv("GOVFIX_AUTH_PROVIDER", "local"),
-            policy_version=os.getenv("GOVFIX_POLICY_VERSION", "demo-pilot-v1"),
+            policy_version=os.getenv("GOVFIX_POLICY_VERSION", "demo-pilot-v2"),
             evidence_directory=os.getenv("GOVFIX_EVIDENCE_DIRECTORY", "./var/evidence"),
             evidence_max_bytes=int(os.getenv("GOVFIX_EVIDENCE_MAX_BYTES", str(5 * 1024 * 1024))),
             session_minutes=int(os.getenv("GOVFIX_SESSION_MINUTES", "60")),

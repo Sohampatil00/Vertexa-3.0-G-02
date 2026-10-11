@@ -23,15 +23,22 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
 
     def options(policy):
         return {
-            key: policy[key]
-            for key in (
-                "version",
-                "municipality",
-                "timezone",
-                "wards",
-                "categories",
-                "rejection_reason_codes",
-            )
+            "checksum": hashlib.sha256(
+                json.dumps(
+                    policy, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+                ).encode()
+            ).hexdigest(),
+            **{
+                key: policy[key]
+                for key in (
+                    "version",
+                    "municipality",
+                    "timezone",
+                    "wards",
+                    "categories",
+                    "rejection_reason_codes",
+                )
+            },
         }
 
     @app.get("/v1/intake-options")

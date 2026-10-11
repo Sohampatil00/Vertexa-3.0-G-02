@@ -8,7 +8,7 @@ from sqlalchemy.exc import DBAPIError
 
 from govfix.database import utcnow
 from govfix.models import AuditEvent, OutboxMessage, WorkerStatus
-from govfix.observability import logger, operations_status
+from govfix.observability import SCHEMA_REVISION, logger, operations_status
 from govfix.settings import Settings
 from govfix.worker import Worker
 
@@ -23,7 +23,10 @@ def test_ready_checks_schema_policy_and_keeps_health_independent(backend):
     assert response.status_code == 503
     assert response.json()["checks"]["schema"] is False
     with backend.sessions() as session, session.begin():
-        session.execute(text("UPDATE alembic_version SET version_num='0009'"))
+        session.execute(
+            text("UPDATE alembic_version SET version_num=:revision"),
+            {"revision": SCHEMA_REVISION},
+        )
     assert backend.client.get("/health").status_code == 200
 
 

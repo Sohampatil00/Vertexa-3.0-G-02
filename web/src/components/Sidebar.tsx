@@ -65,7 +65,7 @@ const NAV_ITEMS: NavItem[] = [
     id: "notifications",
     label: "Notifications",
     icon: "notifications_active",
-    roleHint: "SLA Alerts",
+    roleHint: "Workflow Alerts",
   },
 ];
 

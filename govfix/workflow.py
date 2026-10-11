@@ -90,6 +90,9 @@ def project_case(case: Case, policy: dict) -> dict:
         "workflow_state": case.workflow_state,
         "description": case.description,
         "location": case.location,
+        "latitude": case.latitude,
+        "longitude": case.longitude,
+        "accuracy_m": case.accuracy_m,
         "category": case.category,
         "ward": case.ward,
         "department": case.department,
@@ -336,6 +339,18 @@ class Workflow:
                         before=before,
                         details=details,
                     )
+                    if operation == "validate":
+                        session.add(
+                            OutboxMessage(
+                                event_id=event.id,
+                                kind="INTAKE_VALIDATED",
+                                payload={
+                                    "case_id": case.public_id,
+                                    "recipient_role": "DISPATCHER",
+                                    "intake_officer": actor.display_name,
+                                },
+                            )
+                        )
                     if operation == "deadline-extension":
                         session.add(
                             OutboxMessage(
@@ -437,6 +452,9 @@ class Workflow:
             workflow_state="SUBMITTED",
             description=command.description,
             location=command.location,
+            latitude=command.latitude,
+            longitude=command.longitude,
+            accuracy_m=command.accuracy_m,
             category=command.category,
             ward=command.ward,
             department=category["department"],

@@ -4,6 +4,8 @@
 
 Current submission requires a configured category and ward as well as description, location, and confirmation, so a provisional demo deadline can be pinned immediately. Validation confirms those values; correction cannot silently change the original deadline. Direct voice commands remain refused; Phase 5 submission uses the verified voice-session routes described below.
 
+Browser submissions can also include `latitude` and `longitude` (both or neither) and optional `accuracy_m` from the device geolocation permission prompt. The coordinates are stored on the case and returned to its citizen and scoped staff in case responses. The written `location` remains required when geolocation is unavailable or denied. The web case view opens the coordinates on OpenStreetMap; no report is posted to the OpenStreetMap editing API.
+
 ## Conventions
 
 - Authenticate every nonpublic request. The server derives roles and jurisdiction from credentials and stored grants.

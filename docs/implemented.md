@@ -1,6 +1,6 @@
 # Implementation tracker
 
-**As of 11 October 2026:** Phases 1–4 and the Phase 5 application integration are implemented with a fictional `DEMO_ONLY` policy and provisioned accounts. Supabase PostgreSQL/private Storage are configured, and the Render Free deployment passed liveness, readiness and pilot-account login checks. Four dedicated dashboard views are implemented and verified locally; deploying this update remains pending. Municipal policy approval, production identity verification, external notification providers, deployed evidence/workflow verification and live ElevenLabs provisioning/language validation remain open.
+**As of 11 October 2026:** Phases 1–4 and the Phase 5 application integration are implemented with a fictional `DEMO_ONLY` policy and provisioned accounts. Supabase PostgreSQL/private Storage are configured, and the Render Free deployment passed liveness, readiness and pilot-account login checks. Four dashboard families and seven role workflows are implemented. Private ElevenLabs agents are provisioned. Backup/recovery, background automation, browser dictation/read-aloud and accessibility/load checks are implemented; the latest update still needs deployment. Municipal policy approval, production identity verification, real speaker/accessibility sessions and optional outbound telephony remain open.
 
 ## Present in the repository
 
@@ -15,12 +15,12 @@
 | Resolution presentation, explicit acceptance/dispute, and supervisor rework | Verified locally | [Citizen verification](./citizen-verification.md), [browser workflow](../scripts/test_browser.py), [tests](../tests/test_verification.py) |
 | Outbox requests for citizen verification and supervisor review | In-app delivery verified | Requests commit with workflow events; [worker](../govfix/worker.py) delivers to authenticated inboxes |
 | Four dedicated role dashboards | Verified in Chromium desktop/mobile | [Dashboard views](../web/src/dashboards.tsx), [React client](../web/src/main.tsx), [guide](./dashboards.md), [browser workflow](../scripts/test_browser.py) |
-| Private evidence upload and completion | Verified locally | [Upload API](../govfix/operations.py), [private store](../govfix/evidence.py), [tests](../tests/test_operations.py); production object storage remains open |
+| Private evidence upload and completion | Verified locally | [Upload API](../govfix/operations.py), [private store](../govfix/evidence.py), [tests](../tests/test_operations.py); Supabase private Storage is configured |
 | SLA monitoring, escalation, notification retry and deadline extension | Verified locally | [SLA scheduler](../govfix/sla.py), [worker](../govfix/worker.py), [tests](../tests/test_sla.py), [operations guide](./sla-operations.md) |
 | Unanswered verification alert | Verified locally | Pinned policy window, one audited alert per cycle, supervisor inbox and scoped dashboard count; [guide](./citizen-verification.md) |
-| ElevenLabs integration | Application and mocked provider contracts verified; live calls pending | [Voice guide](./voice-access.md), [boundary tests](../tests/test_voice.py), signed transcript webhook, and browser outage fallback |
+| ElevenLabs integration | Private agents provisioned; signed session and mocked browser/provider contracts verified; real speaker validation pending | [Voice guide](./voice-access.md), [boundary tests](../tests/test_voice.py), signed transcript webhook, and browser outage fallback |
 | CI | Configured; remote execution not verified | [SQLite/PostgreSQL workflow](../.github/workflows/backend.yml) |
-| Deployment and production safeguards | Render Free demo deployed; pilot hardening partial | [Render guide](./render-deployment.md); backup/recovery and remaining [release gates](./validation.md) are open |
+| Deployment and production safeguards | Render Free demo deployed; pilot hardening partial | [Render guide](./render-deployment.md); backup/recovery implemented; remaining human and deployment [release gates](./validation.md) are open |
 
 ## Verification recorded
 
@@ -107,3 +107,20 @@ Move an item to **Implemented** only when its code exists. Move it to **Verified
   restrictions, owned/verification queues and mobile layout.
 - See [dashboard guide](./dashboards.md). No schema migration is needed. The
   dashboard/API update must still be committed, pushed and deployed to Render.
+
+## Submission hardening — 11 October 2026
+
+- SQLite: 180 passed, 4 PostgreSQL-only checks skipped; isolated PostgreSQL: 184 passed.
+- Full role browser cycle passes with voice recovery, mocked browser dictation/read-aloud,
+  keyboard dialog checks, automated WCAG checks and mobile layouts.
+- Concurrent load/retry drills pass on SQLite and PostgreSQL: 64 requests, 8 unique cases,
+  24 unique SLA thresholds after concurrent and repeated workers.
+- Supabase read-only permission audit: 16/16 tables safe, restricted runtime role verified.
+- Private live snapshot: 15 application tables, 113 rows, one evidence object. Restored to
+  isolated PostgreSQL; case/audit history retained, copied sessions revoked, readiness passed.
+- Added optional embedded worker for the free web service while awake, portable
+  backup/restore CLI, accessible dialogs and real policy checksums/dashboard figures.
+- See [submission workflow](./submission-workflow.md) for the demonstration and deployment.
+
+Human language/accessibility validation and municipal approval remain external pilot gates.
+Optional outbound phone calls need connected telephony; no number is connected.
