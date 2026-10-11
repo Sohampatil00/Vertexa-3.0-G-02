@@ -21,3 +21,5 @@ The [root README](../README.md) introduces the project. The [PRD](../prd.md) is 
 - Source statistics and vendor capabilities are cited in the [PRD](../prd.md). The broken Swachhata FAQ link does not establish an official SLA.
 
 [SLA operations](./sla-operations.md) explains the Phase 3 worker, extensions, in-app delivery, and failure recovery.
+
+[Citizen verification](./citizen-verification.md) explains Phase 4 acceptance, disputes, supervised rework, and unanswered verification alerts.

@@ -86,18 +86,17 @@ def run_browser(url, password, photo, worker):
         page.get_by_label("Work completed").fill("Repaired pothole and verified the surface")
         page.locator('input[name="evidence"]').check()
         page.get_by_role("button", name="Submit resolution", exact=True).click()
-        expect(
-            page.get_by_text(
-                "Resolution submitted. The case remains open pending citizen verification."
-            )
-        ).to_be_visible()
+        expect(page.get_by_role("heading", name="Submitted resolution")).to_be_visible()
+        expect(page.get_by_text("Repaired pothole and verified the surface")).to_be_visible()
         with worker.sessions() as session:
             row = session.scalar(
                 select(Case).where(Case.description == "Pothole near demo bus stop")
             )
             simulated = as_utc(row.submitted_at) + timedelta(hours=109)
         worker.clock = lambda: simulated
-        assert worker.run_once()["sla"]["thresholds_recorded"] == 3
+        cycle = worker.run_once()
+        assert cycle["sla"]["thresholds_recorded"] == 3
+        assert cycle["verification"]["cases_flagged"] == 1
         with worker.sessions() as session:
             failed_id = session.scalar(
                 select(OutboxMessage.id).where(OutboxMessage.status == "RETRY")
@@ -109,6 +108,9 @@ def run_browser(url, password, photo, worker):
         sign_out()
         login("supervisor")
         open_case()
+        expect(
+            page.get_by_text("A supervisor has been alerted to the wait.", exact=False)
+        ).to_be_visible()
         expect(page.get_by_role("heading", name="Ownership history")).to_be_visible()
         expect(page.get_by_text("Current assignment", exact=True)).to_be_visible()
         with page.expect_download() as pending:
@@ -164,6 +166,37 @@ def run_browser(url, password, photo, worker):
         expect(page.get_by_role("heading", name="Pothole near demo bus stop")).to_be_visible()
         expect(page.get_by_role("button", name="Download photo")).to_be_visible()
         expect(page.get_by_role("heading", name="Ownership history")).not_to_be_visible()
+        page.get_by_role("button", name="verification", exact=True).click()
+        page.get_by_label("Dispute the resolution and request supervised rework").check()
+        page.get_by_label("What still needs to be fixed?").fill("The surface is still uneven")
+        page.get_by_label("I reviewed the resolution and confirm this response.").check()
+        page.get_by_role("button", name="Submit dispute", exact=True).click()
+        expect(page.get_by_text("The surface is still uneven")).to_be_visible()
+        sign_out()
+        login("supervisor")
+        open_case()
+        expect(page.get_by_role("heading", name="Citizen dispute")).to_be_visible()
+        page.get_by_role("button", name="review", exact=True).click()
+        page.get_by_label("Supervisor review reason").fill("Repair the uneven surface")
+        page.get_by_role("button", name="Send for rework", exact=True).click()
+        expect(page.get_by_role("button", name="review", exact=True)).not_to_be_visible()
+        sign_out()
+        login("officer")
+        open_case()
+        page.get_by_role("button", name="resolution", exact=True).click()
+        page.get_by_label("Work completed").fill("Reworked and levelled the road surface")
+        page.locator('input[name="evidence"]').check()
+        page.get_by_role("button", name="Submit resolution", exact=True).click()
+        expect(page.get_by_text("Reworked and levelled the road surface")).to_be_visible()
+        sign_out()
+        login("citizen")
+        open_case()
+        page.get_by_role("button", name="verification", exact=True).click()
+        page.get_by_label("I reviewed the resolution and confirm this response.").check()
+        page.get_by_role("button", name="Accept resolution", exact=True).click()
+        expect(page.get_by_role("alertdialog")).to_be_visible()
+        page.get_by_role("button", name="Accept and close case", exact=True).click()
+        expect(page.get_by_text("closed", exact=True).first).to_be_visible()
         page.get_by_role("button", name="New grievance", exact=True).click()
         page.get_by_label("Description").fill("Duplicate demo pothole report")
         page.get_by_label("Location").fill("Demo main road")
@@ -198,7 +231,8 @@ def run_browser(url, password, photo, worker):
         browser.close()
         print(
             "Browser workflow passed: citizen → intake → dispatcher → officer → supervisor; "
-            "SLA escalation, delivery retry, extension, citizen inbox, "
+            "SLA escalation, verification wait, dispute, rework, acceptance, "
+            "delivery retry, extension, citizen inbox, "
             "mobile layout and private download verified."
         )
 

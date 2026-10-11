@@ -716,7 +716,9 @@ function Detail({
               </div>
               {resolution && (
                 <section className="border-t border-slate-200 pt-5">
-                  <h3 className="font-semibold text-balance">Submitted resolution</h3>
+                  <h3 className="font-semibold text-balance">
+                    Submitted resolution
+                  </h3>
                   <p className="mt-1 text-xs text-slate-500 tabular-nums">
                     Submitted {date(resolution.submitted_at, current.timezone)}
                   </p>
@@ -727,9 +729,18 @@ function Detail({
                     {resolution.evidence_refs.map((id) => {
                       const file = evidence.find((item) => item.id === id);
                       return file ? (
-                        <div key={id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-200 p-3">
-                          <span className="text-sm capitalize">{human(file.kind)}</span>
-                          <Download token={token} caseId={current.id} file={file} />
+                        <div
+                          key={id}
+                          className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-200 p-3"
+                        >
+                          <span className="text-sm capitalize">
+                            {human(file.kind)}
+                          </span>
+                          <Download
+                            token={token}
+                            caseId={current.id}
+                            file={file}
+                          />
                         </div>
                       ) : null;
                     })}
@@ -739,14 +750,19 @@ function Detail({
               {disputeStatement && (
                 <section className="rounded-md border border-amber-200 bg-amber-50 p-4">
                   <h3 className="font-semibold">Citizen dispute</h3>
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-pretty">{disputeStatement}</p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-pretty">
+                    {disputeStatement}
+                  </p>
                 </section>
               )}
               {current.workflow_state === "CITIZEN_VERIFICATION" && (
                 <p className="rounded-md bg-blue-50 p-4 text-sm text-blue-900 text-pretty">
-                  The case remains open while the citizen reviews this resolution.
-                  {current.verification_due_at && ` Supervisor review is scheduled after ${date(current.verification_due_at, current.timezone)} if there is no response.`}
-                  {current.verification_alerted_at && " A supervisor has been alerted to the wait."}
+                  The case remains open while the citizen reviews this
+                  resolution.
+                  {current.verification_due_at &&
+                    ` Supervisor review is scheduled after ${date(current.verification_due_at, current.timezone)} if there is no response.`}
+                  {current.verification_alerted_at &&
+                    " A supervisor has been alerted to the wait."}
                 </p>
               )}
               {available.length > 0 && (
@@ -786,49 +802,51 @@ function Detail({
                 busy={cmd.busy}
                 commandError={cmd.error}
               />
-              <section className="border-t border-slate-200 pt-5">
-                <h3 className="font-semibold">Resolution evidence</h3>
-                <p className="mt-1 text-xs text-slate-500">
-                  Private files · Access checked on every download
-                </p>
-                {evidence.length === 0 && (
-                  <p className="mt-4 text-sm text-slate-500">
-                    No completed uploads yet.
+              {(!resolution || current.workflow_state === "IN_PROGRESS") && (
+                <section className="border-t border-slate-200 pt-5">
+                  <h3 className="font-semibold">Evidence uploads</h3>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Private files · Access checked on every download
                   </p>
-                )}
-                <ul className="mt-4 space-y-3">
-                  {evidence.map((file) => (
-                    <li
-                      key={file.id}
-                      className="rounded-md border border-slate-200 p-3"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="text-sm capitalize">
-                          {human(file.kind)} ·{" "}
-                          {(file.size_bytes / 1024).toFixed(1)} KB
-                        </span>
-                        <Download
-                          token={token}
-                          caseId={current.id}
-                          file={file}
-                        />
-                      </div>
-                      <p className="mt-2 break-all font-mono text-xs text-slate-500">
-                        SHA-256 {file.sha256}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-                {current.owner_id === user.id &&
-                  current.workflow_state === "IN_PROGRESS" && (
-                    <Upload
-                      token={token}
-                      item={current}
-                      ops={ops}
-                      done={() => setRevision((r) => r + 1)}
-                    />
+                  {evidence.length === 0 && (
+                    <p className="mt-4 text-sm text-slate-500">
+                      No completed uploads yet.
+                    </p>
                   )}
-              </section>
+                  <ul className="mt-4 space-y-3">
+                    {evidence.map((file) => (
+                      <li
+                        key={file.id}
+                        className="rounded-md border border-slate-200 p-3"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-sm capitalize">
+                            {human(file.kind)} ·{" "}
+                            {(file.size_bytes / 1024).toFixed(1)} KB
+                          </span>
+                          <Download
+                            token={token}
+                            caseId={current.id}
+                            file={file}
+                          />
+                        </div>
+                        <p className="mt-2 break-all font-mono text-xs text-slate-500">
+                          SHA-256 {file.sha256}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                  {current.owner_id === user.id &&
+                    current.workflow_state === "IN_PROGRESS" && (
+                      <Upload
+                        token={token}
+                        item={current}
+                        ops={ops}
+                        done={() => setRevision((r) => r + 1)}
+                      />
+                    )}
+                </section>
+              )}
               {ops.assignments.length > 0 && (
                 <section className="border-t border-slate-200 pt-5">
                   <h3 className="font-semibold">Ownership history</h3>
@@ -922,6 +940,8 @@ function ActionForm({
   run: (body: unknown) => void;
 }) {
   const [confirmationBody, setConfirmationBody] = useState<unknown>(null);
+  const [outcome, setOutcome] = useState<"ACCEPT" | "DISPUTE">("ACCEPT");
+  const [decision, setDecision] = useState<"RETAIN" | "REASSIGN">("RETAIN");
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -950,9 +970,25 @@ function ActionForm({
         reason: data.get("reason"),
       };
     else if (action === "accept-assignment") body = { confirmation: true };
+    else if (action === "verification")
+      body = {
+        outcome,
+        confirmation: true,
+        statement: outcome === "DISPUTE" ? data.get("statement") : null,
+      };
+    else if (action === "review")
+      body = {
+        decision,
+        officer_id:
+          decision === "RETAIN" ? current.owner_id : data.get("officer"),
+        reason: data.get("reason"),
+      };
     else
       body = { note: data.get("note"), evidence_refs: data.getAll("evidence") };
-    if (["reject", "deadline-extension"].includes(action))
+    if (
+      ["reject", "deadline-extension"].includes(action) ||
+      (action === "verification" && outcome === "ACCEPT")
+    )
       setConfirmationBody(body);
     else run(body);
   }
@@ -1059,12 +1095,95 @@ function ActionForm({
           </fieldset>
         </>
       )}
+      {action === "verification" && (
+        <>
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-medium">
+              Your response to the submitted resolution
+            </legend>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="outcome"
+                checked={outcome === "ACCEPT"}
+                onChange={() => setOutcome("ACCEPT")}
+              />
+              Accept the resolution and close the case
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="outcome"
+                checked={outcome === "DISPUTE"}
+                onChange={() => setOutcome("DISPUTE")}
+              />
+              Dispute the resolution and request supervised rework
+            </label>
+          </fieldset>
+          {outcome === "DISPUTE" && (
+            <Field label="What still needs to be fixed?">
+              <textarea name="statement" required maxLength={2000} rows={3} />
+            </Field>
+          )}
+          <label className="flex items-start gap-2 text-sm">
+            <input type="checkbox" required className="mt-1" />I reviewed the
+            resolution and confirm this response.
+          </label>
+        </>
+      )}
+      {action === "review" && (
+        <>
+          <fieldset className="space-y-2">
+            <legend className="text-sm font-medium">Rework assignment</legend>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="decision"
+                checked={decision === "RETAIN"}
+                onChange={() => setDecision("RETAIN")}
+              />
+              Retain current officer
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="radio"
+                name="decision"
+                checked={decision === "REASSIGN"}
+                onChange={() => setDecision("REASSIGN")}
+              />
+              Assign another officer
+            </label>
+          </fieldset>
+          {decision === "REASSIGN" && (
+            <Field label="Rework officer">
+              <select name="officer" required defaultValue="">
+                <option value="" disabled>
+                  Select an eligible officer
+                </option>
+                {ops.officers
+                  .filter((o) => o.id !== current.owner_id)
+                  .map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.name}
+                    </option>
+                  ))}
+              </select>
+            </Field>
+          )}
+          <Field label="Supervisor review reason">
+            <textarea name="reason" required maxLength={2000} rows={3} />
+          </Field>
+        </>
+      )}
       <ErrorText message={error} />
       <button
         disabled={
           busy ||
           (action === "resolution" && evidence.length === 0) ||
-          (action === "assign" && ops.officers.length === 0)
+          (action === "assign" && ops.officers.length === 0) ||
+          (action === "review" &&
+            decision === "REASSIGN" &&
+            ops.officers.filter((o) => o.id !== current.owner_id).length === 0)
         }
         className={button}
       >
@@ -1072,7 +1191,13 @@ function ActionForm({
           ? "Saving…"
           : action === "resolution"
             ? "Submit resolution"
-            : `Confirm ${human(action)}`}
+            : action === "verification"
+              ? outcome === "ACCEPT"
+                ? "Accept resolution"
+                : "Submit dispute"
+              : action === "review"
+                ? "Send for rework"
+                : `Confirm ${human(action)}`}
       </button>
       <AlertDialog.Root
         open={confirmationBody !== null}
@@ -1086,18 +1211,24 @@ function ActionForm({
             <AlertDialog.Title className="text-lg font-semibold">
               {action === "reject"
                 ? "Reject this grievance?"
-                : "Extend this deadline?"}
+                : action === "verification"
+                  ? "Accept this resolution and close the case?"
+                  : "Extend this deadline?"}
             </AlertDialog.Title>
             <AlertDialog.Description className="mt-2 text-sm text-slate-600">
               {action === "reject"
                 ? "Rejection ends this case. The selected reason and explanation will be recorded in its audit history."
-                : "The new deadline and reason will be recorded and the citizen notified. Prior breaches and the original deadline remain in the case history."}
+                : action === "verification"
+                  ? "Your explicit acceptance closes the case. This action is recorded in the case history."
+                  : "The new deadline and reason will be recorded and the citizen notified. Prior breaches and the original deadline remain in the case history."}
             </AlertDialog.Description>
             <div className="mt-5 flex justify-end gap-3">
               <AlertDialog.Cancel className={secondary}>
                 {action === "reject"
                   ? "Keep case open"
-                  : "Keep current deadline"}
+                  : action === "verification"
+                    ? "Keep reviewing"
+                    : "Keep current deadline"}
               </AlertDialog.Cancel>
               <AlertDialog.Action
                 className={button}
@@ -1108,7 +1239,9 @@ function ActionForm({
               >
                 {action === "reject"
                   ? "Confirm rejection"
-                  : "Confirm extension"}
+                  : action === "verification"
+                    ? "Accept and close case"
+                    : "Confirm extension"}
               </AlertDialog.Action>
             </div>
           </AlertDialog.Content>

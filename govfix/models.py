@@ -96,7 +96,9 @@ class Case(Base):
     escalation_level: Mapped[int] = mapped_column(Integer, default=0)
     version: Mapped[int] = mapped_column(Integer, default=1)
     next_sla_check: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
-    verification_due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    verification_due_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), index=True
+    )
     verification_alerted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 

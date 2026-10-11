@@ -1,6 +1,6 @@
 # Proposed API contract
 
-**Status:** Phase 1 implements `/v1/me`, case reads/list/timeline/allowed actions, auditor policy reads, and case submission/validation/rejection/assignment/acceptance/resolution/verification/review commands. `/v1/auth/login` and `/v1/auth/logout` provide local account sessions. Phase 2 adds scoped operations data, queue filters, and private image uploads/downloads. Phase 3 adds SLA history, notifications, deadline extension and failed-delivery retry. Voice endpoints remain planned. Run the [backend](./backend.md) to inspect generated OpenAPI at `/docs` and `/openapi.json`.
+**Status:** Phases 1–4 implement case operations, private evidence, SLA history, notifications, explicit citizen verification, and supervisor rework. `/v1/auth/login` and `/v1/auth/logout` provide local account sessions. Voice endpoints remain planned. Run the [backend](./backend.md) to inspect generated OpenAPI at `/docs` and `/openapi.json`.
 
 Current submission requires a configured category and ward as well as description, location, and confirmation, so a provisional demo deadline can be pinned immediately. Validation confirms those values; correction cannot silently change the original deadline. Voice commands remain refused until a verified voice-session implementation exists.
 
@@ -45,6 +45,8 @@ Read responses are projections; a citizen must never receive another citizen's c
 The `resolution` endpoint should commit the officer action and enqueue or perform the deterministic transition to `CITIZEN_VERIFICATION` exactly once. The API must expose the actual committed state consistently; it must not report a state transition before its transaction succeeds.
 
 Phase 3 implements `GET /v1/notifications` and `GET /v1/cases/{id}/sla`. A scoped supervisor can also call `POST /v1/cases/{id}/notification-retry` with `message_id` and `reason`, an idempotency key, and current case version. The message must belong to the case and be `FAILED`. See [SLA operations](./sla-operations.md) for delivery and retry contracts.
+
+Phase 4 adds `GET /v1/cases/{id}/resolution`, returning the latest accepted resolution note, its evidence IDs, submission time, and the current dispute statement during supervisor review. The read uses the same case scope check as the case detail. Private evidence still requires authenticated download. Case responses include `verification_due_at` and `verification_alerted_at`; `GET /v1/operations/summary` includes `verification_waiting` for scoped pending cases flagged after the policy window.
 
 ## Voice integration endpoints
 

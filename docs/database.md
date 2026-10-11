@@ -1,6 +1,6 @@
 # Proposed database design
 
-**Status:** Phase 1 migrations implement users, role grants, authentication sessions, policy versions, cases, ownership intervals, evidence metadata, audit, idempotency, and outbox records. Phase 2 migration 0003 adds verified evidence MIME type, byte size and upload time. Phase 3 migration 0004 adds next-check scheduling, immutable SLA threshold history, outbox delivery diagnostics, and unique in-app message/recipient delivery records. The table below remains the broader P0 logical design. Initial SLA fields currently live on cases; verification/review decisions live in audit details. Voice, recommendations, and separate verification entities remain future work. See [models](../govfix/models.py) and [backend setup](./backend.md).
+**Status:** Migrations 0001–0005 implement users, roles, cases, ownership intervals, private evidence metadata, audit, idempotency, outbox, SLA history, notifications, and scheduled verification wait alerts. Migration 0005 backfills pending verification due times from the latest request event and pinned policy. The table below remains the broader P0 logical design. Verification/review decisions live in audit details; voice and separate verification entities remain future work. See [models](../govfix/models.py) and [backend setup](./backend.md).
 
 ## Entity relationships
 

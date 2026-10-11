@@ -4,7 +4,7 @@
 
 GovFix is a proposed municipal grievance workflow system. Citizens can report an issue by text or voice, staff can validate and resolve it, and citizens can verify the result. A deterministic backend is responsible for status changes, assignments, deadlines, escalations, and the audit trail. AI and ElevenLabs help people communicate with the system; they do not independently change a case.
 
-> **Project status:** Phase 3 SLA automation implemented locally. Citizen/staff screens support text submission through verified evidence and resolution submission, with scoped queues and ownership history. Policy-based warning/escalation, in-app notification delivery and retries, and audited deadline extensions now run locally. Citizen verification screens and voice integrations remain planned. See the [implementation tracker](./docs/implemented.md).
+> **Project status:** Phases 1–4 run locally. Citizens can inspect submitted resolutions, explicitly accept or dispute them, and supervisors can send disputed cases for rework. Unanswered verification stays open and is flagged for supervisor review after the configured window. The policy is fictional and voice integration remains planned. See the [implementation tracker](./docs/implemented.md).
 
 ## Why this project
 
@@ -67,7 +67,7 @@ uv run uvicorn govfix.api:app --host 127.0.0.1 --port 8000
 
 Open the [operations interface](http://127.0.0.1:8000/app/) or [API documentation](http://127.0.0.1:8000/docs). Provision accounts and follow the first case path in [backend.md](./docs/backend.md). Run `uv run pytest -q` for the test suite. The default database is local SQLite; PostgreSQL is also supported and tested. All current policy values are fictional demonstration rules.
 
-Run `uv run govfix worker --poll-seconds 30` in a separate terminal to monitor deadlines and deliver in-app notifications. See [SLA operations](./docs/sla-operations.md).
+Run `uv run govfix worker --poll-seconds 30` in a separate terminal to monitor deadlines and verification waits and deliver in-app notifications. See [SLA operations](./docs/sla-operations.md) and [citizen verification](./docs/citizen-verification.md).
 
 ## Design principle
 

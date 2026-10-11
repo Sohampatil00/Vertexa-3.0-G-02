@@ -59,7 +59,9 @@ def upgrade():
             latest = datetime.fromisoformat(latest)
         started = latest.replace(tzinfo=UTC) if latest.tzinfo is None else latest.astimezone(UTC)
         due = started + timedelta(hours=definition["verification_review_after_hours"])
-        connection.execute(cases.update().where(cases.c.id == case_id).values(verification_due_at=due))
+        connection.execute(
+            cases.update().where(cases.c.id == case_id).values(verification_due_at=due)
+        )
 
 
 def downgrade():

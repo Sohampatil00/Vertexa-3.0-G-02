@@ -22,7 +22,7 @@ uv run uvicorn govfix.api:app --host 127.0.0.1 --port 8000
 
 Each account command prompts for a password of at least 12 characters. No default credentials or staff registration endpoint exist. Save the officer ID printed by account creation for the assignment request. `--verified` records administrator-established demo identity; it is not an OTP or production identity verification integration.
 
-Open the [operations interface](http://127.0.0.1:8000/app/) and sign in with a provisioned account. Sessions stay in browser memory and are cleared on reload. Citizen intake, staff validation/assignment, an officer queue, resolution upload/submission, and scoped supervisor ownership history are available. Citizen accept/dispute and supervisor rework screens remain Phase 4 work.
+Open the [operations interface](http://127.0.0.1:8000/app/) and sign in with a provisioned account. Sessions stay in browser memory and are cleared on reload. Citizen intake and verification, staff validation/assignment, an officer queue, resolution upload/submission, and scoped supervisor review/rework are available. See [citizen verification](./citizen-verification.md).
 
 Open [API documentation](http://127.0.0.1:8000/docs). Call `POST /v1/auth/login` with a username and password, then use **Authorize** to supply the returned bearer token. Sessions expire after 60 minutes by default and `POST /v1/auth/logout` revokes them. Passwords use Argon2; only a SHA-256 hash of each random session token is stored. Roles are read from the database on each request.
 
@@ -47,7 +47,7 @@ The API never creates or changes tables at startup. Run `uv run govfix init-db` 
 
 Case mutation, ownership intervals, audit events, and idempotency results share one transaction. PostgreSQL locks actor and case rows; SQLite uses `BEGIN IMMEDIATE` for write transactions and deferred transactions for reads. Database triggers refuse ordinary updates or deletes to audit history and policy versions. Privileged database administrators can alter those protections; independent backup/export and restricted production database roles remain pilot hardening work.
 
-The elapsed-hour demo deadline is recorded at submission and SLA status is derived on reads. Phase 3 implements warning/escalation monitoring, audited extensions, and in-app notification retries. The verification wait review timer remains Phase 4 work. Voice commands are refused until a verified voice-session implementation exists.
+The elapsed-hour demo deadline is recorded at submission and SLA status is derived on reads. Phase 3 implements warning/escalation monitoring, audited extensions, and in-app notification retries. Phase 4 flags unanswered verification for supervisor review after the pinned policy window; it never closes the case. Voice commands are refused until a verified voice-session implementation exists.
 
 
 ## Operations interface and evidence

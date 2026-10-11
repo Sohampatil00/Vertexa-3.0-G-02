@@ -1,6 +1,6 @@
 # Proposed architecture
 
-**Status:** The Phase 1 modular backend is implemented with FastAPI, SQLAlchemy, and Alembic. SQLite supports local development and PostgreSQL supports the intended database path; both pass the backend suite. Phase 2 adds a React client and authenticated private local image storage. Phase 3 adds a database-backed polling worker and in-app notifications. Production storage, external notification providers, voice, and deployment remain proposals. See [backend setup](./backend.md) and the [implementation tracker](./implemented.md).
+**Status:** The modular backend uses FastAPI, SQLAlchemy, and Alembic, with SQLite locally and PostgreSQL verified in tests. Phase 2 adds a React client and private local image storage; Phase 3 adds a polling worker and in-app notifications; Phase 4 adds explicit citizen verification and scheduled supervisor wait alerts. Production storage, external notification providers, voice, and deployment remain proposals. See [backend setup](./backend.md) and the [implementation tracker](./implemented.md).
 
 ## System context
 

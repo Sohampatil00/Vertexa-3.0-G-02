@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from govfix.auth import load_actor
 from govfix.database import as_utc, utcnow, write_transaction
 from govfix.errors import Refusal
-from govfix.models import AuditEvent, Case, Notification, OutboxMessage, RoleGrant, User
+from govfix.models import AuditEvent, Case, Notification, OutboxMessage, RoleGrant, User, new_id
 from govfix.sla import record_due
 from govfix.workflow import Workflow, snapshot, visible
 
@@ -62,7 +62,7 @@ class Worker:
                     actor=None,
                     case=case,
                     operation="verification-wait-review",
-                    request_id=f"job_verification_{case.id}_{case.version}",
+                    request_id=f"job_{new_id()}",
                     role="WORKFLOW_ENGINE",
                     occurred_at=now,
                     before=before,

@@ -58,4 +58,4 @@ uv run python scripts/test_browser.py
 
 Tests cover exact boundaries, catch-up, concurrent workers, audit-failure rollback, stale scope, policy pinning, extension preservation, retry recovery, migration backfill, and PostgreSQL command/delivery lock overlap. The browser workflow covers visible escalation, failed-delivery retry, extension confirmation, and the citizen inbox.
 
-The verification-wait review timer, citizen accept/dispute/rework screens, and silence handling remain Phase 4. Notifications never close a case.
+Phase 4 adds the verification-wait review timer and citizen accept/dispute/rework screens. The worker records one alert per unanswered verification cycle after the pinned policy window and notifies scoped supervisors. The case remains in `CITIZEN_VERIFICATION`; citizen silence never closes it. See [citizen verification](./citizen-verification.md).

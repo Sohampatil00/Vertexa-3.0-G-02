@@ -1,6 +1,6 @@
 # Municipal grievance workflow
 
-**Status:** Phase 1 implements the graph and command gates below in the backend. Phases 2–3 implement evidence uploads, operating screens, SLA monitoring, in-app notifications and audited extensions. Verification presentation and voice channels are later phases. Production category policies require municipal approval. See the [implementation tracker](./implemented.md).
+**Status:** Phases 1–4 implement the graph, private evidence, operating screens, SLA monitoring, and explicit citizen verification with supervised rework. Voice channels remain a later phase. Production category policies require municipal approval. See the [implementation tracker](./implemented.md).
 
 ## Case dimensions
 
