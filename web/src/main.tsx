@@ -18,6 +18,18 @@ import {
   type User,
 } from "./api";
 import { VoiceAccess } from "./voice";
+import {
+  availableDashboards,
+  dashboards,
+  dashboardQueues,
+  DashboardShell,
+  PolicyReference,
+  SystemReadiness,
+  summaryCards,
+  type Dashboard,
+  type Queue,
+  type Summary,
+} from "./dashboards";
 import "./style.css";
 function App() {
   const [token, setToken] = useState(""); // Sessions stay in memory and disappear when the tab closes/reloads.
@@ -159,19 +171,50 @@ function Workspace({
   user: User;
   expired: () => void;
 }) {
-  const officer = user.roles.some((r) => r.role === "OFFICER");
-  const citizen = user.roles.some((r) => r.role === "CITIZEN");
-  const supervisor = user.roles.some((r) =>
-    ["SUPERVISOR", "WARD_HEAD", "AUDITOR"].includes(r.role),
+  const available = availableDashboards(user);
+  const [dashboard, setDashboard] = useState<Dashboard>(
+    available[0] || "citizen",
   );
+  if (!available.length)
+    return (
+      <main className="mx-auto max-w-7xl px-5 py-8">
+        <ErrorText message="This account has no dashboard role. Contact your administrator." />
+      </main>
+    );
+  return (
+    <DashboardWorkspace
+      key={dashboard}
+      token={token}
+      user={user}
+      expired={expired}
+      dashboard={dashboard}
+      changeDashboard={(next) => {
+        if (available.includes(next)) setDashboard(next);
+      }}
+    />
+  );
+}
+function DashboardWorkspace({
+  token,
+  user,
+  expired,
+  dashboard,
+  changeDashboard,
+}: {
+  token: string;
+  user: User;
+  expired: () => void;
+  dashboard: Dashboard;
+  changeDashboard: (view: Dashboard) => void;
+}) {
+  const officer = dashboard === "officer";
+  const citizen = dashboard === "citizen";
+  const supervisor = dashboard === "operations" || dashboard === "auditor";
+  const [activeQueue, setActiveQueue] = useState("overview");
+  const [overdueOnly, setOverdueOnly] = useState(false);
   const [items, setItems] = useState<Case[]>([]);
   const [policy, setPolicy] = useState<Policy | null>(null);
-  const [summary, setSummary] = useState<{
-    total: number;
-    overdue: number;
-    states: Record<string, number>;
-    verification_waiting: number;
-  } | null>(null);
+  const [summary, setSummary] = useState<Summary | null>(null);
   const [selected, setSelected] = useState<Case | null>(null);
   const [intake, setIntake] = useState(false);
   const [state, setState] = useState("");
@@ -187,7 +230,7 @@ function Workspace({
     setError("");
     api<{ cases: Case[] }>(
       token,
-      `/cases?limit=20&offset=${offset}&owned=${owned}&state=${state}&verification_waiting=${waitingOnly}`,
+      `/cases?limit=20&offset=${offset}&owned=${owned}&state=${state}&verification_waiting=${waitingOnly}&overdue=${overdueOnly}&mine=${citizen}`,
     )
       .then((list) => {
         if (live) setItems(list.cases);
@@ -204,12 +247,22 @@ function Workspace({
     return () => {
       live = false;
     };
-  }, [token, state, owned, waitingOnly, offset, revision]);
+  }, [
+    token,
+    state,
+    owned,
+    waitingOnly,
+    overdueOnly,
+    citizen,
+    offset,
+    revision,
+  ]);
   useEffect(() => {
     let live = true;
+    setSummary(null);
     Promise.all([
       api<{ policy: Policy }>(token, "/intake-options"),
-      api<typeof summary>(token, "/operations/summary"),
+      api<Summary>(token, `/operations/summary?owned=${owned}&mine=${citizen}`),
     ])
       .then(([options, totals]) => {
         if (live) {
@@ -218,34 +271,61 @@ function Workspace({
         }
       })
       .catch((err) => {
-        if (live) setError(err.message);
+        if (live) {
+          if (err instanceof ApiError && err.status === 401) expired();
+          else setError(err.message);
+        }
       });
     return () => {
       live = false;
     };
-  }, [token, revision]);
+  }, [token, owned, citizen, revision]);
   function refreshed(item: Case) {
     setSelected(item);
     setIntake(false);
     setRevision((r) => r + 1);
   }
+  function chooseQueue(queue: Queue) {
+    setActiveQueue(queue.id);
+    setState(queue.state || "");
+    setOwned(officer);
+    setWaitingOnly(Boolean(queue.waiting));
+    setOverdueOnly(Boolean(queue.overdue));
+    setOffset(0);
+    setSelected(null);
+    setIntake(false);
+  }
+  function customFilter() {
+    setActiveQueue("custom");
+    setOffset(0);
+  }
+  const queueTitle =
+    activeQueue === "overview"
+      ? citizen
+        ? "Your recent grievances"
+        : officer
+          ? "Your current work"
+          : dashboard === "auditor"
+            ? "Recent cases for audit"
+            : "Recent cases in scope"
+      : dashboardQueues(dashboard, user).find(
+          (queue) => queue.id === activeQueue,
+        )?.label || "Filtered cases";
   return (
-    <main className="mx-auto max-w-7xl space-y-6 px-5 py-8">
+    <DashboardShell
+      view={dashboard}
+      user={user}
+      active={activeQueue}
+      choose={chooseQueue}
+      changeDashboard={changeDashboard}
+    >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold">
-            {citizen
-              ? "Your grievances"
-              : supervisor
-                ? "Ward oversight"
-                : officer
-                  ? "Officer work queue"
-                  : "Case operations"}
+            {dashboards[dashboard].title}
           </h1>
           <p className="mt-1 text-sm text-slate-600">
-            {citizen
-              ? "Track your case from submission to resolution."
-              : "Cases and actions available within your assigned scope."}
+            {dashboards[dashboard].description}
           </p>
         </div>
         {citizen && (
@@ -264,15 +344,12 @@ function Workspace({
       {summary && (
         <section
           aria-label="Case summary"
-          className="grid grid-cols-2 gap-3 md:grid-cols-4"
+          className={cn(
+            "grid grid-cols-2 gap-3",
+            dashboard === "operations" ? "xl:grid-cols-5" : "md:grid-cols-4",
+          )}
         >
-          {[
-            ["Visible cases", summary.total],
-            ["Awaiting validation", summary.states.SUBMITTED || 0],
-            ["In progress", summary.states.IN_PROGRESS || 0],
-            ["Overdue", summary.overdue],
-            ["Verification needs review", summary.verification_waiting],
-          ].map(([label, value]) => (
+          {summaryCards(dashboard, summary).map(([label, value]) => (
             <div
               key={label}
               className="rounded-lg border border-slate-200 bg-white p-4"
@@ -283,6 +360,39 @@ function Workspace({
               </p>
             </div>
           ))}
+        </section>
+      )}
+      {!summary && !error && (
+        <section
+          aria-label="Loading dashboard summary"
+          role="status"
+          className="grid grid-cols-2 gap-3 md:grid-cols-4"
+        >
+          <span className="sr-only">Loading dashboard summary…</span>
+          {[0, 1, 2, 3].map((key) => (
+            <div
+              key={key}
+              aria-hidden="true"
+              className="h-24 rounded-lg border border-slate-200 bg-slate-100"
+            />
+          ))}
+        </section>
+      )}
+      {activeQueue === "overview" && !selected && !intake && (
+        <section className="rounded-xl border border-blue-100 bg-blue-50 p-5">
+          <h2 className="font-semibold text-blue-900">
+            {dashboard === "auditor"
+              ? "Audit without changing the record"
+              : "Your next step"}
+          </h2>
+          <p className="mt-2 text-sm text-blue-900">
+            {dashboards[dashboard].help}
+          </p>
+          {officer && (
+            <p className="mt-2 text-xs text-blue-800">
+              Summary counts follow the My assignments only filter.
+            </p>
+          )}
         </section>
       )}
       {citizen && policy && (
@@ -296,12 +406,17 @@ function Workspace({
             const result = await api<{ case: Case }>(token, `/cases/${id}`);
             setSelected(result.case);
             setIntake(false);
+            setActiveQueue("cases");
           } catch (err) {
             setError((err as Error).message);
           }
         }}
       />
-      {intake && policy ? (
+      {activeQueue === "policy" && policy ? (
+        <PolicyReference policy={policy} />
+      ) : activeQueue === "system" ? (
+        <SystemReadiness token={token} expired={expired} />
+      ) : intake && policy ? (
         <Intake
           token={token}
           policy={policy}
@@ -317,16 +432,28 @@ function Workspace({
           saved={refreshed}
           back={() => setSelected(null)}
           expired={expired}
+          readOnly={dashboard === "auditor"}
         />
       ) : (
-        <section className="rounded-xl border border-slate-200 bg-white">
+        <section
+          aria-label="Dashboard task queue"
+          className="rounded-xl border border-slate-200 bg-white"
+        >
+          <div className="border-b border-slate-200 p-5">
+            <h2 className="text-lg font-semibold">{queueTitle}</h2>
+            <p className="mt-1 text-xs text-slate-500">
+              {dashboard === "auditor"
+                ? "Read-only case inspection within your audit scope."
+                : "Open a case to see its details and permitted next actions."}
+            </p>
+          </div>
           <div className="flex flex-wrap items-center gap-4 border-b border-slate-200 p-4">
             <Field label="Workflow state">
               <select
                 value={state}
                 onChange={(e) => {
                   setState(e.target.value);
-                  setOffset(0);
+                  customFilter();
                 }}
               >
                 <option value="">All states</option>
@@ -353,7 +480,7 @@ function Workspace({
                   checked={owned}
                   onChange={(e) => {
                     setOwned(e.target.checked);
-                    setOffset(0);
+                    customFilter();
                   }}
                 />
                 My assignments only
@@ -366,12 +493,23 @@ function Workspace({
                   checked={waitingOnly}
                   onChange={(e) => {
                     setWaitingOnly(e.target.checked);
-                    setOffset(0);
+                    customFilter();
                   }}
                 />
                 Verification needs review
               </label>
             )}
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={overdueOnly}
+                onChange={(event) => {
+                  setOverdueOnly(event.target.checked);
+                  customFilter();
+                }}
+              />
+              Overdue only
+            </label>
             <button
               className={cn(secondary, "ml-auto")}
               onClick={() => setRevision((r) => r + 1)}
@@ -467,7 +605,7 @@ function Workspace({
           </div>
         </section>
       )}
-    </main>
+    </DashboardShell>
   );
 }
 function Badge({ state }: { state: string }) {
@@ -602,6 +740,7 @@ function Detail({
   saved,
   back,
   expired,
+  readOnly = false,
 }: {
   token: string;
   item: Case;
@@ -609,6 +748,7 @@ function Detail({
   saved: (item: Case) => void;
   back: () => void;
   expired: () => void;
+  readOnly?: boolean;
 }) {
   const [current, setCurrent] = useState(item),
     [ops, setOps] = useState<Operations | null>(null),
@@ -669,17 +809,19 @@ function Detail({
       live = false;
     };
   }, [token, item.id, item.version, revision]);
-  const available = actions.filter((a) =>
-    [
-      "validate",
-      "reject",
-      "assign",
-      "accept-assignment",
-      "resolution",
-      "verification",
-      "review",
-      "deadline-extension",
-    ].includes(a),
+  const available = actions.filter(
+    (a) =>
+      !readOnly &&
+      [
+        "validate",
+        "reject",
+        "assign",
+        "accept-assignment",
+        "resolution",
+        "verification",
+        "review",
+        "deadline-extension",
+      ].includes(a),
   );
   return (
     <div className="space-y-5">
@@ -825,7 +967,7 @@ function Detail({
                 token={token}
                 item={current}
                 revision={revision}
-                canRetry={actions.includes("notification-retry")}
+                canRetry={!readOnly && actions.includes("notification-retry")}
                 retry={(body) => cmd.run(current, "notification-retry", body)}
                 busy={cmd.busy}
                 commandError={cmd.error}
@@ -864,7 +1006,8 @@ function Detail({
                       </li>
                     ))}
                   </ul>
-                  {current.owner_id === user.id &&
+                  {!readOnly &&
+                    current.owner_id === user.id &&
                     current.workflow_state === "IN_PROGRESS" && (
                       <Upload
                         token={token}

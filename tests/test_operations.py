@@ -1,12 +1,72 @@
 import hashlib
 import io
+from datetime import timedelta
 
 import pytest
 from PIL import Image
 from sqlalchemy import event, func, select
 from sqlalchemy.exc import OperationalError
 
-from govfix.models import AuditEvent, Evidence
+from govfix.database import utcnow
+from govfix.models import AuditEvent, Case, Evidence, RoleGrant
+
+
+def test_dashboard_summary_counts_only_owned_assignments(backend):
+    assigned = backend.assigned()
+    backend.submit(who="other-citizen")
+    for who, total in (("officer", 1), ("other-officer", 0), ("outside-supervisor", 0)):
+        response = backend.client.get(
+            "/v1/operations/summary?owned=true", headers=backend.headers(who)
+        )
+        assert response.status_code == 200
+        assert response.json()["total"] == total
+    listed = backend.client.get("/v1/cases?owned=true", headers=backend.headers("officer"))
+    assert [row["id"] for row in listed.json()["cases"]] == [assigned["id"]]
+
+
+def test_personal_dashboard_does_not_include_other_citizens_cases_for_mixed_roles(backend):
+    own = backend.submit().json()["case"]
+    backend.submit(who="other-citizen")
+    with backend.sessions() as session, session.begin():
+        session.add(RoleGrant(user_id=backend.users["citizen"], role="SUPERVISOR", ward="WARD-A"))
+    headers = backend.headers("citizen")
+    assert backend.client.get("/v1/operations/summary", headers=headers).json()["total"] == 2
+    assert (
+        backend.client.get("/v1/operations/summary?mine=true", headers=headers).json()["total"] == 1
+    )
+    cases = backend.client.get("/v1/cases?mine=true", headers=headers).json()["cases"]
+    assert [row["id"] for row in cases] == [own["id"]]
+
+
+def test_overdue_dashboard_queue_keeps_scope_and_excludes_terminal_cases(backend):
+    overdue = backend.assigned()
+    future = backend.submit().json()["case"]
+    rejected = backend.submit().json()["case"]
+    result = backend.command(
+        rejected, "reject", {"reason_code": "DUPLICATE", "explanation": "Demo duplicate"}, "intake"
+    )
+    assert result.status_code == 200
+    with backend.sessions() as session, session.begin():
+        for public_id in (overdue["id"], rejected["id"]):
+            row = session.scalar(select(Case).where(Case.public_id == public_id))
+            row.current_deadline = utcnow() - timedelta(hours=1)
+    for who in ("citizen", "officer", "supervisor", "auditor"):
+        response = backend.client.get("/v1/cases?overdue=true", headers=backend.headers(who))
+        assert [row["id"] for row in response.json()["cases"]] == [overdue["id"]]
+    for who in ("other-citizen", "outside-supervisor"):
+        assert (
+            backend.client.get("/v1/cases?overdue=true", headers=backend.headers(who)).json()[
+                "cases"
+            ]
+            == []
+        )
+    assert (
+        backend.client.get(
+            "/v1/cases?overdue=true&state=SUBMITTED", headers=backend.headers("supervisor")
+        ).json()["cases"]
+        == []
+    )
+    assert future["id"] != overdue["id"]
 
 
 def photo():

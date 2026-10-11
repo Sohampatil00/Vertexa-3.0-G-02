@@ -12,7 +12,7 @@ Reviewed against repository source and the saved desktop browser-test screenshot
 | `web/src/ui.tsx` | Shared button styles, class merging, errors and labeled fields |
 | `web/src/style.css` | Tailwind base styles, light slate/blue palette, focus and form styling |
 
-React/TypeScript/Vite and Tailwind provide the frontend; Radix AlertDialog handles irreversible-action confirmations. The application mounts a shared role-aware workspace. Screen selection is component state; a separate route architecture and separate role dashboards are not currently implemented.
+React/TypeScript/Vite and Tailwind provide the frontend; Radix AlertDialog handles irreversible-action confirmations. Four dedicated role dashboard views now provide distinct navigation, summaries and queues: Citizen, Officer, Supervisor/Operations and Auditor. `web/src/dashboards.tsx` defines these views, while the existing case forms remain shared. Screen selection uses component state; URL routing is not implemented. See [dashboard implementation](./dashboards.md).
 
 The working UI includes login, grievance submission, state-filtered/paginated case lists, summary counts, notifications, case details, allowed actions, private uploads/downloads, resolution review, acceptance/dispute, supervisor rework, SLA history, delivery retry, deadline extension and verification-wait filtering. The current details page vertically stacks most modules beside a long timeline.
 

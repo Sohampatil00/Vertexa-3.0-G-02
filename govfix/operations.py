@@ -44,12 +44,22 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
             }
 
     @app.get("/v1/operations/summary")
-    def summary(request: Request, actor: Annotated[Actor, Depends(require_actor)]):
+    def summary(
+        request: Request,
+        actor: Annotated[Actor, Depends(require_actor)],
+        owned: bool = False,
+        mine: bool = False,
+    ):
         with sessions() as session:
+            filters = [scope_filter(actor)]
+            if owned:
+                filters.append(Case.owner_id == actor.id)
+            if mine:
+                filters.append(Case.citizen_id == actor.id)
             counts = dict(
                 session.execute(
                     select(Case.workflow_state, func.count())
-                    .where(scope_filter(actor))
+                    .where(*filters)
                     .group_by(Case.workflow_state)
                 ).all()
             )
@@ -57,7 +67,7 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
                 select(func.count())
                 .select_from(Case)
                 .where(
-                    scope_filter(actor),
+                    *filters,
                     Case.terminal_at.is_(None),
                     Case.current_deadline <= utcnow(),
                 )
@@ -66,7 +76,7 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
                 select(func.count())
                 .select_from(Case)
                 .where(
-                    scope_filter(actor),
+                    *filters,
                     Case.workflow_state == "CITIZEN_VERIFICATION",
                     Case.verification_alerted_at.is_not(None),
                 )
