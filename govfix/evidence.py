@@ -116,10 +116,7 @@ class SupabaseEvidenceStore:
             data = self.client.storage.from_(self.bucket).download(evidence.object_key)
         except Exception as exc:
             raise Refusal("EVIDENCE_UNAVAILABLE", "Evidence storage is unavailable.", 503) from exc
-        if (
-            len(data) != evidence.size_bytes
-            or hashlib.sha256(data).hexdigest() != evidence.sha256
-        ):
+        if len(data) != evidence.size_bytes or hashlib.sha256(data).hexdigest() != evidence.sha256:
             raise Refusal("EVIDENCE_UNAVAILABLE", "Evidence integrity verification failed.", 503)
         return data
 
