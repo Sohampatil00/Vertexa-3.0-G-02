@@ -43,8 +43,15 @@ def startup_command(service: str, env: Mapping[str, str]) -> list[str]:
     if not 1 <= port <= 65535:
         raise ValueError("PORT must be an integer from 1 to 65535")
     command = [
-        sys.executable, "-m", "uvicorn", "govfix.api:app",
-        "--host", "0.0.0.0", "--port", str(port), "--no-access-log",
+        sys.executable,
+        "-m",
+        "uvicorn",
+        "govfix.api:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        str(port),
+        "--no-access-log",
     ]
     trusted_proxies = env.get("FORWARDED_ALLOW_IPS", "").strip()
     if trusted_proxies:

@@ -9,8 +9,7 @@ from scripts.render_start import startup_command
 def deployment_env():
     return {
         "GOVFIX_DATABASE_URL": (
-            "postgresql://govfix_runtime:fake-password@db.example.com:5432/postgres"
-            "?sslmode=require"
+            "postgresql://govfix_runtime:fake-password@db.example.com:5432/postgres?sslmode=require"
         ),
         "GOVFIX_REQUIRE_RESTRICTED_ROLE": "true",
         "GOVFIX_LOGIN_RATE_SECRET": "test-secret-" * 4,
@@ -33,23 +32,33 @@ def test_web_binds_render_port_without_sensitive_access_logs(deployment_env):
 def test_worker_does_not_require_web_storage_credentials(deployment_env):
     env = {key: value for key, value in deployment_env.items() if not key.startswith("SUPABASE")}
     assert startup_command("worker", env)[1:] == [
-        "-m", "govfix.cli", "worker", "--poll-seconds", "30",
+        "-m",
+        "govfix.cli",
+        "worker",
+        "--poll-seconds",
+        "30",
     ]
 
 
-@pytest.mark.parametrize("key,value", [
-    ("GOVFIX_MIGRATION_DATABASE_URL", "postgresql://owner:private@db.example.com/postgres"),
-    ("GOVFIX_REQUIRE_RESTRICTED_ROLE", "false"),
-    ("GOVFIX_DATABASE_URL", "sqlite:///./govfix.db"),
-    ("GOVFIX_DATABASE_URL", "postgresql://user:private@db.example.com/postgres?sslmode=disable"),
-    ("GOVFIX_DATABASE_URL", "invalid-private-secret"),
-    ("GOVFIX_LOGIN_RATE_SECRET", "local-demo-login-budget"),
-    ("SUPABASE_SERVICE_ROLE_KEY", ""),
-    ("SUPABASE_URL", "http://example.supabase.co"),
-    ("PORT", "not-a-port"),
-    ("PORT", "65536"),
-    ("FORWARDED_ALLOW_IPS", "*"),
-])
+@pytest.mark.parametrize(
+    "key,value",
+    [
+        ("GOVFIX_MIGRATION_DATABASE_URL", "postgresql://owner:private@db.example.com/postgres"),
+        ("GOVFIX_REQUIRE_RESTRICTED_ROLE", "false"),
+        ("GOVFIX_DATABASE_URL", "sqlite:///./govfix.db"),
+        (
+            "GOVFIX_DATABASE_URL",
+            "postgresql://user:private@db.example.com/postgres?sslmode=disable",
+        ),
+        ("GOVFIX_DATABASE_URL", "invalid-private-secret"),
+        ("GOVFIX_LOGIN_RATE_SECRET", "local-demo-login-budget"),
+        ("SUPABASE_SERVICE_ROLE_KEY", ""),
+        ("SUPABASE_URL", "http://example.supabase.co"),
+        ("PORT", "not-a-port"),
+        ("PORT", "65536"),
+        ("FORWARDED_ALLOW_IPS", "*"),
+    ],
+)
 def test_unsafe_configuration_fails_without_exposing_secrets(deployment_env, key, value):
     deployment_env[key] = value
     with pytest.raises(ValueError) as error:

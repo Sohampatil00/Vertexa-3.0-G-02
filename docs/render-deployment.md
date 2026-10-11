@@ -2,6 +2,60 @@
 
 ## Free plan for demos
 
+### If Render asks for payment information
+
+The message "Your Blueprint services require payment information" indicates the
+creation flow includes paid resources. Check the selected Blueprint path: the
+default `render.yaml` defines two paid services, while `render.free.yaml` defines
+only one free web service. If the Blueprint flow remains blocked, cancel it and
+use **New → Web Service** with the manual settings below.
+
+| Setting | Value |
+|---|---|
+| Repository | `Sohampatil00/Vertexa-3.0-G-02` |
+| Branch | Your pushed deployment branch |
+| Language / runtime | Docker |
+| Root Directory | Leave blank |
+| Dockerfile Path | `./Dockerfile` |
+| Docker Command | `python scripts/render_start.py web` |
+| Region | Singapore |
+| Instance Type | **Free** |
+| Health Check Path | `/ready` |
+| Auto Deploy | Off |
+
+Add these environment variables in the web service creation form:
+
+| Variable | Value |
+|---|---|
+| `GOVFIX_DATABASE_URL` | Restricted runtime URI from `.env`, including `sslmode=require` |
+| `SUPABASE_URL` | Your HTTPS project URL from `.env` |
+| `SUPABASE_SERVICE_ROLE_KEY` | Your server-only Storage service key from `.env` |
+| `SUPABASE_STORAGE_BUCKET` | `evidence` |
+| `GOVFIX_REQUIRE_RESTRICTED_ROLE` | `true` |
+| `GOVFIX_POLICY_VERSION` | `demo-pilot-v1` |
+| `GOVFIX_AUTH_PROVIDER` | `local` |
+| `GOVFIX_LOGIN_IP_LIMIT` | `300` |
+| `GOVFIX_READINESS_TIMEOUT_MS` | `2000` |
+| `GOVFIX_LOGIN_RATE_SECRET` | A freshly generated random secret, at least 32 characters |
+
+Generate the login-rate secret on your own terminal, then paste it into Render:
+
+```sh
+python3 -c 'import secrets; print(secrets.token_urlsafe(32))'
+```
+
+Manual service creation does not read your YAML environment variables, so enter
+every value in this table. Do not add a disk, a background worker, a Render
+database, or the migration administrator URI. Confirm **Free** is selected before
+clicking **Create Web Service**. Render's
+[first deploy tutorial](https://render.com/docs/your-first-deploy) describes free
+web service creation without payment. If a correctly configured single free web
+service still triggers a payment/verification prompt, follow Render's account
+support flow; adding payment information is not necessary to debug this project's
+deployment configuration.
+
+### Free Blueprint flow
+
 Use **`render.free.yaml`** to create one free web service containing the API and
 React interface. The default `render.yaml` creates paid web and worker services.
 Render does not offer a free background worker. Keep Supabase for PostgreSQL and
@@ -170,6 +224,28 @@ TLS setting. A readiness failure can mean migrations/policy are missing or the
 database role still has administrator permissions. Evidence upload failure can
 mean a missing private bucket or incorrect Storage credentials. Never print URI
 or key values while investigating.
+
+### Startup says the restricted backend login is required
+
+The URI authenticated successfully, but its PostgreSQL role failed the runtime
+permission check. A Supabase dashboard connection string commonly uses the
+administrator login `postgres` (or `postgres.PROJECT_REF` through the pooler).
+That login belongs in the local `GOVFIX_MIGRATION_DATABASE_URL`, not Render's
+`GOVFIX_DATABASE_URL`.
+
+For a provisioned runtime role, keep the same host, port and database, but use
+`govfix_runtime` for direct connections or `govfix_runtime.PROJECT_REF` for the
+Supabase pooler. Use **that role's database password**: changing the username while
+keeping the administrator password will not authenticate. Keep `sslmode=require`.
+Save the corrected URI as `GOVFIX_DATABASE_URL` in Render, retain
+`GOVFIX_REQUIRE_RESTRICTED_ROLE=true`, and redeploy.
+
+If `govfix_runtime` already exists, do not rerun the provisioning script. Restore
+its saved connection string/password. If the password has been lost, an
+administrator must rotate that role's password, update the runtime URI in local
+and hosted environments, and restart every runtime using the previous password.
+Account login passwords such as the pilot citizen's password are separate from
+this database-role password.
 
 ## 5. Optional ElevenLabs voice
 
