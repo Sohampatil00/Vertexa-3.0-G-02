@@ -14,6 +14,7 @@ import {
   type Event,
   type Operations,
   type Policy,
+  type Resolution,
   type User,
 } from "./api";
 import "./style.css";
@@ -168,6 +169,7 @@ function Workspace({
     total: number;
     overdue: number;
     states: Record<string, number>;
+    verification_waiting: number;
   } | null>(null);
   const [selected, setSelected] = useState<Case | null>(null);
   const [intake, setIntake] = useState(false);
@@ -267,6 +269,7 @@ function Workspace({
             ["Awaiting validation", summary.states.SUBMITTED || 0],
             ["In progress", summary.states.IN_PROGRESS || 0],
             ["Overdue", summary.overdue],
+            ["Verification needs review", summary.verification_waiting],
           ].map(([label, value]) => (
             <div
               key={label}
@@ -583,6 +586,8 @@ function Detail({
     [ops, setOps] = useState<Operations | null>(null),
     [events, setEvents] = useState<Event[]>([]),
     [evidence, setEvidence] = useState<Evidence[]>([]),
+    [resolution, setResolution] = useState<Resolution | null>(null),
+    [disputeStatement, setDisputeStatement] = useState<string | null>(null),
     [actions, setActions] = useState<string[]>([]);
   const [error, setError] = useState(""),
     [loading, setLoading] = useState(true),
@@ -603,17 +608,23 @@ function Detail({
       api<Operations>(token, `/cases/${item.id}/operations`),
       api<{ events: Event[] }>(token, `/cases/${item.id}/timeline`),
       api<{ evidence: Evidence[] }>(token, `/cases/${item.id}/evidence`),
+      api<{ resolution: Resolution | null; dispute_statement: string | null }>(
+        token,
+        `/cases/${item.id}/resolution`,
+      ),
       api<{ actions: { operation: string }[] }>(
         token,
         `/cases/${item.id}/allowed-actions`,
       ),
     ])
-      .then(([result, operations, timeline, files, allowed]) => {
+      .then(([result, operations, timeline, files, submitted, allowed]) => {
         if (live) {
           setCurrent(result.case);
           setOps(operations);
           setEvents(timeline.events);
           setEvidence(files.evidence);
+          setResolution(submitted.resolution);
+          setDisputeStatement(submitted.dispute_statement);
           setActions([...new Set(allowed.actions.map((a) => a.operation))]);
         }
       })
@@ -637,6 +648,8 @@ function Detail({
       "assign",
       "accept-assignment",
       "resolution",
+      "verification",
+      "review",
       "deadline-extension",
     ].includes(a),
   );
@@ -701,6 +714,41 @@ function Detail({
                   Case {current.id} · Policy {current.policy_version}
                 </p>
               </div>
+              {resolution && (
+                <section className="border-t border-slate-200 pt-5">
+                  <h3 className="font-semibold text-balance">Submitted resolution</h3>
+                  <p className="mt-1 text-xs text-slate-500 tabular-nums">
+                    Submitted {date(resolution.submitted_at, current.timezone)}
+                  </p>
+                  <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700 text-pretty">
+                    {resolution.note}
+                  </p>
+                  <div className="mt-4 space-y-2">
+                    {resolution.evidence_refs.map((id) => {
+                      const file = evidence.find((item) => item.id === id);
+                      return file ? (
+                        <div key={id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-200 p-3">
+                          <span className="text-sm capitalize">{human(file.kind)}</span>
+                          <Download token={token} caseId={current.id} file={file} />
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                </section>
+              )}
+              {disputeStatement && (
+                <section className="rounded-md border border-amber-200 bg-amber-50 p-4">
+                  <h3 className="font-semibold">Citizen dispute</h3>
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-pretty">{disputeStatement}</p>
+                </section>
+              )}
+              {current.workflow_state === "CITIZEN_VERIFICATION" && (
+                <p className="rounded-md bg-blue-50 p-4 text-sm text-blue-900 text-pretty">
+                  The case remains open while the citizen reviews this resolution.
+                  {current.verification_due_at && ` Supervisor review is scheduled after ${date(current.verification_due_at, current.timezone)} if there is no response.`}
+                  {current.verification_alerted_at && " A supervisor has been alerted to the wait."}
+                </p>
+              )}
               {available.length > 0 && (
                 <div className="border-t border-slate-200 pt-5">
                   <h3 className="mb-3 font-semibold">Next action</h3>
@@ -738,12 +786,6 @@ function Detail({
                 busy={cmd.busy}
                 commandError={cmd.error}
               />
-              {current.workflow_state === "CITIZEN_VERIFICATION" && (
-                <p className="rounded-md bg-blue-50 p-4 text-sm text-blue-900">
-                  Resolution submitted. The case remains open pending citizen
-                  verification.
-                </p>
-              )}
               <section className="border-t border-slate-200 pt-5">
                 <h3 className="font-semibold">Resolution evidence</h3>
                 <p className="mt-1 text-xs text-slate-500">

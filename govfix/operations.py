@@ -62,10 +62,20 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
                     Case.current_deadline <= utcnow(),
                 )
             )
+            verification_waiting = session.scalar(
+                select(func.count())
+                .select_from(Case)
+                .where(
+                    scope_filter(actor),
+                    Case.workflow_state == "CITIZEN_VERIFICATION",
+                    Case.verification_alerted_at.is_not(None),
+                )
+            )
             return {
                 "states": counts,
                 "total": sum(counts.values()),
                 "overdue": overdue,
+                "verification_waiting": verification_waiting,
                 "request_id": request.state.request_id,
             }
 

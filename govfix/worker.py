@@ -10,7 +10,7 @@ from govfix.database import as_utc, utcnow, write_transaction
 from govfix.errors import Refusal
 from govfix.models import AuditEvent, Case, Notification, OutboxMessage, RoleGrant, User
 from govfix.sla import record_due
-from govfix.workflow import Workflow, visible
+from govfix.workflow import Workflow, snapshot, visible
 
 MAX_ATTEMPTS = 5
 
@@ -39,13 +39,51 @@ class Worker:
             )
         return {"cases_checked": len(cases), "thresholds_recorded": count}
 
+    def scan_verification(self, limit=100):
+        now = as_utc(self.clock())
+        with write_transaction(self.sessions) as session:
+            cases = session.scalars(
+                select(Case)
+                .where(
+                    Case.workflow_state == "CITIZEN_VERIFICATION",
+                    Case.verification_due_at <= now,
+                    Case.verification_alerted_at.is_(None),
+                )
+                .order_by(Case.verification_due_at, Case.id)
+                .limit(limit)
+                .with_for_update(skip_locked=True)
+            ).all()
+            for case in cases:
+                before = snapshot(case)
+                case.verification_alerted_at = now
+                case.version += 1
+                event = self.workflow.audit(
+                    session,
+                    actor=None,
+                    case=case,
+                    operation="verification-wait-review",
+                    request_id=f"job_verification_{case.id}_{case.version}",
+                    role="WORKFLOW_ENGINE",
+                    occurred_at=now,
+                    before=before,
+                    details={"verification_due_at": as_utc(case.verification_due_at).isoformat()},
+                )
+                session.add(
+                    OutboxMessage(
+                        event_id=event.id,
+                        kind="VERIFICATION_WAIT_REVIEW",
+                        payload={"case_id": case.public_id, "recipient_role": "SUPERVISOR"},
+                    )
+                )
+        return {"cases_flagged": len(cases)}
+
     @staticmethod
     def recipients(session, case, message):
         role = message.payload.get("recipient_role")
         recipient_id = message.payload.get("recipient_id")
         if message.kind in {"CITIZEN_VERIFICATION_REQUEST", "DEADLINE_EXTENDED"}:
             role, recipient_id = "CITIZEN", case.citizen_id
-        elif message.kind == "SUPERVISOR_REVIEW_REQUEST":
+        elif message.kind in {"SUPERVISOR_REVIEW_REQUEST", "VERIFICATION_WAIT_REVIEW"}:
             role = "SUPERVISOR"
         elif message.kind != "SLA_THRESHOLD":
             raise Refusal("UNSUPPORTED_NOTIFICATION", "No notification adapter for this kind.", 503)
@@ -197,7 +235,11 @@ class Worker:
 
     def run_once(self, limit=100):
         try:
-            return {"sla": self.scan(limit), "notifications": self.dispatch(limit)}
+            return {
+                "sla": self.scan(limit),
+                "verification": self.scan_verification(limit),
+                "notifications": self.dispatch(limit),
+            }
         except SQLAlchemyError:
             # Keep polling through transient database failure; no transaction can partially commit.
             return {"error": "DEPENDENCY_UNAVAILABLE"}

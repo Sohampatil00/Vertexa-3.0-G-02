@@ -53,7 +53,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             with sessions() as session:
                 revision = session.execute(text("SELECT version_num FROM alembic_version")).scalar()
                 if (
-                    revision != "0004"
+                    revision != "0005"
                     or session.get(PolicyVersion, settings.policy_version) is None
                 ):
                     raise RuntimeError("Run 'uv run govfix init-db' before starting the API")
@@ -367,6 +367,48 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 ],
                 "limit": limit,
                 "offset": offset,
+                "request_id": request.state.request_id,
+            }
+
+    @app.get("/v1/cases/{case_id}/resolution")
+    def current_resolution(
+        case_id: str, request: Request, actor: Annotated[Actor, Depends(require_actor)]
+    ):
+        with sessions() as session:
+            case = read_case(session, actor, case_id)
+            event = session.scalar(
+                select(AuditEvent)
+                .where(
+                    AuditEvent.case_id == case.id,
+                    AuditEvent.operation == "resolution",
+                    AuditEvent.result == "ACCEPTED",
+                )
+                .order_by(AuditEvent.case_version.desc())
+                .limit(1)
+            )
+            dispute = None
+            if case.workflow_state == "SUPERVISOR_REVIEW":
+                dispute = session.scalar(
+                    select(AuditEvent)
+                    .where(
+                        AuditEvent.case_id == case.id,
+                        AuditEvent.operation == "verification",
+                        AuditEvent.result == "ACCEPTED",
+                    )
+                    .order_by(AuditEvent.case_version.desc())
+                    .limit(1)
+                )
+            return {
+                "resolution": {
+                    "note": event.details["note"],
+                    "evidence_refs": event.details["evidence_refs"],
+                    "submitted_at": as_utc(event.occurred_at).isoformat(),
+                }
+                if event
+                else None,
+                "dispute_statement": dispute.details.get("statement")
+                if dispute and dispute.details.get("outcome") == "DISPUTE"
+                else None,
                 "request_id": request.state.request_id,
             }
 

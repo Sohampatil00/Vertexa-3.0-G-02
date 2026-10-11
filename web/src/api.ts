@@ -14,6 +14,13 @@ export type Case = {
   timezone: string;
   sla_status: string;
   policy_version: string;
+  verification_due_at: string | null;
+  verification_alerted_at: string | null;
+};
+export type Resolution = {
+  note: string;
+  evidence_refs: string[];
+  submitted_at: string;
 };
 export type User = {
   id: string;

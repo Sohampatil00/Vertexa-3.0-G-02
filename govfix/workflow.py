@@ -67,6 +67,12 @@ def snapshot(case: Case | None) -> dict | None:
         "department": case.department,
         "current_deadline": as_utc(case.current_deadline).isoformat(),
         "escalation_level": case.escalation_level,
+        "verification_due_at": as_utc(case.verification_due_at).isoformat()
+        if case.verification_due_at
+        else None,
+        "verification_alerted_at": as_utc(case.verification_alerted_at).isoformat()
+        if case.verification_alerted_at
+        else None,
     }
 
 
@@ -97,6 +103,12 @@ def project_case(case: Case, policy: dict) -> dict:
         "calendar_basis": policy["calendar"]["basis"],
         "sla_status": sla_status,
         "escalation_level": case.escalation_level,
+        "verification_due_at": as_utc(case.verification_due_at).isoformat()
+        if case.verification_due_at
+        else None,
+        "verification_alerted_at": as_utc(case.verification_alerted_at).isoformat()
+        if case.verification_alerted_at
+        else None,
     }
 
 
@@ -301,6 +313,9 @@ class Workflow:
                     self.apply(session, actor, case, operation, command, policy)
                     case.workflow_state = target
                     case.version += 1
+                    if operation == "verification":
+                        case.verification_due_at = None
+                        case.verification_alerted_at = None
                     if target in {"CLOSED", "REJECTED"} and operation in {"verification", "reject"}:
                         case.terminal_at = utcnow()
                         case.next_sla_check = None
@@ -574,6 +589,11 @@ class Workflow:
         before = snapshot(case)
         case.workflow_state = target
         case.version += 1
+        if target == "CITIZEN_VERIFICATION":
+            case.verification_due_at = utcnow() + timedelta(
+                hours=policy["verification_review_after_hours"]
+            )
+            case.verification_alerted_at = None
         event = self.audit(
             session,
             actor=None,
