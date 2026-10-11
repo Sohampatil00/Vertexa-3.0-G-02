@@ -7,7 +7,7 @@ from sqlalchemy import select
 
 from govfix.auth import Actor
 from govfix.database import as_utc
-from govfix.models import AuditEvent, Case, Notification, OutboxMessage, SlaThreshold
+from govfix.models import AuditEvent, Case, Notification, OutboxMessage, PolicyVersion, SlaThreshold
 
 
 def register_notifications(app, sessions, require_actor, read_case, scope_filter):
@@ -20,26 +20,33 @@ def register_notifications(app, sessions, require_actor, read_case, scope_filter
     ):
         with sessions() as session:
             rows = session.execute(
-                select(Notification, Case)
-                .join(Case)
+                select(Notification, Case, OutboxMessage)
+                .join(Case, Notification.case_id == Case.id)
+                .join(OutboxMessage, Notification.message_id == OutboxMessage.id)
                 .where(Notification.recipient_id == actor.id, scope_filter(actor))
                 .order_by(Notification.created_at.desc(), Notification.id)
                 .offset(offset)
                 .limit(limit)
             ).all()
+            policies = {
+                version: session.get(PolicyVersion, version).definition
+                for version in {case.policy_version for _, case, _ in rows}
+            }
             return {
                 "notifications": [
                     {
                         "id": item.id,
                         "case_id": case.public_id,
                         "kind": item.kind,
+                        "threshold": message.payload.get("threshold"),
+                        "new_deadline": message.payload.get("new_deadline"),
+                        "reason": message.payload.get("reason")
+                        if item.kind == "DEADLINE_EXTENDED"
+                        else None,
                         "created_at": as_utc(item.created_at).isoformat(),
-                        "timezone": session.get(
-                            __import__("govfix.models", fromlist=["PolicyVersion"]).PolicyVersion,
-                            case.policy_version,
-                        ).definition["timezone"],
+                        "timezone": policies[case.policy_version]["timezone"],
                     }
-                    for item, case in rows
+                    for item, case, message in rows
                 ],
                 "limit": limit,
                 "offset": offset,

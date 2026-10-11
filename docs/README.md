@@ -19,3 +19,5 @@ The [root README](../README.md) introduces the project. The [PRD](../prd.md) is 
 - Product policy values such as category SLAs, calendars, identity proof, retention, and appeal windows need municipal approval before production use.
 - Keep acceptance criteria, API contracts, and tests aligned when a workflow rule changes. Version policy changes so existing cases retain their effective rules.
 - Source statistics and vendor capabilities are cited in the [PRD](../prd.md). The broken Swachhata FAQ link does not establish an official SLA.
+
+[SLA operations](./sla-operations.md) explains the Phase 3 worker, extensions, in-app delivery, and failure recovery.

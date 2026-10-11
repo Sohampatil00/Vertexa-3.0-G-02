@@ -1,6 +1,6 @@
 # Running GovFix locally
 
-Phases 1–2 provide a React operations interface and a FastAPI service with SQLAlchemy persistence, Alembic migrations, local account authentication, scoped role grants, versioned case commands, and transactional audit/idempotency records. It uses the fictional `DEMO_ONLY` policy. Python 3.12 and [uv](https://docs.astral.sh/uv/getting-started/installation/) are required.
+Phases 1–3 provide a React operations interface and a FastAPI service with SQLAlchemy persistence, Alembic migrations, local account authentication, scoped role grants, versioned case commands, and transactional audit/idempotency records. It uses the fictional `DEMO_ONLY` policy. Python 3.12 and [uv](https://docs.astral.sh/uv/getting-started/installation/) are required.
 
 ## Setup
 
@@ -37,7 +37,7 @@ For steps 2–4, send a new `Idempotency-Key` and an `If-Match` header containin
 
 Citizen reads are restricted to their own cases. Staff reads are restricted to explicitly granted wards and optional departments. An officer's grant permits reading cases in that scope; changing a case still requires current ownership. Supervisors, ward heads, and auditors can see refused attempts in the timeline. Other roles receive only accepted timeline events without internal audit details.
 
-The resolution, verification, and rework commands implement the backend gates for the complete P0 graph. Resolution requires existing, completed evidence records from the same case; supplied object references alone cannot create evidence. Phase 2 uploads actual private images and verifies their checksum, format, size, and completion before resolution submission. Internal verification/review transitions and their pending outbox requests commit atomically. There is no delivery worker yet, so queued requests remain `PENDING`.
+The resolution, verification, and rework commands implement the backend gates for the complete P0 graph. Resolution requires existing, completed evidence records from the same case; supplied object references alone cannot create evidence. Phase 2 uploads actual private images and verifies their checksum, format, size, and completion before resolution submission. Internal verification/review transitions and their pending outbox requests commit atomically. The Phase 3 worker delivers queued requests to authenticated in-app inboxes; start it separately as described in [SLA operations](./sla-operations.md).
 
 ## Configuration and database
 
@@ -47,7 +47,7 @@ The API never creates or changes tables at startup. Run `uv run govfix init-db` 
 
 Case mutation, ownership intervals, audit events, and idempotency results share one transaction. PostgreSQL locks actor and case rows; SQLite uses `BEGIN IMMEDIATE` for write transactions and deferred transactions for reads. Database triggers refuse ordinary updates or deletes to audit history and policy versions. Privileged database administrators can alter those protections; independent backup/export and restricted production database roles remain pilot hardening work.
 
-The elapsed-hour demo deadline is recorded at submission and SLA status is derived on reads. Automatic escalation, deadline extensions, notifications, and the verification wait review worker remain Phase 3/4 work. Voice commands are refused until a verified voice-session implementation exists.
+The elapsed-hour demo deadline is recorded at submission and SLA status is derived on reads. Phase 3 implements warning/escalation monitoring, audited extensions, and in-app notification retries. The verification wait review timer remains Phase 4 work. Voice commands are refused until a verified voice-session implementation exists.
 
 
 ## Operations interface and evidence
@@ -68,6 +68,10 @@ uv run python scripts/test_browser.py
 ```
 
 It exercises citizen submission, intake validation, dispatcher assignment, officer acceptance/upload/resolution, supervisor history, private download, and mobile layout. Temporary credentials, database, and evidence are cleaned up. Synthetic screenshots are written to ignored `artifacts/`.
+
+## SLA worker
+
+Run `uv run govfix worker --poll-seconds 30` in a separate terminal with the same database configuration. Use `--once` for a single batch. The API does not run the worker automatically. See [SLA operations](./sla-operations.md) for threshold timing, extensions, inbox delivery, retry behavior, and failure diagnostics.
 
 ## Validation
 
@@ -91,4 +95,4 @@ The helper creates a temporary database, runs the suite, stops PostgreSQL, and r
 
 The authentication implementation follows [FastAPI's security guidance](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/) for Argon2 password hashing while using opaque, revocable sessions. Transaction handling follows [SQLAlchemy's SQLite transaction documentation](https://docs.sqlalchemy.org/en/20/dialects/sqlite.html). CI installation follows [uv's GitHub Actions guidance](https://docs.astral.sh/uv/guides/integration/github/).
 
-This local foundation still needs approved municipal policy, production citizen identity verification, login/request rate limits, production object storage, workers, and release validation before a real pilot.
+This local foundation still needs approved municipal policy, production citizen identity verification, login/request rate limits, production object storage, external notification providers, and release validation before a real pilot.

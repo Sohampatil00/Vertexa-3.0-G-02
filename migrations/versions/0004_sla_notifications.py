@@ -58,11 +58,14 @@ def upgrade():
     if dialect == "sqlite":
         for action in ("UPDATE", "DELETE"):
             op.execute(
-                f"CREATE TRIGGER sla_thresholds_no_{action.lower()} BEFORE {action} ON sla_thresholds BEGIN SELECT RAISE(ABORT, 'Immutable SLA history'); END"
+                f"CREATE TRIGGER sla_thresholds_no_{action.lower()} "
+                f"BEFORE {action} ON sla_thresholds "
+                "BEGIN SELECT RAISE(ABORT, 'Immutable SLA history'); END"
             )
     elif dialect == "postgresql":
         op.execute(
-            "CREATE TRIGGER sla_thresholds_immutable BEFORE UPDATE OR DELETE ON sla_thresholds FOR EACH ROW EXECUTE FUNCTION govfix_refuse_history_change()"
+            "CREATE TRIGGER sla_thresholds_immutable BEFORE UPDATE OR DELETE ON sla_thresholds "
+            "FOR EACH ROW EXECUTE FUNCTION govfix_refuse_history_change()"
         )
 
 

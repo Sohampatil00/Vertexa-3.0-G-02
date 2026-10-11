@@ -295,7 +295,7 @@ class Workflow:
                                 "Choose a later future deadline within ten years of submission.",
                                 422,
                             )
-                        # Record any already-crossed thresholds before the new deadline can move them.
+                        # Preserve crossed thresholds before moving the deadline.
                         record_due(session, case, policy, now, self)
                         before = snapshot(case)
                     self.apply(session, actor, case, operation, command, policy)
@@ -303,6 +303,7 @@ class Workflow:
                     case.version += 1
                     if target in {"CLOSED", "REJECTED"} and operation in {"verification", "reject"}:
                         case.terminal_at = utcnow()
+                        case.next_sla_check = None
                         self.end_assignment(session, case)
                     session.flush()
                     details = command.model_dump(
@@ -330,6 +331,7 @@ class Workflow:
                                     "recipient_id": case.citizen_id,
                                     "old_deadline": before["current_deadline"],
                                     "new_deadline": as_utc(case.current_deadline).isoformat(),
+                                    "reason": command.reason,
                                 },
                             )
                         )

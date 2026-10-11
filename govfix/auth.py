@@ -59,7 +59,8 @@ class Actor:
 def load_actor(session, user_id: str, *, lock: bool = False) -> Actor:
     query = select(User).where(User.id == user_id)
     if lock:
-        query = query.with_for_update()
+        # Serialize commands without blocking foreign-key KEY SHARE checks during delivery.
+        query = query.with_for_update(key_share=True)
     user = session.scalar(query)
     if user is None or not user.active:
         raise Refusal("UNAUTHENTICATED", "Authentication is required.", 401)

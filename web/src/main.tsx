@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { cn, button, secondary, ErrorText, Field } from "./ui";
+import { Inbox, SlaPanel } from "./sla";
 import {
   api,
   ApiError,
@@ -17,32 +17,6 @@ import {
   type User,
 } from "./api";
 import "./style.css";
-const cn = (...values: Parameters<typeof clsx>) => twMerge(clsx(...values));
-const button =
-  "rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800";
-const secondary =
-  "rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-100";
-function ErrorText({ message }: { message: string }) {
-  return message ? (
-    <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-800">
-      {message}
-    </p>
-  ) : null;
-}
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="space-y-1">
-      {label}
-      {children}
-    </label>
-  );
-}
 function App() {
   const [token, setToken] = useState(""); // Sessions stay in memory and disappear when the tab closes/reloads.
   const [user, setUser] = useState<User | null>(null);
@@ -306,6 +280,19 @@ function Workspace({
           ))}
         </section>
       )}
+      <Inbox
+        token={token}
+        revision={revision}
+        openCase={async (id) => {
+          try {
+            const result = await api<{ case: Case }>(token, `/cases/${id}`);
+            setSelected(result.case);
+            setIntake(false);
+          } catch (err) {
+            setError((err as Error).message);
+          }
+        }}
+      />
       {intake && policy ? (
         <Intake
           token={token}
@@ -650,6 +637,7 @@ function Detail({
       "assign",
       "accept-assignment",
       "resolution",
+      "deadline-extension",
     ].includes(a),
   );
   return (
@@ -741,6 +729,15 @@ function Detail({
                   )}
                 </div>
               )}
+              <SlaPanel
+                token={token}
+                item={current}
+                revision={revision}
+                canRetry={actions.includes("notification-retry")}
+                retry={(body) => cmd.run(current, "notification-retry", body)}
+                busy={cmd.busy}
+                commandError={cmd.error}
+              />
               {current.workflow_state === "CITIZEN_VERIFICATION" && (
                 <p className="rounded-md bg-blue-50 p-4 text-sm text-blue-900">
                   Resolution submitted. The case remains open pending citizen
@@ -882,7 +879,7 @@ function ActionForm({
   error: string;
   run: (body: unknown) => void;
 }) {
-  const [reject, setReject] = useState<unknown>(null);
+  const [confirmationBody, setConfirmationBody] = useState<unknown>(null);
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -905,10 +902,16 @@ function ActionForm({
         reason_code: data.get("reason_code"),
         explanation: data.get("explanation"),
       };
+    else if (action === "deadline-extension")
+      body = {
+        new_deadline: new Date(String(data.get("new_deadline"))).toISOString(),
+        reason: data.get("reason"),
+      };
     else if (action === "accept-assignment") body = { confirmation: true };
     else
       body = { note: data.get("note"), evidence_refs: data.getAll("evidence") };
-    if (action === "reject") setReject(body);
+    if (["reject", "deadline-extension"].includes(action))
+      setConfirmationBody(body);
     else run(body);
   }
   return (
@@ -916,6 +919,22 @@ function ActionForm({
       className="mt-5 space-y-4 rounded-lg bg-slate-50 p-4"
       onSubmit={submit}
     >
+      {action === "deadline-extension" && (
+        <>
+          <p className="text-sm">
+            Current deadline: {date(current.current_deadline, current.timezone)}{" "}
+            ({current.timezone}).
+          </p>
+          <Field
+            label={`New deadline (device timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone})`}
+          >
+            <input name="new_deadline" type="datetime-local" required />
+          </Field>
+          <Field label="Extension reason">
+            <textarea name="reason" required maxLength={2000} />
+          </Field>
+        </>
+      )}
       {action === "validate" && (
         <>
           <p className="text-sm">
@@ -1014,33 +1033,40 @@ function ActionForm({
             : `Confirm ${human(action)}`}
       </button>
       <AlertDialog.Root
-        open={reject !== null}
+        open={confirmationBody !== null}
         onOpenChange={(open) => {
-          if (!open) setReject(null);
+          if (!open) setConfirmationBody(null);
         }}
       >
         <AlertDialog.Portal>
           <AlertDialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
           <AlertDialog.Content className="fixed inset-x-5 top-1/3 z-50 mx-auto max-w-md rounded-xl bg-white p-6 shadow-xl">
             <AlertDialog.Title className="text-lg font-semibold">
-              Reject this grievance?
+              {action === "reject"
+                ? "Reject this grievance?"
+                : "Extend this deadline?"}
             </AlertDialog.Title>
             <AlertDialog.Description className="mt-2 text-sm text-slate-600">
-              Rejection ends this case. The selected reason and explanation will
-              be recorded in its audit history.
+              {action === "reject"
+                ? "Rejection ends this case. The selected reason and explanation will be recorded in its audit history."
+                : "The new deadline and reason will be recorded and the citizen notified. Prior breaches and the original deadline remain in the case history."}
             </AlertDialog.Description>
             <div className="mt-5 flex justify-end gap-3">
               <AlertDialog.Cancel className={secondary}>
-                Keep case open
+                {action === "reject"
+                  ? "Keep case open"
+                  : "Keep current deadline"}
               </AlertDialog.Cancel>
               <AlertDialog.Action
                 className={button}
                 onClick={() => {
-                  run(reject);
-                  setReject(null);
+                  run(confirmationBody);
+                  setConfirmationBody(null);
                 }}
               >
-                Confirm rejection
+                {action === "reject"
+                  ? "Confirm rejection"
+                  : "Confirm extension"}
               </AlertDialog.Action>
             </div>
           </AlertDialog.Content>

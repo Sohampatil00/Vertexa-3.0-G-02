@@ -1,6 +1,6 @@
 # Municipal grievance workflow
 
-**Status:** Phase 1 implements the graph and command gates below in the backend. SLA workers, evidence upload, verification presentation, and voice channels are later phases. Production category policies require municipal approval. See the [implementation tracker](./implemented.md).
+**Status:** Phase 1 implements the graph and command gates below in the backend. Phases 2–3 implement evidence uploads, operating screens, SLA monitoring, in-app notifications and audited extensions. Verification presentation and voice channels are later phases. Production category policies require municipal approval. See the [implementation tracker](./implemented.md).
 
 ## Case dimensions
 
@@ -61,7 +61,7 @@ Suggested codes: `INVALID_TRANSITION`, `ROLE_NOT_ALLOWED`, `NOT_ASSIGNED_OWNER`,
 
 The clock starts at submission. The case stores a policy version, original deadline, current deadline, and calendar/time-zone basis. P0 runs the clock until `CLOSED` or `REJECTED`; it never pauses silently. `WARNING` and `OVERDUE` are derived from the current time and deadline. Example pilot thresholds are 80% warning, 100% supervisor escalation, and 150% ward-head escalation. These values are **illustrative**, not official municipal policy.
 
-Each threshold has a unique `(case, policy version, threshold)` event. Worker retries may resend a failed notification, but they cannot create a second escalation. A supervisor extension preserves old and new deadlines, reason, actor, time, prior breaches, and citizen notification. The verification waiting period remains visible; after a configured window it creates a supervisor task, not automatic closure.
+Each threshold has a unique `(case, policy version, threshold)` event. Worker retries may resend a failed notification, but they cannot create a second escalation. A supervisor extension preserves old and new deadlines, reason, actor, time, prior breaches, and citizen notification. Phase 3 delivers notifications to in-app inboxes with bounded retry and visible failure status; see [SLA operations](./sla-operations.md). The verification waiting period remains visible; after a configured window it creates a supervisor task, not automatic closure.
 
 ## Policy versioning
 

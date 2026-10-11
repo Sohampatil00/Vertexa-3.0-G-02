@@ -60,9 +60,6 @@ class Worker:
             actor = load_actor(session, user.id)
             return [user.id] if visible(actor, case) and actor.has_role(role, case) else []
         if role == "OFFICER":
-            # An unassigned warning must stay visibly undeliverable until ownership exists.
-            if case.owner_id is None:
-                return []
             return []
         if role not in {"SUPERVISOR", "WARD_HEAD", "INTAKE_OFFICER", "DISPATCHER", "AUDITOR"}:
             return []
@@ -156,29 +153,51 @@ class Worker:
 
     def dispatch(self, limit=100):
         now = as_utc(self.clock())
-        with self.sessions() as session:
-            ids = list(
-                session.scalars(
-                    select(OutboxMessage.id)
-                    .where(
-                        OutboxMessage.status.in_(["PENDING", "RETRY"]),
-                        or_(
-                            OutboxMessage.next_attempt_at.is_(None),
-                            OutboxMessage.next_attempt_at <= now,
-                        ),
-                    )
-                    .order_by(OutboxMessage.created_at, OutboxMessage.id)
-                    .limit(limit)
-                ).all()
-            )
         counts = {"DELIVERED": 0, "RETRY": 0, "FAILED": 0, "SKIPPED": 0, "UNAVAILABLE": 0}
-        for message_id in ids:
-            try:
-                counts[self.deliver(message_id)] += 1
-            except SQLAlchemyError:
-                # A failed DB transaction leaves the message due, with no partial delivery.
-                counts["UNAVAILABLE"] += 1
+        cursor = None
+        processed = 0
+        # Bounded keyset pages let unlocked cases progress behind a locked oldest case.
+        for _page in range(10):
+            with self.sessions() as session:
+                query = select(OutboxMessage.id, OutboxMessage.created_at).where(
+                    OutboxMessage.status.in_(["PENDING", "RETRY"]),
+                    or_(
+                        OutboxMessage.next_attempt_at.is_(None),
+                        OutboxMessage.next_attempt_at <= now,
+                    ),
+                )
+                if cursor:
+                    created_at, message_id = cursor
+                    query = query.where(
+                        or_(
+                            OutboxMessage.created_at > created_at,
+                            (OutboxMessage.created_at == created_at)
+                            & (OutboxMessage.id > message_id),
+                        )
+                    )
+                rows = session.execute(
+                    query.order_by(OutboxMessage.created_at, OutboxMessage.id).limit(
+                        limit - processed
+                    )
+                ).all()
+            if not rows:
+                break
+            for message_id, created_at in rows:
+                cursor = (created_at, message_id)
+                try:
+                    result = self.deliver(message_id)
+                except SQLAlchemyError:
+                    result = "UNAVAILABLE"
+                counts[result] += 1
+                if result != "SKIPPED":
+                    processed += 1
+                if processed >= limit:
+                    return counts
         return counts
 
     def run_once(self, limit=100):
-        return {"sla": self.scan(limit), "notifications": self.dispatch(limit)}
+        try:
+            return {"sla": self.scan(limit), "notifications": self.dispatch(limit)}
+        except SQLAlchemyError:
+            # Keep polling through transient database failure; no transaction can partially commit.
+            return {"error": "DEPENDENCY_UNAVAILABLE"}

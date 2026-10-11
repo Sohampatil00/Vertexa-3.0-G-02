@@ -9,6 +9,8 @@ export type Case = {
   owner_id: string | null;
   version: number;
   current_deadline: string;
+  original_deadline: string;
+  escalation_level: number;
   timezone: string;
   sla_status: string;
   policy_version: string;

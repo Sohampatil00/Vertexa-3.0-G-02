@@ -1,6 +1,6 @@
 # Proposed API contract
 
-**Status:** Phase 1 implements `/v1/me`, case reads/list/timeline/allowed actions, auditor policy reads, and case submission/validation/rejection/assignment/acceptance/resolution/verification/review commands. `/v1/auth/login` and `/v1/auth/logout` provide local account sessions. Phase 2 adds scoped operations data, queue filters, and private image uploads/downloads. Deadline extension and voice endpoints remain planned. Run the [backend](./backend.md) to inspect generated OpenAPI at `/docs` and `/openapi.json`.
+**Status:** Phase 1 implements `/v1/me`, case reads/list/timeline/allowed actions, auditor policy reads, and case submission/validation/rejection/assignment/acceptance/resolution/verification/review commands. `/v1/auth/login` and `/v1/auth/logout` provide local account sessions. Phase 2 adds scoped operations data, queue filters, and private image uploads/downloads. Phase 3 adds SLA history, notifications, deadline extension and failed-delivery retry. Voice endpoints remain planned. Run the [backend](./backend.md) to inspect generated OpenAPI at `/docs` and `/openapi.json`.
 
 Current submission requires a configured category and ward as well as description, location, and confirmation, so a provisional demo deadline can be pinned immediately. Validation confirms those values; correction cannot silently change the original deadline. Voice commands remain refused until a verified voice-session implementation exists.
 
@@ -43,6 +43,8 @@ Read responses are projections; a citizen must never receive another citizen's c
 | `POST /v1/cases/{id}/evidence?kind=...` | Current assigned officer, in progress | Raw image bytes; MIME type, SHA-256 header, idempotency key, case version | Verified private evidence record; workflow version unchanged |
 
 The `resolution` endpoint should commit the officer action and enqueue or perform the deterministic transition to `CITIZEN_VERIFICATION` exactly once. The API must expose the actual committed state consistently; it must not report a state transition before its transaction succeeds.
+
+Phase 3 implements `GET /v1/notifications` and `GET /v1/cases/{id}/sla`. A scoped supervisor can also call `POST /v1/cases/{id}/notification-retry` with `message_id` and `reason`, an idempotency key, and current case version. The message must belong to the case and be `FAILED`. See [SLA operations](./sla-operations.md) for delivery and retry contracts.
 
 ## Voice integration endpoints
 

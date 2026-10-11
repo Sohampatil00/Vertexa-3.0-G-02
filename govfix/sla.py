@@ -78,15 +78,13 @@ def record_due(session, case, policy, now, workflow):
                 deadline=case.current_deadline,
             )
         )
-        # Snapshot the current owner; escalation recipients are role-scoped at delivery time.
+        # Recipients are resolved from current ownership and role scopes at delivery time.
         payload = {
             "case_id": case.public_id,
             "recipient_role": threshold["recipient_role"],
             "threshold": key,
             "threshold_at": due.isoformat(),
         }
-        if threshold["recipient_role"] == "OFFICER":
-            payload["recipient_id"] = case.owner_id
         session.add(OutboxMessage(event_id=event.id, kind="SLA_THRESHOLD", payload=payload))
         recorded.add(key)
         count += 1
