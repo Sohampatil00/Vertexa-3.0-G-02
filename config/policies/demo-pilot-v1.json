@@ -1,0 +1,48 @@
+{
+  "version": "demo-pilot-v1",
+  "status": "DEMO_ONLY",
+  "municipality": "Fictional Demo Municipality",
+  "timezone": "Asia/Kolkata",
+  "calendar": {
+    "basis": "ELAPSED_HOURS",
+    "description": "Continuous elapsed time, including weekends and holidays. Demonstration only."
+  },
+  "wards": ["WARD-A", "WARD-B"],
+  "departments": ["PUBLIC_WORKS", "SANITATION"],
+  "roles": ["CITIZEN", "INTAKE_OFFICER", "DISPATCHER", "OFFICER", "SUPERVISOR", "WARD_HEAD", "WORKFLOW_ENGINE", "AUDITOR"],
+  "categories": [
+    {
+      "code": "POTHOLE",
+      "department": "PUBLIC_WORKS",
+      "sla_hours": 72,
+      "resolution_evidence": ["AFTER_PHOTO"]
+    },
+    {
+      "code": "MISSED_WASTE_COLLECTION",
+      "department": "SANITATION",
+      "sla_hours": 48,
+      "resolution_evidence": ["AFTER_PHOTO"]
+    }
+  ],
+  "rejection_reason_codes": ["OUT_OF_JURISDICTION", "DUPLICATE", "INSUFFICIENT_INFORMATION"],
+  "verification_review_after_hours": 72,
+  "thresholds": [
+    {"key": "WARNING", "percent_of_sla": 80, "recipient_role": "OFFICER"},
+    {"key": "SUPERVISOR_ESCALATION", "percent_of_sla": 100, "recipient_role": "SUPERVISOR"},
+    {"key": "WARD_HEAD_ESCALATION", "percent_of_sla": 150, "recipient_role": "WARD_HEAD"}
+  ],
+  "transitions": [
+    {"from": "NEW", "to": "SUBMITTED", "roles": ["CITIZEN"]},
+    {"from": "SUBMITTED", "to": "VALIDATED", "roles": ["INTAKE_OFFICER"]},
+    {"from": "SUBMITTED", "to": "REJECTED", "roles": ["INTAKE_OFFICER"]},
+    {"from": "VALIDATED", "to": "ASSIGNED", "roles": ["DISPATCHER", "SUPERVISOR"]},
+    {"from": "ASSIGNED", "to": "IN_PROGRESS", "roles": ["OFFICER"]},
+    {"from": "IN_PROGRESS", "to": "RESOLUTION_SUBMITTED", "roles": ["OFFICER"]},
+    {"from": "RESOLUTION_SUBMITTED", "to": "CITIZEN_VERIFICATION", "roles": ["WORKFLOW_ENGINE"]},
+    {"from": "CITIZEN_VERIFICATION", "to": "CLOSED", "roles": ["CITIZEN"]},
+    {"from": "CITIZEN_VERIFICATION", "to": "DISPUTED", "roles": ["CITIZEN"]},
+    {"from": "DISPUTED", "to": "SUPERVISOR_REVIEW", "roles": ["WORKFLOW_ENGINE"]},
+    {"from": "SUPERVISOR_REVIEW", "to": "ASSIGNED", "roles": ["SUPERVISOR"]},
+    {"from": "SUPERVISOR_REVIEW", "to": "IN_PROGRESS", "roles": ["SUPERVISOR"]}
+  ]
+}

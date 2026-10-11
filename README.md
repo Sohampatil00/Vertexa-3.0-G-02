@@ -4,7 +4,7 @@
 
 GovFix is a proposed municipal grievance workflow system. Citizens can report an issue by text or voice, staff can validate and resolve it, and citizens can verify the result. A deterministic backend is responsible for status changes, assignments, deadlines, escalations, and the audit trail. AI and ElevenLabs help people communicate with the system; they do not independently change a case.
 
-> **Project status:** Planning and documentation. This repository does not yet contain an application or runnable demo. See the [implementation tracker](./docs/implemented.md).
+> **Project status:** Early implementation. A validated demo policy is available, but there is no application or runnable case workflow yet. See the [implementation tracker](./docs/implemented.md).
 
 ## Why this project
 
@@ -47,13 +47,14 @@ An intake officer can reject a submitted case with a coded reason. `OVERDUE` is 
 | [API](./docs/api.md) | Proposed endpoint and error contracts |
 | [Decisions](./docs/decisions.md) | Accepted product decisions and unresolved choices |
 | [Validation](./docs/validation.md) | Test scenarios and release gates |
+| [Demo pilot policy](./docs/pilot-policy.md) | Executable Phase 0 configuration and open approvals |
 | [Security and privacy](./docs/security-privacy.md) | Identity, access, voice data, and audit safeguards |
 
 The original [research and concept memo](./info.md) contains background, examples, and optional ideas. The PRD and linked specifications define the current build scope when they differ from the memo.
 
 ## Development status
 
-No setup or run command is available yet. A proposed stack is documented in [architecture.md](./docs/architecture.md), and the first implementation milestones are in [roadmap.md](./docs/roadmap.md). Add verified installation, environment, test, and deployment instructions here when the corresponding code exists.
+The first implementation slice is a Python standard-library policy validator. From the repository root, run `python3 -m govfix.policy config/policies/demo-pilot-v1.json` and `python3 -m unittest discover -s tests -v`. There is no application server or case workflow yet. A proposed stack is documented in [architecture.md](./docs/architecture.md).
 
 ## Design principle
 
