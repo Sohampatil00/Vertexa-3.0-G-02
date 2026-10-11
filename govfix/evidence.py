@@ -1,4 +1,4 @@
-"""Bounded image validation and private local storage for the demo deployment."""
+"""Bounded image validation and private evidence storage."""
 
 import hashlib
 import io
@@ -58,7 +58,7 @@ class EvidenceStore:
             raise Refusal("EVIDENCE_UNAVAILABLE", "Evidence storage is unavailable.", 503) from exc
         return self.root / key
 
-    def save(self, key, data):
+    def save(self, key, data, content_type=None):
         path = self.path(key)
         created = False
         try:
@@ -83,6 +83,57 @@ class EvidenceStore:
         if len(data) != evidence.size_bytes or hashlib.sha256(data).hexdigest() != evidence.sha256:
             raise Refusal("EVIDENCE_UNAVAILABLE", "Evidence integrity verification failed.", 503)
         return data
+
+    def delete(self, key):
+        self.path(key).unlink(missing_ok=True)
+
+
+class SupabaseEvidenceStore:
+    """Private Supabase Storage adapter using the server-only service role key."""
+
+    def __init__(self, settings):
+        if not settings.supabase_url or not settings.supabase_service_role_key:
+            raise ValueError("Supabase URL and service role key are required for Supabase Storage")
+        try:
+            from supabase import create_client
+        except ImportError as exc:
+            raise RuntimeError("Install the supabase package to use Supabase Storage") from exc
+        self.client = create_client(settings.supabase_url, settings.supabase_service_role_key)
+        self.bucket = settings.supabase_storage_bucket
+        self.max_bytes = settings.evidence_max_bytes
+
+    def save(self, key, data, content_type=None):
+        options = {"upsert": False}
+        if content_type:
+            options["content-type"] = content_type
+        try:
+            self.client.storage.from_(self.bucket).upload(key, data, options)
+        except Exception as exc:
+            raise Refusal("EVIDENCE_UNAVAILABLE", "Evidence storage is unavailable.", 503) from exc
+
+    def read(self, evidence):
+        try:
+            data = self.client.storage.from_(self.bucket).download(evidence.object_key)
+        except Exception as exc:
+            raise Refusal("EVIDENCE_UNAVAILABLE", "Evidence storage is unavailable.", 503) from exc
+        if (
+            len(data) != evidence.size_bytes
+            or hashlib.sha256(data).hexdigest() != evidence.sha256
+        ):
+            raise Refusal("EVIDENCE_UNAVAILABLE", "Evidence integrity verification failed.", 503)
+        return data
+
+    def delete(self, key):
+        try:
+            self.client.storage.from_(self.bucket).remove([key])
+        except Exception as exc:
+            raise Refusal("EVIDENCE_UNAVAILABLE", "Evidence storage is unavailable.", 503) from exc
+
+
+def make_evidence_store(settings):
+    if settings.supabase_service_role_key:
+        return SupabaseEvidenceStore(settings)
+    return EvidenceStore(settings)
 
 
 def project_evidence(item):

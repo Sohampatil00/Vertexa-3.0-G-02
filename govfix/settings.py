@@ -11,6 +11,10 @@ class Settings:
     session_minutes: int = 60
     evidence_directory: str = "./var/evidence"
     evidence_max_bytes: int = 5 * 1024 * 1024
+    supabase_url: str | None = None
+    supabase_anon_key: str | None = None
+    supabase_service_role_key: str | None = None
+    supabase_storage_bucket: str = "evidence"
 
     def __post_init__(self):
         if not 1 <= self.evidence_max_bytes <= 20 * 1024 * 1024:
@@ -26,4 +30,8 @@ class Settings:
             evidence_directory=os.getenv("GOVFIX_EVIDENCE_DIRECTORY", "./var/evidence"),
             evidence_max_bytes=int(os.getenv("GOVFIX_EVIDENCE_MAX_BYTES", str(5 * 1024 * 1024))),
             session_minutes=int(os.getenv("GOVFIX_SESSION_MINUTES", "60")),
+            supabase_url=os.getenv("SUPABASE_URL"),
+            supabase_anon_key=os.getenv("SUPABASE_ANON_KEY"),
+            supabase_service_role_key=os.getenv("SUPABASE_SERVICE_ROLE_KEY"),
+            supabase_storage_bucket=os.getenv("SUPABASE_STORAGE_BUCKET", "evidence"),
         )

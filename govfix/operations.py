@@ -13,13 +13,13 @@ from govfix.auth import Actor, load_actor
 from govfix.command_headers import require_key, require_version
 from govfix.database import as_utc, utcnow, write_transaction
 from govfix.errors import Refusal
-from govfix.evidence import EvidenceStore, project_evidence, validate_image
+from govfix.evidence import make_evidence_store, project_evidence, validate_image
 from govfix.models import Assignment, Case, Evidence, IdempotencyRecord, RoleGrant, User, new_id
 from govfix.workflow import visible
 
 
 def register_operations(app, sessions, settings, workflow, require_actor, read_case, scope_filter):
-    store = EvidenceStore(settings)
+    store = make_evidence_store(settings)
 
     def options(policy):
         return {
@@ -243,7 +243,7 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
                         size_bytes=len(data),
                         uploaded_at=utcnow(),
                     )
-                    store.save(item.object_key, data)
+                    store.save(item.object_key, data, content_type)
                     saved_key = item.object_key
                     session.add(item)
                     workflow.audit(
@@ -289,7 +289,7 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
             return status, response
         finally:
             if saved_key and not committed:
-                store.path(saved_key).unlink(missing_ok=True)
+                store.delete(saved_key)
 
     @app.post(
         "/v1/cases/{case_id}/evidence",

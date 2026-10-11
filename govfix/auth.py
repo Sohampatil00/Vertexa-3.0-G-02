@@ -81,6 +81,19 @@ def authenticate(session, token: str | None) -> Actor:
     return load_actor(session, auth_session.user_id)
 
 
+def authenticate_supabase(session, client, token: str | None) -> Actor:
+    if not token:
+        raise Refusal("UNAUTHENTICATED", "Authentication is required.", 401)
+    try:
+        response = client.auth.get_user(token)
+        user_id = response.user.id if response.user else None
+    except Exception as exc:
+        raise Refusal("UNAUTHENTICATED", "Authentication is required.", 401) from exc
+    if not user_id:
+        raise Refusal("UNAUTHENTICATED", "Authentication is required.", 401)
+    return load_actor(session, user_id)
+
+
 def login(sessions, username: str, password: str, duration_minutes: int) -> dict:
     with sessions() as session:
         user = session.scalar(select(User).where(User.username == username))

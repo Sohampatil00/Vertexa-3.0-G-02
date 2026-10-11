@@ -96,3 +96,20 @@ The helper creates a temporary database, runs the suite, stops PostgreSQL, and r
 The authentication implementation follows [FastAPI's security guidance](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/) for Argon2 password hashing while using opaque, revocable sessions. Transaction handling follows [SQLAlchemy's SQLite transaction documentation](https://docs.sqlalchemy.org/en/20/dialects/sqlite.html). CI installation follows [uv's GitHub Actions guidance](https://docs.astral.sh/uv/guides/integration/github/).
 
 This local foundation still needs approved municipal policy, production citizen identity verification, login/request rate limits, production object storage, external notification providers, and release validation before a real pilot.
+# Supabase deployment
+
+The backend supports Supabase as its hosted platform:
+
+- **Database:** set `GOVFIX_DATABASE_URL` to the Supabase Postgres connection string. The
+  application normalizes `postgresql://` and `postgres://` URLs to the installed psycopg driver.
+- **Authentication:** set `SUPABASE_URL` and `SUPABASE_ANON_KEY`. Bearer tokens are verified with
+  Supabase Auth. The matching Supabase user UUID must also exist in `users.id` and have the
+  required `user_roles` rows; roles remain application-controlled.
+- **Evidence:** set `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_STORAGE_BUCKET` for the private
+  evidence bucket. The service-role key is server-only and must never be sent to the browser.
+  Evidence remains checksum-verified and its metadata is committed transactionally with the case
+  audit event.
+
+Copy the Supabase values into the deployment environment rather than committing them. Local
+development continues to use SQLite, local sessions, and private filesystem evidence when the
+Supabase variables are absent.

@@ -13,7 +13,7 @@ from sqlalchemy import and_, or_, select, text
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 
-from govfix.auth import Actor, authenticate, login, token_hash
+from govfix.auth import Actor, authenticate, authenticate_supabase, login, token_hash
 from govfix.database import as_utc, make_engine, make_sessions, write_transaction
 from govfix.errors import Refusal
 from govfix.models import AuditEvent, AuthSession, Case, PolicyVersion, new_id
@@ -46,6 +46,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     engine = make_engine(settings.database_url)
     sessions = make_sessions(engine)
     workflow = Workflow(sessions, settings)
+    supabase_auth = None
+    if settings.supabase_url or settings.supabase_anon_key:
+        if not settings.supabase_url or not settings.supabase_anon_key:
+            raise ValueError("SUPABASE_URL and SUPABASE_ANON_KEY must be configured together")
+        try:
+            from supabase import create_client
+        except ImportError as exc:
+            raise RuntimeError("Install the supabase package to use Supabase Auth") from exc
+        supabase_auth = create_client(settings.supabase_url, settings.supabase_anon_key)
 
     @asynccontextmanager
     async def lifespan(_app):
@@ -80,7 +89,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     def require_actor(credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)]):
         with sessions() as session:
-            return authenticate(session, credentials.credentials if credentials else None)
+            token = credentials.credentials if credentials else None
+            if supabase_auth:
+                return authenticate_supabase(session, supabase_auth, token)
+            return authenticate(session, token)
 
     def transport_audit(request: Request, reason: str, actor: Actor | None = None, channel="TEXT"):
         operation = (
@@ -132,12 +144,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def actor_from_request(request):
         authorization = request.headers.get("authorization", "").split()
         with sessions() as session:
-            return authenticate(
-                session,
+            token = (
                 authorization[1]
                 if len(authorization) == 2 and authorization[0].lower() == "bearer"
-                else None,
+                else None
             )
+            if supabase_auth:
+                return authenticate_supabase(session, supabase_auth, token)
+            return authenticate(session, token)
 
     @app.exception_handler(Refusal)
     async def refusal_handler(request: Request, exc: Refusal):
