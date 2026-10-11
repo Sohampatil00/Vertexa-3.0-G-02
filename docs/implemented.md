@@ -1,35 +1,40 @@
 # Implementation tracker
 
-**As of 11 October 2026:** The first implementation slice is a demo policy file, standard-library validator, and unit tests. No application, database migrations, service configuration, infrastructure, or live integration have been implemented or verified.
+**As of 11 October 2026:** Phase 1's local backend foundation is implemented and verified. It uses a fictional `DEMO_ONLY` policy and provisioned local accounts. Municipal policy approval, production identity verification, user interfaces, private evidence upload, workers, live integrations, and deployment remain open.
 
 ## Present in the repository
 
 | Item | Status | Evidence |
 |---|---|---|
-| Research and concept | Documented | [info.md](../info.md) |
-| Product requirements | Documented | [prd.md](../prd.md) |
-| Roadmap and technical specifications | Documented | [Documentation index](./README.md) |
-| Demo pilot policy and validator | Verified locally | [Policy file](../config/policies/demo-pilot-v1.json), [validator](../govfix/policy.py), [tests](../tests/test_policy.py); `python3 -m govfix.policy config/policies/demo-pilot-v1.json` and `python3 -m unittest discover -s tests -v` passed on macOS, 11 Oct 2026 |
-| Backend workflow engine | Not started | No source code |
-| Database and migrations | Not started | No source code |
-| Citizen, officer, or supervisor UI | Not started | No source code |
-| ElevenLabs integration | Not started | No source code or tested account configuration |
-| Automated tests | Verified locally for policy validation only | Seven tests passed on macOS, 11 Oct 2026 |
-| Deployment | Not started | No deployment configuration |
+| Research, requirements, and specifications | Documented | [Documentation index](./README.md) |
+| Demo policy and validator | Verified locally | [Policy](../config/policies/demo-pilot-v1.json), [loader](../govfix/policy.py) |
+| Authentication and scoped role grants | Verified locally | [Authentication](../govfix/auth.py), [API](../govfix/api.py), [access tests](../tests/test_auth_and_access.py) |
+| Case state machine and operation-specific gates | Verified locally | [Workflow](../govfix/workflow.py), [command schemas](../govfix/schemas.py), [tests](../tests/test_workflow.py) |
+| Database and migrations | Verified on SQLite and PostgreSQL | [Models](../govfix/models.py), [migrations](../migrations/versions/0001_workflow_foundation.py), [history protections](../migrations/versions/0002_protect_policy_and_audit.py) |
+| Policy pinning, concurrency, idempotency, and transactional audit | Verified locally | [Workflow tests](../tests/test_workflow.py), [persistence tests](../tests/test_persistence.py) |
+| Resolution, acceptance/dispute, and rework backend gates | Verified with trusted evidence fixtures | Private upload and verification interfaces are future work |
+| Outbox requests for citizen verification and supervisor review | Implemented; delivery pending | Requests commit with workflow events; no delivery worker exists |
+| Citizen, officer, or supervisor UI | Not started | No web interface source |
+| Private evidence upload and completion | Not started | Evidence metadata exists; no upload API or object storage integration |
+| SLA escalation/notification workers and deadline extension | Not started | Initial elapsed-hour deadlines and read-time SLA status exist |
+| ElevenLabs integration | Not started | Voice commands are refused until verified voice sessions are implemented |
+| CI | Configured; remote execution not verified | [SQLite/PostgreSQL workflow](../.github/workflows/backend.yml) |
+| Deployment and production safeguards | Not started | See [security/privacy requirements](./security-privacy.md) |
 
-## How to update this file
+## Verification recorded
 
-Move an item to **Implemented** only when its code is in the repository. Move it to **Verified** only after recording a reproducible test or demo result with the relevant command, environment, date, and link to the artifact or commit. List partial work plainly; do not infer completion from a design document or screenshot.
+On macOS with Python 3.12.14, 11 October 2026:
 
-| Feature | Status | Evidence / test | Last checked |
-|---|---|---|---|
-| Demo policy validation | Verified locally | CLI accepted demo policy (SHA-256 `99d7a59147c45735a8e6bb3ed68d9f2d13158232ffa1c26a92f8135b5a898b68`); seven unit tests passed | 11 Oct 2026 |
-| Case creation and confirmation | Not started | — | 11 Oct 2026 |
-| Transition and role enforcement | Not started | — | 11 Oct 2026 |
-| Audit of accepted and refused actions | Not started | — | 11 Oct 2026 |
-| SLA and escalation worker | Not started | — | 11 Oct 2026 |
-| Resolution evidence and verification | Not started | — | 11 Oct 2026 |
-| Voice intake and status | Not started | — | 11 Oct 2026 |
-| Officer and supervisor views | Not started | — | 11 Oct 2026 |
+| Command | Result |
+|---|---|
+| `uv run pytest -q` | 59 tests passed against SQLite |
+| `uv run --with pgserver python scripts/test_postgres.py` | 59 tests passed against a disposable PostgreSQL instance; process and data cleaned up |
+| `uv run ruff check .` | Passed |
+| `uv run ruff format --check .` | Passed |
+| `uv run govfix init-db` and `uv run alembic check` | Pending final local verification |
 
-The [roadmap](./roadmap.md) records intended sequence, not completed progress.
+Tests cover a submitted → validated → assigned → in-progress case, direct assigned → closed refusal, wrong role/owner, missing or incomplete evidence, cross-citizen and cross-ward access, session expiration/revocation, duplicate requests, concurrent requests by different actors, policy pinning, append-only database protections, audit-failure rollback, and the full backend resolution/dispute graph using trusted evidence fixtures. These tests do not establish that all [P0 release gates](./validation.md) have passed.
+
+## Update rules
+
+Move an item to **Implemented** only when its code exists. Move it to **Verified** after recording a reproducible command, environment, date, and source/artifact link. Keep partial backend functionality distinct from a usable feature with its interface, integrations, and operational safeguards. The [roadmap](./roadmap.md) defines intended sequence.

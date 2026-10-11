@@ -1,6 +1,6 @@
 # Validation and release gates
 
-**Status:** Planned validation. No tests have run because the repository has no application code. Link results and commands in [implemented.md](./implemented.md) as work is built.
+**Status:** Phase 1 backend tests have run on SQLite and PostgreSQL; commands and results are recorded in [implemented.md](./implemented.md). The full P0 plan below is still a release target: voice, workers, operational interfaces, private storage, and pilot sessions are not yet verified.
 
 ## Test levels
 

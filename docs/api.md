@@ -1,6 +1,8 @@
 # Proposed API contract
 
-**Status:** Interface design, not an implemented server. Final OpenAPI definitions should be generated from code and checked against the [workflow](./workflow.md). Paths use `/v1` as a proposed prefix.
+**Status:** Phase 1 implements `/v1/me`, case reads/list/timeline/allowed actions, auditor policy reads, and case submission/validation/rejection/assignment/acceptance/resolution/verification/review commands. `/v1/auth/login` and `/v1/auth/logout` provide local account sessions. Deadline extension, evidence upload, and voice endpoints below remain planned. Run the [backend](./backend.md) to inspect generated OpenAPI at `/docs` and `/openapi.json`.
+
+Current submission requires a configured category and ward as well as description, location, and confirmation, so a provisional demo deadline can be pinned immediately. Validation confirms those values; correction cannot silently change the original deadline. Voice commands remain refused until a verified voice-session implementation exists.
 
 ## Conventions
 

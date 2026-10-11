@@ -4,7 +4,6 @@ from pathlib import Path
 
 from govfix.policy import PolicyError, load_policy, validate_policy
 
-
 POLICY_PATH = Path(__file__).resolve().parents[1] / "config/policies/demo-pilot-v1.json"
 DEMO_V1_CHECKSUM = "99d7a59147c45735a8e6bb3ed68d9f2d13158232ffa1c26a92f8135b5a898b68"
 
@@ -26,7 +25,9 @@ class PolicyTests(unittest.TestCase):
 
     def test_rejects_unauthorized_role_for_closure(self):
         policy = copy.deepcopy(self.policy)
-        next(item for item in policy["transitions"] if item["to"] == "CLOSED")["roles"] = ["OFFICER"]
+        next(item for item in policy["transitions"] if item["to"] == "CLOSED")["roles"] = [
+            "OFFICER"
+        ]
         with self.assertRaisesRegex(PolicyError, "incorrect roles"):
             validate_policy(policy)
 
@@ -52,6 +53,25 @@ class PolicyTests(unittest.TestCase):
         policy = copy.deepcopy(self.policy)
         policy["status"] = "PUBLISHED"
         with self.assertRaisesRegex(PolicyError, "DEMO_ONLY"):
+            validate_policy(policy)
+
+    def test_rejects_nonfinite_and_unbounded_sla(self):
+        for hours in (float("inf"), float("nan"), 10**400):
+            policy = copy.deepcopy(self.policy)
+            policy["categories"][0]["sla_hours"] = hours
+            with self.assertRaises(PolicyError):
+                validate_policy(policy)
+
+    def test_rejects_empty_timezone(self):
+        policy = copy.deepcopy(self.policy)
+        policy["timezone"] = ""
+        with self.assertRaisesRegex(PolicyError, "IANA"):
+            validate_policy(policy)
+
+    def test_bad_reference_type_has_validation_error(self):
+        policy = copy.deepcopy(self.policy)
+        policy["categories"][0]["department"] = []
+        with self.assertRaisesRegex(PolicyError, "unknown department"):
             validate_policy(policy)
 
 

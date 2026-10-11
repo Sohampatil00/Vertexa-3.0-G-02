@@ -1,0 +1,56 @@
+name: Backend validation
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  sqlite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest -q
+      - run: uv run govfix init-db
+      - run: uv run alembic check
+
+  postgres:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: govfix
+          POSTGRES_PASSWORD: test-only-password
+          POSTGRES_DB: govfix_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U govfix -d govfix_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      GOVFIX_TEST_DATABASE_URL: postgresql+psycopg://govfix:test-only-password@localhost:5432/govfix_test
+      GOVFIX_DATABASE_URL: postgresql+psycopg://govfix:test-only-password@localhost:5432/govfix_test
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run pytest -q
+      - run: uv run govfix init-db
+      - run: uv run alembic check

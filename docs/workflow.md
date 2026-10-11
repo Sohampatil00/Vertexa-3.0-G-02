@@ -1,6 +1,6 @@
 # Municipal grievance workflow
 
-**Status:** Proposed P0 contract derived from the [PRD](../prd.md). Production category policies require municipal approval.
+**Status:** Phase 1 implements the graph and command gates below in the backend. SLA workers, evidence upload, verification presentation, and voice channels are later phases. Production category policies require municipal approval. See the [implementation tracker](./implemented.md).
 
 ## Case dimensions
 

@@ -5,11 +5,11 @@ The executable [demo policy](../config/policies/demo-pilot-v1.json) is a **ficti
 Validate it with:
 
 ```sh
-python3 -m govfix.policy config/policies/demo-pilot-v1.json
-python3 -m unittest discover -s tests -v
+uv run python -m govfix.policy config/policies/demo-pilot-v1.json
+uv run pytest tests/test_policy.py -q
 ```
 
-The validator checks required fields, references, positive durations, ordered thresholds, the complete P0 transition graph, and role gates. It prints a canonical checksum. A published policy must be immutable and pinned to each case; database enforcement and policy publication are future Phase 1 work. Keep this file at `DEMO_ONLY` until a named policy owner has approved a separate, versioned pilot configuration.
+The validator checks required fields, references, finite positive durations, ordered thresholds, the complete P0 transition graph, and role gates. It prints a canonical checksum. Phase 1 stores immutable demo policy versions and pins each case to its effective version. Production policy publication and approval remain open. Keep this file at `DEMO_ONLY` until a named policy owner has approved a separate, versioned pilot configuration.
 
 ## Sample cases for policy review
 

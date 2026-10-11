@@ -15,14 +15,16 @@ This log distinguishes **accepted product scope** from **proposed engineering ch
 | D-07 | No silent auto-closure after an unanswered verification request in P0. | Citizen silence is not proof of resolution. |
 | D-08 | Pin each case to an effective versioned policy. | A later rule change must not silently rewrite open cases. |
 
-## Proposed engineering choices — not yet implemented
+## Engineering choices and remaining proposals
+
+**Phase 1 implementation choice, 11 October 2026:** FastAPI with Python 3.12, SQLAlchemy, and Alembic is now selected and implemented. PostgreSQL and local SQLite pass the backend test suite. Local provisioned accounts use Argon2 password hashing and expiring, revocable opaque sessions; production citizen identity remains O-05. Transactional outbox records exist for internal verification/review requests; delivery workers remain unimplemented.
 
 | ID | Proposal | Why / validation needed |
 |---|---|---|
-| P-01 | A modular API, PostgreSQL, private object storage, and durable background jobs. | Supports atomic mutation plus audit and reliable threshold processing; validate hosting and team skills. |
+| P-01 | Modular API and PostgreSQL selected; private object storage and durable workers planned. | Phase 1 verifies atomic mutation/audit; hosting and delivery infrastructure remain open. |
 | P-02 | Next.js and TypeScript for web interfaces. | Shared UI platform for citizen and staff views; assess accessibility and deployment. |
-| P-03 | FastAPI for the backend. | Typed API and worker ecosystem; compare with a TypeScript backend before committing. |
-| P-04 | Transactional outbox for notifications and voice callbacks. | Avoid losing delivery requests after a case commit; prove retry behavior in tests. |
+| P-03 | FastAPI for the backend — selected for Phase 1. | Builds on the Python policy validator and provides generated command schemas; tested with PostgreSQL and SQLite. |
+| P-04 | Transactional outbox selected and implemented for verification/review requests. | Requests commit with their events; delivery and retry workers remain planned. |
 | P-05 | Scope voice tools by operation rather than exposing generic case mutation. | Reduces model and integration authority; validate ElevenLabs tool behavior in a prototype. |
 
 ## Open decisions requiring named owners

@@ -1,6 +1,6 @@
 # Proposed database design
 
-**Status:** Logical schema proposal, not migrations or an implemented database. PostgreSQL is recommended in [architecture.md](./architecture.md). Types and names may change during implementation, but the invariants below should remain.
+**Status:** Phase 1 migrations implement users, role grants, authentication sessions, policy versions, cases, ownership intervals, evidence metadata, audit, idempotency, and outbox records. The table below remains the broader P0 logical design. Initial SLA fields currently live on cases; verification/review decisions live in audit details. Escalation, voice, recommendations, and separate SLA/verification entities remain future work. See [models](../govfix/models.py) and [backend setup](./backend.md).
 
 ## Entity relationships
 

@@ -4,7 +4,7 @@
 
 GovFix is a proposed municipal grievance workflow system. Citizens can report an issue by text or voice, staff can validate and resolve it, and citizens can verify the result. A deterministic backend is responsible for status changes, assignments, deadlines, escalations, and the audit trail. AI and ElevenLabs help people communicate with the system; they do not independently change a case.
 
-> **Project status:** Early implementation. A validated demo policy is available, but there is no application or runnable case workflow yet. See the [implementation tracker](./docs/implemented.md).
+> **Project status:** Phase 1 backend foundation. The demo API runs locally with authentication, case commands, policy pinning, and audit. Citizen/staff interfaces and voice integrations are planned. See the [implementation tracker](./docs/implemented.md).
 
 ## Why this project
 
@@ -48,13 +48,22 @@ An intake officer can reject a submitted case with a coded reason. `OVERDUE` is 
 | [Decisions](./docs/decisions.md) | Accepted product decisions and unresolved choices |
 | [Validation](./docs/validation.md) | Test scenarios and release gates |
 | [Demo pilot policy](./docs/pilot-policy.md) | Executable Phase 0 configuration and open approvals |
+| [Backend setup](./docs/backend.md) | Run the API, provision accounts, and test case commands |
 | [Security and privacy](./docs/security-privacy.md) | Identity, access, voice data, and audit safeguards |
 
 The original [research and concept memo](./info.md) contains background, examples, and optional ideas. The PRD and linked specifications define the current build scope when they differ from the memo.
 
 ## Development status
 
-The first implementation slice is a Python standard-library policy validator. From the repository root, run `python3 -m govfix.policy config/policies/demo-pilot-v1.json` and `python3 -m unittest discover -s tests -v`. There is no application server or case workflow yet. A proposed stack is documented in [architecture.md](./docs/architecture.md).
+The backend uses Python 3.12, FastAPI, SQLAlchemy, and Alembic. With [uv](https://docs.astral.sh/uv/getting-started/installation/) installed, run from the repository root:
+
+```sh
+uv sync --locked
+uv run govfix init-db
+uv run uvicorn govfix.api:app --host 127.0.0.1 --port 8000
+```
+
+Open [API documentation](http://127.0.0.1:8000/docs). Provision accounts and follow the first case path in [backend.md](./docs/backend.md). Run `uv run pytest -q` for the test suite. The default database is local SQLite; PostgreSQL is also supported and tested. All current policy values are fictional demonstration rules.
 
 ## Design principle
 

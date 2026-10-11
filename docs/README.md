@@ -6,6 +6,7 @@ The [root README](../README.md) introduces the project. The [PRD](../prd.md) is 
 
 1. [Product requirements](../prd.md) — why and what to build.
 2. [Roadmap](./roadmap.md) and [implementation tracker](./implemented.md) — sequence and actual progress.
+   [Backend setup](./backend.md) — run the current implementation and execute its tests.
 3. [Workflow](./workflow.md) — states, permissions, SLA, and escalation.
 4. [Architecture](./architecture.md), [database](./database.md), and [API](./api.md) — proposed design contracts.
 5. [Security and privacy](./security-privacy.md) and [validation](./validation.md) — safeguards and release checks.
