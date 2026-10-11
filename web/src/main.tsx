@@ -26,6 +26,7 @@ import {
 } from "./api";
 import { ErrorText, Field } from "./ui";
 import { AccessibilityControls } from "./accessibility";
+import { HomePage } from "./views/HomePage";
 import "./style.css";
 
 function App() {
@@ -87,94 +88,7 @@ function App() {
         Skip to main content
       </a>
       {!user ? (
-        <div className="min-h-dvh flex flex-col justify-center items-center px-4 py-12">
-          <div className="absolute right-4 top-4 z-10">
-            <AccessibilityControls />
-          </div>
-          {/* Institutional Header Banner */}
-          <div className="mb-8 text-center max-w-md">
-            <div className="w-14 h-14 rounded-2xl bg-[#f77f00] flex items-center justify-center text-white shadow-md mx-auto mb-3">
-              <span className="material-symbols-outlined text-[32px]">
-                account_balance
-              </span>
-            </div>
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <h1 className="text-xl font-bold tracking-tight text-[#0b1c30]">
-                GovFix Municipal Operations
-              </h1>
-              <span className="px-2 py-0.5 rounded bg-[#e5eeff] text-[#434655] font-mono text-[10px] font-semibold uppercase">
-                Demo
-              </span>
-            </div>
-            <p className="text-xs text-[#434655]">
-              Deterministic Grievance State Machine & Public SLA Engine
-            </p>
-          </div>
-
-          <main id="main-content" tabIndex={-1} className="w-full max-w-md">
-            <div className="rounded-xl border border-[#d9cdba] bg-white p-7 shadow-sm">
-              <div className="mb-5">
-                <span className="text-[10px] font-bold tracking-wider text-[#0037b0] uppercase">
-                  Statutory Access Portal
-                </span>
-                <h2 className="text-xl font-bold text-[#0b1c30] mt-0.5">
-                  Sign in to GovFix
-                </h2>
-                <p className="text-xs text-[#434655] mt-1">
-                  Authenticate using pilot citizen, officer, or auditor
-                  credentials.
-                </p>
-              </div>
-
-              <form onSubmit={login} className="space-y-4">
-                <Field label="Username">
-                  <input
-                    name="username"
-                    autoComplete="username"
-                    required
-                    maxLength={100}
-                    placeholder="e.g. pilot-citizen or pilot-auditor"
-                    className="w-full text-xs p-2.5 rounded-lg bg-white border border-[#d9cdba] text-[#0b1c30] focus:ring-1 focus:ring-[#f77f00] focus:outline-none"
-                  />
-                </Field>
-                <Field label="Password">
-                  <input
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    maxLength={128}
-                    className="w-full text-xs p-2.5 rounded-lg bg-white border border-[#d9cdba] text-[#0b1c30] focus:ring-1 focus:ring-[#f77f00] focus:outline-none"
-                  />
-                </Field>
-
-                <ErrorText message={error} />
-
-                <button
-                  disabled={busy}
-                  className="w-full py-2.5 bg-[#f77f00] hover:bg-[#d96e00] text-white font-semibold text-xs rounded shadow-sm transition-all cursor-pointer disabled:opacity-50"
-                >
-                  {busy ? "Authenticating…" : "Sign in to Operations"}
-                </button>
-
-                <div className="pt-3 border-t border-[#eff4ff] text-[11px] text-[#565e74] space-y-1">
-                  <p>
-                    • <strong>Citizen:</strong> submit grievances, track SLA,
-                    verify resolution
-                  </p>
-                  <p>
-                    • <strong>Officer / Supervisor:</strong> triage, dispatch,
-                    execute, rework
-                  </p>
-                  <p>
-                    • <strong>Auditor:</strong> inspect immutable governance
-                    ledger
-                  </p>
-                </div>
-              </form>
-            </div>
-          </main>
-        </div>
+        <HomePage login={login} busy={busy} error={error} />
       ) : (
         <Workspace
           token={token}
