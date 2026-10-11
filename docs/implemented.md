@@ -1,6 +1,6 @@
 # Implementation tracker
 
-**As of 11 October 2026:** Phases 1–4 and the Phase 5 application integration are implemented locally with a fictional `DEMO_ONLY` policy and provisioned accounts. Municipal policy approval, production identity verification, external notification providers, production storage, live ElevenLabs provisioning/language validation, and deployment remain open.
+**As of 11 October 2026:** Phases 1–4 and the Phase 5 application integration are implemented with a fictional `DEMO_ONLY` policy and provisioned accounts. Supabase PostgreSQL/private Storage are configured, and the Render Free deployment passed liveness, readiness and pilot-account login checks. Four dedicated dashboard views are implemented and verified locally; deploying this update remains pending. Municipal policy approval, production identity verification, external notification providers, deployed evidence/workflow verification and live ElevenLabs provisioning/language validation remain open.
 
 ## Present in the repository
 
@@ -14,13 +14,13 @@
 | Policy pinning, concurrency, idempotency, and transactional audit | Verified locally | [Workflow tests](../tests/test_workflow.py), [persistence tests](../tests/test_persistence.py) |
 | Resolution presentation, explicit acceptance/dispute, and supervisor rework | Verified locally | [Citizen verification](./citizen-verification.md), [browser workflow](../scripts/test_browser.py), [tests](../tests/test_verification.py) |
 | Outbox requests for citizen verification and supervisor review | In-app delivery verified | Requests commit with workflow events; [worker](../govfix/worker.py) delivers to authenticated inboxes |
-| Citizen intake, staff operations, officer queue, supervisor view | Verified in Chromium desktop/mobile | [React client](../web/src/main.tsx), [browser workflow](../scripts/test_browser.py) |
+| Four dedicated role dashboards | Verified in Chromium desktop/mobile | [Dashboard views](../web/src/dashboards.tsx), [React client](../web/src/main.tsx), [guide](./dashboards.md), [browser workflow](../scripts/test_browser.py) |
 | Private evidence upload and completion | Verified locally | [Upload API](../govfix/operations.py), [private store](../govfix/evidence.py), [tests](../tests/test_operations.py); production object storage remains open |
 | SLA monitoring, escalation, notification retry and deadline extension | Verified locally | [SLA scheduler](../govfix/sla.py), [worker](../govfix/worker.py), [tests](../tests/test_sla.py), [operations guide](./sla-operations.md) |
 | Unanswered verification alert | Verified locally | Pinned policy window, one audited alert per cycle, supervisor inbox and scoped dashboard count; [guide](./citizen-verification.md) |
 | ElevenLabs integration | Application and mocked provider contracts verified; live calls pending | [Voice guide](./voice-access.md), [boundary tests](../tests/test_voice.py), signed transcript webhook, and browser outage fallback |
 | CI | Configured; remote execution not verified | [SQLite/PostgreSQL workflow](../.github/workflows/backend.yml) |
-| Deployment and production safeguards | Not started | See [security/privacy requirements](./security-privacy.md) |
+| Deployment and production safeguards | Render Free demo deployed; pilot hardening partial | [Render guide](./render-deployment.md); backup/recovery and remaining [release gates](./validation.md) are open |
 
 ## Verification recorded
 
@@ -92,3 +92,18 @@ Move an item to **Implemented** only when its code exists. Move it to **Verified
 
 - Live Supabase `/ready` returned 200; `check-operations` reported healthy with no alerts.
   Auditor operational access and citizen denial passed in a rolled-back live API smoke.
+
+## Four role dashboards — 11 October 2026
+
+- Dedicated Citizen, Officer, Supervisor/Operations and Auditor navigation,
+  role-specific summaries and queues; multi-role accounts can switch dashboards.
+- Personal and owned summary filters preserve scoped visibility; overdue queue
+  filtering runs on the server before pagination and excludes terminal cases.
+- Auditor case views hide all mutation/upload/retry controls, including for
+  accounts with additional roles; read-only policy and system-readiness pages added.
+- Frontend production build, Ruff lint/format and full browser workflow passed.
+- SQLite: 164 passed, 4 PostgreSQL-only checks skipped. Disposable PostgreSQL:
+  168 passed. Browser checks include all dashboards, multi-role switching, auditor
+  restrictions, owned/verification queues and mobile layout.
+- See [dashboard guide](./dashboards.md). No schema migration is needed. The
+  dashboard/API update must still be committed, pushed and deployed to Render.

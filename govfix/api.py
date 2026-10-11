@@ -19,6 +19,7 @@ from govfix.database import (
     as_utc,
     make_engine,
     make_sessions,
+    utcnow,
     verify_runtime_role,
     write_transaction,
 )
@@ -368,6 +369,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         state: Annotated[str | None, Query(max_length=40)] = None,
         owned: bool = False,
         verification_waiting: bool = False,
+        overdue: bool = False,
+        mine: bool = False,
     ):
         with sessions() as session:
             filters = [visibility_filter(actor)]
@@ -375,6 +378,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 filters.append(Case.workflow_state == state)
             if owned:
                 filters.append(Case.owner_id == actor.id)
+            if mine:
+                filters.append(Case.citizen_id == actor.id)
+            if overdue:
+                filters.extend([Case.terminal_at.is_(None), Case.current_deadline <= utcnow()])
             if verification_waiting:
                 filters.extend(
                     [

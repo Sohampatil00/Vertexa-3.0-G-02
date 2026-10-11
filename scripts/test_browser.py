@@ -18,7 +18,7 @@ from sqlalchemy import select
 
 from govfix.cli import import_policy, migrate, provision_user
 from govfix.database import as_utc, make_engine, make_sessions, utcnow, write_transaction
-from govfix.models import Case, OutboxMessage
+from govfix.models import Case, OutboxMessage, RoleGrant, User
 from govfix.settings import Settings
 from govfix.worker import Worker
 
@@ -136,10 +136,23 @@ def run_browser(url, password, photo, worker):
         expect(page.get_by_role("heading", name="Every case has a next step.")).to_be_visible()
 
         def login(username):
+            page.set_viewport_size({"width": 1440, "height": 1000})
             page.get_by_label("Username", exact=True).fill(username)
             page.get_by_label("Password", exact=True).fill(password)
             page.get_by_role("button", name="Sign in", exact=True).click()
             expect(page.get_by_role("button", name="Sign out")).to_be_visible()
+            title = {
+                "citizen": "Citizen dashboard",
+                "mixed": "Citizen dashboard",
+                "officer": "Officer dashboard",
+                "auditor": "Auditor dashboard",
+            }.get(username, "Supervisor / Operations dashboard")
+            expect(page.get_by_role("heading", name=title, exact=True, level=1)).to_be_visible()
+            expect(page.get_by_role("navigation", name=f"{title} navigation")).to_be_visible()
+            expect(page.get_by_role("region", name="Case summary", exact=True)).to_be_visible()
+            target = ROOT / "artifacts" / f"dashboard-{username}.png"
+            target.parent.mkdir(exist_ok=True)
+            page.screenshot(path=str(target), full_page=True)
 
         def sign_out():
             page.get_by_role("button", name="Sign out").click()
@@ -191,6 +204,10 @@ def run_browser(url, password, photo, worker):
         expect(page.get_by_text("Demo officer", exact=True)).to_be_visible()
         sign_out()
         login("officer")
+        page.get_by_role("button", name="Accept assignments", exact=True).click()
+        expect(page.get_by_label("Workflow state")).to_have_value("ASSIGNED")
+        expect(page.get_by_label("My assignments only")).to_be_checked()
+        page.get_by_role("button", name="Overview", exact=True).click()
         open_case()
         page.get_by_role("button", name="accept assignment", exact=True).click()
         page.get_by_label("I accept ownership of this assignment.").check()
@@ -205,6 +222,23 @@ def run_browser(url, password, photo, worker):
         page.get_by_role("button", name="Submit resolution", exact=True).click()
         expect(page.get_by_role("heading", name="Submitted resolution")).to_be_visible()
         expect(page.get_by_text("Repaired pothole and verified the surface")).to_be_visible()
+        sign_out()
+        login("mixed")
+        expect(page.get_by_label("Switch dashboard").locator("option")).to_have_count(4)
+        expect(page.get_by_role("heading", name="No cases in this view")).to_be_visible()
+        page.get_by_label("Switch dashboard").select_option("officer")
+        expect(page.get_by_role("heading", name="Officer dashboard", level=1)).to_be_visible()
+        page.get_by_label("Switch dashboard").select_option("operations")
+        open_case()
+        expect(page.get_by_role("button", name="deadline extension", exact=True)).to_be_visible()
+        page.get_by_label("Switch dashboard").select_option("auditor")
+        open_case()
+        expect(
+            page.get_by_role("button", name="deadline extension", exact=True)
+        ).not_to_be_visible()
+        expect(page.get_by_role("heading", name="Next action", exact=True)).not_to_be_visible()
+        expect(page.get_by_role("button", name="Upload photo", exact=True)).not_to_be_visible()
+        sign_out()
         with worker.sessions() as session:
             row = session.scalar(
                 select(Case).where(Case.description == "Pothole near demo bus stop")
@@ -222,8 +256,9 @@ def run_browser(url, password, photo, worker):
             with worker.sessions() as session:
                 simulated = as_utc(session.get(OutboxMessage, failed_id).next_attempt_at)
             worker.deliver(failed_id)
-        sign_out()
         login("supervisor")
+        page.get_by_role("button", name="Unanswered verification", exact=True).click()
+        expect(page.get_by_label("Verification needs review")).to_be_checked()
         page.get_by_label("Verification needs review").check()
         open_case()
         expect(
@@ -316,6 +351,23 @@ def run_browser(url, password, photo, worker):
         expect(page.get_by_role("alertdialog")).to_be_visible()
         page.get_by_role("button", name="Accept and close case", exact=True).click()
         expect(page.get_by_text("closed", exact=True).first).to_be_visible()
+        sign_out()
+        login("auditor")
+        expect(page.get_by_role("button", name="New grievance", exact=True)).not_to_be_visible()
+        page.get_by_role("button", name="Closed case audits", exact=True).click()
+        expect(page.get_by_label("Workflow state")).to_have_value("CLOSED")
+        open_case()
+        expect(page.get_by_role("heading", name="Ownership history")).to_be_visible()
+        expect(page.get_by_role("heading", name="Next action", exact=True)).not_to_be_visible()
+        page.get_by_role("button", name="Policy reference", exact=True).click()
+        expect(page.get_by_role("heading", name="Policy reference", exact=True)).to_be_visible()
+        page.get_by_role("button", name="System readiness", exact=True).click()
+        expect(page.get_by_text("Deployment: degraded", exact=True)).to_be_visible()
+        page.set_viewport_size({"width": 390, "height": 844})
+        assert page.evaluate("document.documentElement.scrollWidth <= innerWidth")
+        page.set_viewport_size({"width": 1440, "height": 1000})
+        sign_out()
+        login("citizen")
         page.get_by_role("button", name="New grievance", exact=True).click()
         page.get_by_label("Description").fill("Duplicate demo pothole report")
         page.get_by_label("Location").fill("Demo main road")
@@ -353,6 +405,7 @@ def run_browser(url, password, photo, worker):
             "citizen → intake → dispatcher → officer → supervisor; "
             "SLA escalation, verification wait, dispute, rework, acceptance, "
             "delivery retry, extension, citizen inbox, "
+            "four dashboards, multi-role switching, read-only auditor, "
             "mobile layout and private download verified."
         )
 
@@ -373,6 +426,8 @@ def main():
                 ("dispatcher", "DISPATCHER"),
                 ("officer", "OFFICER"),
                 ("supervisor", "SUPERVISOR"),
+                ("auditor", "AUDITOR"),
+                ("mixed", "OFFICER"),
             ):
                 provision_user(
                     session,
@@ -383,6 +438,13 @@ def main():
                     wards=["WARD-A"],
                     department="PUBLIC_WORKS" if name in {"dispatcher", "officer"} else None,
                     verified=name == "citizen",
+                )
+            mixed = session.scalar(select(User).where(User.username == "mixed"))
+            for role in ("CITIZEN", "SUPERVISOR", "AUDITOR"):
+                session.add(
+                    RoleGrant(
+                        user_id=mixed.id, role=role, ward=None if role == "CITIZEN" else "WARD-A"
+                    )
                 )
         engine.dispose()
         photo = root / "after.png"
