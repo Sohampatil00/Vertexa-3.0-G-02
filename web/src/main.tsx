@@ -1,29 +1,33 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
-import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { cn, button, secondary, ErrorText, Field } from "./ui";
-import { Inbox, SlaPanel } from "./sla";
+import { Header } from "./components/Header";
+import { Sidebar, type DashboardView } from "./components/Sidebar";
+import { CitizenDashboard } from "./views/CitizenDashboard";
+import { IntakeDashboard } from "./views/IntakeDashboard";
+import { DispatcherDashboard } from "./views/DispatcherDashboard";
+import { FieldOfficerDashboard } from "./views/FieldOfficerDashboard";
+import { SupervisorDashboard } from "./views/SupervisorDashboard";
+import { GovernanceDashboard } from "./views/GovernanceDashboard";
+import { NotificationsView } from "./views/NotificationsView";
+import { CaseDetailModal } from "./views/CaseDetailModal";
+import { NewGrievanceModal } from "./views/NewGrievanceModal";
 import {
   api,
   ApiError,
   command,
-  date,
-  human,
   type Case,
-  type Evidence,
-  type Event,
-  type Operations,
   type Policy,
-  type Resolution,
   type User,
 } from "./api";
-import { VoiceAccess } from "./voice";
+import { ErrorText, Field } from "./ui";
 import "./style.css";
+
 function App() {
-  const [token, setToken] = useState(""); // Sessions stay in memory and disappear when the tab closes/reloads.
+  const [token, setToken] = useState("");
   const [user, setUser] = useState<User | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+
   async function login(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
@@ -46,6 +50,7 @@ function App() {
       setBusy(false);
     }
   }
+
   async function logout() {
     setBusy(true);
     try {
@@ -60,111 +65,118 @@ function App() {
       setBusy(false);
     }
   }
+
   function expired() {
     setToken("");
     setUser(null);
     setError("Your session expired. Sign in again.");
   }
+
   return (
-    <div className="min-h-dvh">
-      <div className="bg-slate-900 px-5 py-2 text-center text-xs text-slate-200">
-        Demonstration · Fictional Demo Municipality · Rules require municipal
-        approval
-      </div>
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-5">
-          <div>
-            <span className="text-xl font-semibold">
-              GovFix<span className="text-blue-700">.</span>
-            </span>
-            <p className="text-sm text-slate-500">
-              Municipal grievance operations
+    <div className="min-h-screen bg-[#f8f9ff] text-[#0b1c30]">
+      {!user ? (
+        <div className="min-h-screen flex flex-col justify-center items-center px-4 py-12">
+          {/* Institutional Header Banner */}
+          <div className="mb-8 text-center max-w-md">
+            <div className="w-14 h-14 rounded-2xl bg-[#f77f00] flex items-center justify-center text-white shadow-md mx-auto mb-3">
+              <span className="material-symbols-outlined text-[32px]">account_balance</span>
+            </div>
+            <div className="flex items-center justify-center gap-2 mb-1">
+              <h1 className="text-xl font-bold tracking-tight text-[#0b1c30]">
+                GovFix Municipal Operations
+              </h1>
+              <span className="px-2 py-0.5 rounded bg-[#e5eeff] text-[#434655] font-mono text-[10px] font-semibold uppercase">
+                Demo
+              </span>
+            </div>
+            <p className="text-xs text-[#434655]">
+              Deterministic Grievance State Machine & Public SLA Engine
             </p>
           </div>
-          {user && (
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-sm font-medium">{user.display_name}</p>
-                <p className="text-xs text-slate-500">
-                  {[...new Set(user.roles.map((r) => human(r.role)))].join(
-                    " · ",
-                  )}
+
+          <main className="w-full max-w-md">
+            <div className="rounded-xl border border-[#d9cdba] bg-white p-7 shadow-sm">
+              <div className="mb-5">
+                <span className="text-[10px] font-bold tracking-wider text-[#0037b0] uppercase">
+                  Statutory Access Portal
+                </span>
+                <h2 className="text-xl font-bold text-[#0b1c30] mt-0.5">
+                  Sign in to GovFix
+                </h2>
+                <p className="text-xs text-[#434655] mt-1">
+                  Authenticate using pilot citizen, officer, or auditor credentials.
                 </p>
               </div>
-              <button className={secondary} disabled={busy} onClick={logout}>
-                Sign out
-              </button>
+
+              <form onSubmit={login} className="space-y-4">
+                <Field label="Username">
+                  <input
+                    name="username"
+                    autoComplete="username"
+                    required
+                    maxLength={100}
+                    placeholder="e.g. pilot-citizen or pilot-auditor"
+                    className="w-full text-xs p-2.5 rounded-lg bg-white border border-[#d9cdba] text-[#0b1c30] focus:ring-1 focus:ring-[#f77f00] focus:outline-none"
+                  />
+                </Field>
+                <Field label="Password">
+                  <input
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    maxLength={128}
+                    className="w-full text-xs p-2.5 rounded-lg bg-white border border-[#d9cdba] text-[#0b1c30] focus:ring-1 focus:ring-[#f77f00] focus:outline-none"
+                  />
+                </Field>
+
+                <ErrorText message={error} />
+
+                <button
+                  disabled={busy}
+                  className="w-full py-2.5 bg-[#f77f00] hover:bg-[#d96e00] text-white font-semibold text-xs rounded shadow-sm transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {busy ? "Authenticating…" : "Sign in to Operations"}
+                </button>
+
+                <div className="pt-3 border-t border-[#eff4ff] text-[11px] text-[#565e74] space-y-1">
+                  <p>• <strong>Citizen:</strong> submit grievances, track SLA, verify resolution</p>
+                  <p>• <strong>Officer / Supervisor:</strong> triage, dispatch, execute, rework</p>
+                  <p>• <strong>Auditor:</strong> inspect immutable governance ledger</p>
+                </div>
+              </form>
             </div>
-          )}
+          </main>
         </div>
-      </header>
-      {user && error && (
-        <div className="mx-auto max-w-7xl px-5 pt-4">
-          <ErrorText message={error} />
-        </div>
-      )}
-      {!user ? (
-        <main className="mx-auto max-w-md px-5 py-16">
-          <p className="mb-3 text-sm font-semibold text-blue-700">
-            STAFF & CITIZEN ACCESS
-          </p>
-          <h1 className="text-3xl font-semibold">
-            Every case has a next step.
-          </h1>
-          <p className="mb-8 mt-3 text-slate-600">
-            Sign in to submit a grievance or manage your ward’s work.
-          </p>
-          <form
-            onSubmit={login}
-            className="space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
-          >
-            <Field label="Username">
-              <input
-                name="username"
-                autoComplete="username"
-                required
-                maxLength={100}
-              />
-            </Field>
-            <Field label="Password">
-              <input
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                maxLength={128}
-              />
-            </Field>
-            <ErrorText message={error} />
-            <button disabled={busy} className={cn(button, "w-full")}>
-              {busy ? "Signing in…" : "Sign in"}
-            </button>
-            <p className="text-xs text-slate-500">
-              Use an account provisioned by your demo administrator.
-            </p>
-          </form>
-        </main>
       ) : (
-        <Workspace token={token} user={user} expired={expired} />
+        <Workspace token={token} user={user} logout={logout} expired={expired} />
       )}
     </div>
   );
 }
+
 function Workspace({
   token,
   user,
+  logout,
   expired,
 }: {
   token: string;
   user: User;
+  logout: () => void;
   expired: () => void;
 }) {
-  const officer = user.roles.some((r) => r.role === "OFFICER");
-  const citizen = user.roles.some((r) => r.role === "CITIZEN");
-  const supervisor = user.roles.some((r) =>
-    ["SUPERVISOR", "WARD_HEAD", "AUDITOR"].includes(r.role),
-  );
-  const [items, setItems] = useState<Case[]>([]);
+  // Determine default view based on user roles
+  const defaultView: DashboardView = (() => {
+    if (user.roles.some((r) => r.role === "AUDITOR")) return "auditor-portal";
+    if (user.roles.some((r) => r.role === "WARD_HEAD")) return "ward-head-oversight";
+    if (user.roles.some((r) => r.role === "SUPERVISOR")) return "supervisor-queue";
+    if (user.roles.some((r) => r.role === "OFFICER")) return "field-officer";
+    return "citizen-overview";
+  })();
+
+  const [currentView, setCurrentView] = useState<DashboardView>(defaultView);
+  const [cases, setCases] = useState<Case[]>([]);
   const [policy, setPolicy] = useState<Policy | null>(null);
   const [summary, setSummary] = useState<{
     total: number;
@@ -172,25 +184,25 @@ function Workspace({
     states: Record<string, number>;
     verification_waiting: number;
   } | null>(null);
-  const [selected, setSelected] = useState<Case | null>(null);
-  const [intake, setIntake] = useState(false);
-  const [state, setState] = useState("");
-  const [owned, setOwned] = useState(officer);
-  const [waitingOnly, setWaitingOnly] = useState(false);
-  const [offset, setOffset] = useState(0);
+
+  const [selectedCase, setSelectedCase] = useState<Case | null>(null);
+  const [showNewGrievance, setShowNewGrievance] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
   const [revision, setRevision] = useState(0);
+
+  // Command execution ref
+  const attempt = useRef<{ digest: string; key: string } | null>(null);
+
+  // Load cases
   useEffect(() => {
     let live = true;
     setLoading(true);
     setError("");
-    api<{ cases: Case[] }>(
-      token,
-      `/cases?limit=20&offset=${offset}&owned=${owned}&state=${state}&verification_waiting=${waitingOnly}`,
-    )
-      .then((list) => {
-        if (live) setItems(list.cases);
+    api<{ cases: Case[] }>(token, "/cases?limit=100")
+      .then((res) => {
+        if (live) setCases(res.cases);
       })
       .catch((err) => {
         if (live) {
@@ -204,16 +216,18 @@ function Workspace({
     return () => {
       live = false;
     };
-  }, [token, state, owned, waitingOnly, offset, revision]);
+  }, [token, revision]);
+
+  // Load policy & summary
   useEffect(() => {
     let live = true;
     Promise.all([
       api<{ policy: Policy }>(token, "/intake-options"),
       api<typeof summary>(token, "/operations/summary"),
     ])
-      .then(([options, totals]) => {
+      .then(([opts, totals]) => {
         if (live) {
-          setPolicy(options.policy);
+          setPolicy(opts.policy);
           setSummary(totals);
         }
       })
@@ -224,1202 +238,277 @@ function Workspace({
       live = false;
     };
   }, [token, revision]);
-  function refreshed(item: Case) {
-    setSelected(item);
-    setIntake(false);
-    setRevision((r) => r + 1);
-  }
-  return (
-    <main className="mx-auto max-w-7xl space-y-6 px-5 py-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">
-            {citizen
-              ? "Your grievances"
-              : supervisor
-                ? "Ward oversight"
-                : officer
-                  ? "Officer work queue"
-                  : "Case operations"}
-          </h1>
-          <p className="mt-1 text-sm text-slate-600">
-            {citizen
-              ? "Track your case from submission to resolution."
-              : "Cases and actions available within your assigned scope."}
-          </p>
-        </div>
-        {citizen && (
-          <button
-            onClick={() => {
-              setIntake(true);
-              setSelected(null);
-            }}
-            className={button}
-          >
-            New grievance
-          </button>
-        )}
-      </div>
-      <ErrorText message={error} />
-      {summary && (
-        <section
-          aria-label="Case summary"
-          className="grid grid-cols-2 gap-3 md:grid-cols-4"
-        >
-          {[
-            ["Visible cases", summary.total],
-            ["Awaiting validation", summary.states.SUBMITTED || 0],
-            ["In progress", summary.states.IN_PROGRESS || 0],
-            ["Overdue", summary.overdue],
-            ["Verification needs review", summary.verification_waiting],
-          ].map(([label, value]) => (
-            <div
-              key={label}
-              className="rounded-lg border border-slate-200 bg-white p-4"
-            >
-              <p className="text-xs text-slate-500">{label}</p>
-              <p className="mt-2 text-2xl font-semibold tabular-nums">
-                {value}
-              </p>
-            </div>
-          ))}
-        </section>
-      )}
-      {citizen && policy && (
-        <VoiceAccess token={token} policy={policy} saved={refreshed} />
-      )}
-      <Inbox
-        token={token}
-        revision={revision}
-        openCase={async (id) => {
-          try {
-            const result = await api<{ case: Case }>(token, `/cases/${id}`);
-            setSelected(result.case);
-            setIntake(false);
-          } catch (err) {
-            setError((err as Error).message);
-          }
-        }}
-      />
-      {intake && policy ? (
-        <Intake
-          token={token}
-          policy={policy}
-          saved={refreshed}
-          cancel={() => setIntake(false)}
-        />
-      ) : selected ? (
-        <Detail
-          key={selected.id}
-          token={token}
-          item={selected}
-          user={user}
-          saved={refreshed}
-          back={() => setSelected(null)}
-          expired={expired}
-        />
-      ) : (
-        <section className="rounded-xl border border-slate-200 bg-white">
-          <div className="flex flex-wrap items-center gap-4 border-b border-slate-200 p-4">
-            <Field label="Workflow state">
-              <select
-                value={state}
-                onChange={(e) => {
-                  setState(e.target.value);
-                  setOffset(0);
-                }}
-              >
-                <option value="">All states</option>
-                {[
-                  "SUBMITTED",
-                  "VALIDATED",
-                  "ASSIGNED",
-                  "IN_PROGRESS",
-                  "CITIZEN_VERIFICATION",
-                  "SUPERVISOR_REVIEW",
-                  "CLOSED",
-                  "REJECTED",
-                ].map((s) => (
-                  <option key={s} value={s}>
-                    {human(s)}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            {officer && (
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={owned}
-                  onChange={(e) => {
-                    setOwned(e.target.checked);
-                    setOffset(0);
-                  }}
-                />
-                My assignments only
-              </label>
-            )}
-            {supervisor && (
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={waitingOnly}
-                  onChange={(e) => {
-                    setWaitingOnly(e.target.checked);
-                    setOffset(0);
-                  }}
-                />
-                Verification needs review
-              </label>
-            )}
-            <button
-              className={cn(secondary, "ml-auto")}
-              onClick={() => setRevision((r) => r + 1)}
-            >
-              Refresh
-            </button>
-          </div>
-          {loading ? (
-            <div role="status" className="space-y-4 p-6">
-              <p>Loading cases…</p>
-              <div className="h-16 rounded bg-slate-100" />
-              <div className="h-16 rounded bg-slate-100" />
-            </div>
-          ) : items.length === 0 ? (
-            <div className="p-10 text-center">
-              <h2 className="font-semibold">No cases in this view</h2>
-              <p className="mt-2 text-sm text-slate-500">
-                {waitingOnly
-                  ? "No unanswered verification requests need review."
-                  : citizen
-                    ? "Submit a grievance to get started."
-                    : "Refresh after a case is routed to your scope."}
-              </p>
-              <button
-                className={cn(secondary, "mt-4")}
-                onClick={() =>
-                  waitingOnly
-                    ? setWaitingOnly(false)
-                    : citizen
-                      ? setIntake(true)
-                      : setRevision((r) => r + 1)
-                }
-              >
-                {waitingOnly
-                  ? "Show all cases"
-                  : citizen
-                    ? "New grievance"
-                    : "Refresh"}
-              </button>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {items.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => setSelected(item)}
-                  className="flex w-full flex-wrap items-center justify-between gap-3 p-5 text-left hover:bg-slate-50"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs text-slate-500">
-                      {item.ward} · {human(item.department)}
-                    </p>
-                    <h2 className="mt-1 line-clamp-1 font-medium">
-                      {item.description}
-                    </h2>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {item.location}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <Badge state={item.workflow_state} />
-                    <p
-                      className={cn(
-                        "mt-2 text-xs tabular-nums",
-                        item.sla_status === "OVERDUE"
-                          ? "text-red-700"
-                          : "text-slate-500",
-                      )}
-                    >
-                      Due {date(item.current_deadline, item.timezone)}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="flex items-center justify-between border-t border-slate-200 p-4 text-sm">
-            <button
-              className={secondary}
-              disabled={offset === 0 || loading}
-              onClick={() => setOffset((o) => Math.max(0, o - 20))}
-            >
-              Previous
-            </button>
-            <span className="tabular-nums">Page {offset / 20 + 1}</span>
-            <button
-              className={secondary}
-              disabled={items.length < 20 || loading}
-              onClick={() => setOffset((o) => o + 20)}
-            >
-              Next
-            </button>
-          </div>
-        </section>
-      )}
-    </main>
-  );
-}
-function Badge({ state }: { state: string }) {
-  return (
-    <span className="inline-block rounded bg-slate-100 px-2 py-1 text-xs font-medium capitalize">
-      {human(state)}
-    </span>
-  );
-}
-// Retry the exact command key and payload when a response is lost.
-function useCommand(token: string, saved: (item: Case) => void) {
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
-  const attempt = useRef<{ digest: string; key: string } | null>(null);
-  async function run(item: Case | null, operation: string, body: unknown) {
+
+  // Action helpers
+  async function handleValidate(item: Case) {
+    if (!policy) return;
     setBusy(true);
-    setError("");
-    const digest = JSON.stringify([item?.id, item?.version, operation, body]);
-    if (attempt.current?.digest !== digest)
-      attempt.current = { digest, key: crypto.randomUUID() };
     try {
       const result = await command(
         token,
         item,
-        operation,
-        body,
-        attempt.current.key,
+        "validate",
+        {
+          category: item.category,
+          ward: item.ward,
+          department: item.department,
+          jurisdiction: policy.municipality,
+        },
+        crypto.randomUUID(),
       );
-      attempt.current = null;
-      saved(result.case);
+      setRevision((r) => r + 1);
+      if (selectedCase?.id === item.id) setSelectedCase(result.case);
     } catch (err) {
-      setError((err as Error).message);
+      alert((err as Error).message);
     } finally {
       setBusy(false);
     }
   }
-  return { run, busy, error };
-}
-function Intake({
-  token,
-  policy,
-  saved,
-  cancel,
-}: {
-  token: string;
-  policy: Policy;
-  saved: (item: Case) => void;
-  cancel: () => void;
-}) {
-  const { run, busy, error } = useCommand(token, saved);
-  return (
-    <section className="mx-auto max-w-2xl rounded-xl border border-slate-200 bg-white p-6">
-      <h2 className="text-xl font-semibold">Submit a grievance</h2>
-      <p className="mt-2 text-sm text-slate-500">
-        Tell us what happened and where. Review your details before confirming.
-      </p>
-      <form
-        className="mt-6 space-y-5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const data = new FormData(e.currentTarget);
-          run(null, "submit", {
-            description: data.get("description"),
-            location: data.get("location"),
-            category: data.get("category"),
-            ward: data.get("ward"),
-            confirmation: data.get("confirmation") === "on",
-          });
-        }}
-      >
-        <Field label="Description">
-          <textarea
-            name="description"
-            rows={4}
-            required
-            minLength={10}
-            maxLength={4000}
-          />
-        </Field>
-        <Field label="Location">
-          <input name="location" required minLength={3} maxLength={1000} />
-        </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Category">
-            <select name="category">
-              {policy.categories.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {human(c.code)}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Ward">
-            <select name="ward">
-              {policy.wards.map((w) => (
-                <option key={w}>{w}</option>
-              ))}
-            </select>
-          </Field>
-        </div>
-        <label className="flex items-start gap-2">
-          <input
-            name="confirmation"
-            type="checkbox"
-            required
-            className="mt-1"
-          />
-          I confirm that these details accurately describe my grievance.
-        </label>
-        <ErrorText message={error} />
-        <div className="flex gap-3">
-          <button disabled={busy} className={button}>
-            {busy ? "Submitting…" : "Confirm submission"}
-          </button>
-          <button
-            type="button"
-            className={secondary}
-            onClick={cancel}
-            disabled={busy}
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
-    </section>
-  );
-}
-function Detail({
-  token,
-  item,
-  user,
-  saved,
-  back,
-  expired,
-}: {
-  token: string;
-  item: Case;
-  user: User;
-  saved: (item: Case) => void;
-  back: () => void;
-  expired: () => void;
-}) {
-  const [current, setCurrent] = useState(item),
-    [ops, setOps] = useState<Operations | null>(null),
-    [events, setEvents] = useState<Event[]>([]),
-    [evidence, setEvidence] = useState<Evidence[]>([]),
-    [resolution, setResolution] = useState<Resolution | null>(null),
-    [disputeStatement, setDisputeStatement] = useState<string | null>(null),
-    [actions, setActions] = useState<string[]>([]);
-  const [error, setError] = useState(""),
-    [loading, setLoading] = useState(true),
-    [revision, setRevision] = useState(0);
-  const [action, setAction] = useState("");
-  const cmd = useCommand(token, (next) => {
-    setCurrent(next);
-    setAction("");
-    saved(next);
-    setRevision((r) => r + 1);
-  });
-  useEffect(() => {
-    let live = true;
-    setLoading(true);
-    setError("");
-    Promise.all([
-      api<{ case: Case }>(token, `/cases/${item.id}`),
-      api<Operations>(token, `/cases/${item.id}/operations`),
-      api<{ events: Event[] }>(token, `/cases/${item.id}/timeline`),
-      api<{ evidence: Evidence[] }>(token, `/cases/${item.id}/evidence`),
-      api<{ resolution: Resolution | null; dispute_statement: string | null }>(
+
+  async function handleReject(item: Case, reasonCode: string, explanation: string) {
+    setBusy(true);
+    try {
+      const result = await command(
         token,
-        `/cases/${item.id}/resolution`,
-      ),
-      api<{ actions: { operation: string }[] }>(
+        item,
+        "reject",
+        { reason_code: reasonCode, explanation },
+        crypto.randomUUID(),
+      );
+      setRevision((r) => r + 1);
+      if (selectedCase?.id === item.id) setSelectedCase(result.case);
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleAssign(item: Case, officerId: string, reasonText: string) {
+    setBusy(true);
+    try {
+      const result = await command(
         token,
-        `/cases/${item.id}/allowed-actions`,
-      ),
-    ])
-      .then(([result, operations, timeline, files, submitted, allowed]) => {
-        if (live) {
-          setCurrent(result.case);
-          setOps(operations);
-          setEvents(timeline.events);
-          setEvidence(files.evidence);
-          setResolution(submitted.resolution);
-          setDisputeStatement(submitted.dispute_statement);
-          setActions([...new Set(allowed.actions.map((a) => a.operation))]);
-        }
-      })
-      .catch((err) => {
-        if (live) {
-          if (err instanceof ApiError && err.status === 401) expired();
-          else setError(err.message);
-        }
-      })
-      .finally(() => {
-        if (live) setLoading(false);
-      });
-    return () => {
-      live = false;
-    };
-  }, [token, item.id, item.version, revision]);
-  const available = actions.filter((a) =>
-    [
-      "validate",
-      "reject",
-      "assign",
-      "accept-assignment",
-      "resolution",
-      "verification",
-      "review",
-      "deadline-extension",
-    ].includes(a),
-  );
+        item,
+        "assign",
+        {
+          officer_id: officerId,
+          department: item.department,
+          reason: reasonText,
+        },
+        crypto.randomUUID(),
+      );
+      setRevision((r) => r + 1);
+      if (selectedCase?.id === item.id) setSelectedCase(result.case);
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleAcceptAssignment(item: Case) {
+    setBusy(true);
+    try {
+      const result = await command(
+        token,
+        item,
+        "accept-assignment",
+        { confirmation: true },
+        crypto.randomUUID(),
+      );
+      setRevision((r) => r + 1);
+      if (selectedCase?.id === item.id) setSelectedCase(result.case);
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleNewGrievanceSubmit(data: {
+    description: string;
+    location: string;
+    category: string;
+    ward: string;
+    confirmation: boolean;
+  }) {
+    setBusy(true);
+    try {
+      const result = await command(
+        token,
+        null,
+        "submit",
+        data,
+        crypto.randomUUID(),
+      );
+      setShowNewGrievance(false);
+      setRevision((r) => r + 1);
+      setSelectedCase(result.case);
+    } catch (err) {
+      alert((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function openCaseById(caseId: string) {
+    try {
+      const res = await api<{ case: Case }>(token, `/cases/${caseId}`);
+      setSelectedCase(res.case);
+    } catch (err) {
+      alert((err as Error).message);
+    }
+  }
+
+  const notificationCount = summary?.verification_waiting || 0;
+
   return (
-    <div className="space-y-5">
-      <div className="flex justify-between">
-        <button className={secondary} onClick={back}>
-          ← Back to cases
-        </button>
-        <button
-          className={secondary}
-          onClick={() => {
-            setAction("");
+    <div className="min-h-screen bg-[#f8f9ff]">
+      {/* Top Header */}
+      <Header
+        user={user}
+        logout={logout}
+        busy={busy}
+        notificationCount={notificationCount}
+        onOpenNotifications={() => setCurrentView("notifications")}
+      />
+
+      {/* Left Navigation Sidebar with Role Switch Sandbox */}
+      <Sidebar
+        currentView={currentView}
+        onSelectView={setCurrentView}
+        user={user}
+      />
+
+      {/* Main Dashboard Workspace */}
+      <main className="pl-64 pt-16 min-h-screen bg-[#f8f9ff] px-6 py-6 pb-16">
+        <div className="max-w-7xl mx-auto">
+          {error && (
+            <div className="mb-4">
+              <ErrorText message={error} />
+            </div>
+          )}
+
+          {/* Active View Dispatcher */}
+          {currentView === "citizen-overview" && (
+            <CitizenDashboard
+              cases={cases}
+              policy={policy}
+              user={user}
+              token={token}
+              onOpenCase={(item) => setSelectedCase(item)}
+              onNewGrievance={() => setShowNewGrievance(true)}
+              onRefresh={() => setRevision((r) => r + 1)}
+            />
+          )}
+
+          {currentView === "intake-queue" && (
+            <IntakeDashboard
+              cases={cases}
+              policy={policy}
+              user={user}
+              onOpenCase={(item) => setSelectedCase(item)}
+              onValidate={handleValidate}
+              onReject={handleReject}
+              onRefresh={() => setRevision((r) => r + 1)}
+              busy={busy}
+            />
+          )}
+
+          {currentView === "dispatcher" && (
+            <DispatcherDashboard
+              cases={cases}
+              policy={policy}
+              user={user}
+              token={token}
+              onOpenCase={(item) => setSelectedCase(item)}
+              onAssign={handleAssign}
+              onRefresh={() => setRevision((r) => r + 1)}
+              busy={busy}
+            />
+          )}
+
+          {currentView === "field-officer" && (
+            <FieldOfficerDashboard
+              cases={cases}
+              policy={policy}
+              user={user}
+              onOpenCase={(item) => setSelectedCase(item)}
+              onAcceptAssignment={handleAcceptAssignment}
+              onRefresh={() => setRevision((r) => r + 1)}
+              busy={busy}
+            />
+          )}
+
+          {currentView === "supervisor-queue" && (
+            <SupervisorDashboard
+              cases={cases}
+              policy={policy}
+              user={user}
+              onOpenCase={(item) => setSelectedCase(item)}
+              onRefresh={() => setRevision((r) => r + 1)}
+              busy={busy}
+            />
+          )}
+
+          {currentView === "ward-head-oversight" && (
+            <GovernanceDashboard
+              cases={cases}
+              policy={policy}
+              user={user}
+              summary={summary}
+              onOpenCase={(item) => setSelectedCase(item)}
+              onRefresh={() => setRevision((r) => r + 1)}
+            />
+          )}
+
+          {currentView === "auditor-portal" && (
+            <GovernanceDashboard
+              cases={cases}
+              policy={policy}
+              user={user}
+              summary={summary}
+              onOpenCase={(item) => setSelectedCase(item)}
+              onRefresh={() => setRevision((r) => r + 1)}
+            />
+          )}
+
+          {currentView === "notifications" && (
+            <NotificationsView
+              token={token}
+              onOpenCase={openCaseById}
+            />
+          )}
+        </div>
+      </main>
+
+      {/* Case Detail Inspection Modal */}
+      {selectedCase && (
+        <CaseDetailModal
+          token={token}
+          item={selectedCase}
+          user={user}
+          onClose={() => setSelectedCase(null)}
+          onSaved={(updated) => {
+            setSelectedCase(updated);
             setRevision((r) => r + 1);
           }}
-        >
-          Refresh case
-        </button>
-      </div>
-      <ErrorText message={error} />
-      {loading ? (
-        <div
-          className="h-48 rounded-xl border border-slate-200 bg-white p-6"
-          role="status"
-        >
-          Loading case details…
-        </div>
-      ) : (
-        ops && (
-          <div className="grid items-start gap-5 lg:grid-cols-3">
-            <section className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 lg:col-span-2">
-              <div>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Badge state={current.workflow_state} />
-                  <span className="text-xs text-slate-500 tabular-nums">
-                    Version {current.version}
-                  </span>
-                </div>
-                <h2 className="mt-4 text-xl font-semibold">
-                  {current.description}
-                </h2>
-                <p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">
-                  {current.location}
-                </p>
-                <dl className="mt-5 grid grid-cols-2 gap-4 text-sm">
-                  {[
-                    ["Ward", current.ward],
-                    ["Department", human(current.department)],
-                    ["Current owner", ops.owner_name || "Awaiting assignment"],
-                    [
-                      "Deadline",
-                      date(current.current_deadline, current.timezone),
-                    ],
-                  ].map(([title, value]) => (
-                    <div key={title}>
-                      <dt className="text-xs text-slate-500">{title}</dt>
-                      <dd className="mt-1 font-medium tabular-nums">{value}</dd>
-                    </div>
-                  ))}
-                </dl>
-                <p className="mt-4 break-all text-xs text-slate-500">
-                  Case {current.id} · Policy {current.policy_version}
-                </p>
-              </div>
-              {resolution && (
-                <section className="border-t border-slate-200 pt-5">
-                  <h3 className="font-semibold text-balance">
-                    Submitted resolution
-                  </h3>
-                  <p className="mt-1 text-xs text-slate-500 tabular-nums">
-                    Submitted {date(resolution.submitted_at, current.timezone)}
-                  </p>
-                  <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700 text-pretty">
-                    {resolution.note}
-                  </p>
-                  <div className="mt-4 space-y-2">
-                    {resolution.evidence_refs.map((id) => {
-                      const file = evidence.find((item) => item.id === id);
-                      return file ? (
-                        <div
-                          key={id}
-                          className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-slate-200 p-3"
-                        >
-                          <span className="text-sm capitalize">
-                            {human(file.kind)}
-                          </span>
-                          <Download
-                            token={token}
-                            caseId={current.id}
-                            file={file}
-                          />
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                </section>
-              )}
-              {disputeStatement && (
-                <section className="rounded-md border border-amber-200 bg-amber-50 p-4">
-                  <h3 className="font-semibold">Citizen dispute</h3>
-                  <p className="mt-2 whitespace-pre-wrap text-sm text-pretty">
-                    {disputeStatement}
-                  </p>
-                </section>
-              )}
-              {current.workflow_state === "CITIZEN_VERIFICATION" && (
-                <p className="rounded-md bg-blue-50 p-4 text-sm text-blue-900 text-pretty">
-                  The case remains open while the citizen reviews this
-                  resolution.
-                  {current.verification_due_at &&
-                    ` Supervisor review is scheduled after ${date(current.verification_due_at, current.timezone)} if there is no response.`}
-                  {current.verification_alerted_at &&
-                    " A supervisor has been alerted to the wait."}
-                </p>
-              )}
-              {available.length > 0 && (
-                <div className="border-t border-slate-200 pt-5">
-                  <h3 className="mb-3 font-semibold">Next action</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {available.map((a) => (
-                      <button
-                        key={a}
-                        className={action === a ? button : secondary}
-                        onClick={() => setAction(a)}
-                      >
-                        {human(a)}
-                      </button>
-                    ))}
-                  </div>
-                  {action && (
-                    <ActionForm
-                      key={`${action}-${current.version}`}
-                      action={action}
-                      current={current}
-                      ops={ops}
-                      evidence={evidence}
-                      busy={cmd.busy}
-                      error={cmd.error}
-                      run={(body) => cmd.run(current, action, body)}
-                    />
-                  )}
-                </div>
-              )}
-              <SlaPanel
-                token={token}
-                item={current}
-                revision={revision}
-                canRetry={actions.includes("notification-retry")}
-                retry={(body) => cmd.run(current, "notification-retry", body)}
-                busy={cmd.busy}
-                commandError={cmd.error}
-              />
-              {(!resolution || current.workflow_state === "IN_PROGRESS") && (
-                <section className="border-t border-slate-200 pt-5">
-                  <h3 className="font-semibold">Evidence uploads</h3>
-                  <p className="mt-1 text-xs text-slate-500">
-                    Private files · Access checked on every download
-                  </p>
-                  {evidence.length === 0 && (
-                    <p className="mt-4 text-sm text-slate-500">
-                      No completed uploads yet.
-                    </p>
-                  )}
-                  <ul className="mt-4 space-y-3">
-                    {evidence.map((file) => (
-                      <li
-                        key={file.id}
-                        className="rounded-md border border-slate-200 p-3"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="text-sm capitalize">
-                            {human(file.kind)} ·{" "}
-                            {(file.size_bytes / 1024).toFixed(1)} KB
-                          </span>
-                          <Download
-                            token={token}
-                            caseId={current.id}
-                            file={file}
-                          />
-                        </div>
-                        <p className="mt-2 break-all font-mono text-xs text-slate-500">
-                          SHA-256 {file.sha256}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                  {current.owner_id === user.id &&
-                    current.workflow_state === "IN_PROGRESS" && (
-                      <Upload
-                        token={token}
-                        item={current}
-                        ops={ops}
-                        done={() => setRevision((r) => r + 1)}
-                      />
-                    )}
-                </section>
-              )}
-              {ops.assignments.length > 0 && (
-                <section className="border-t border-slate-200 pt-5">
-                  <h3 className="font-semibold">Ownership history</h3>
-                  <ol className="mt-3 space-y-3">
-                    {ops.assignments.map((assignment, i) => (
-                      <li
-                        key={i}
-                        className="rounded-md bg-slate-50 p-3 text-sm"
-                      >
-                        <p className="font-medium">
-                          {assignment.ended_at
-                            ? "Previous assignment"
-                            : "Current assignment"}
-                        </p>
-                        <p className="mt-1">{assignment.reason}</p>
-                        <p className="mt-1 break-all text-xs text-slate-500">
-                          Officer {assignment.officer_id} · Assigned by{" "}
-                          {assignment.assigned_by}
-                        </p>
-                        <p className="mt-1 text-xs tabular-nums">
-                          {date(assignment.started_at, current.timezone)} →{" "}
-                          {assignment.ended_at
-                            ? date(assignment.ended_at, current.timezone)
-                            : "Active"}
-                        </p>
-                      </li>
-                    ))}
-                  </ol>
-                </section>
-              )}
-            </section>
-            <aside className="rounded-xl border border-slate-200 bg-white p-5">
-              <h3 className="font-semibold">Case timeline</h3>
-              <ol className="mt-5 space-y-5">
-                {events.map((event) => (
-                  <li
-                    key={event.id}
-                    className="border-l-2 border-slate-200 pl-4"
-                  >
-                    <p className="text-sm font-medium capitalize">
-                      {human(event.operation)}{" "}
-                      <span
-                        className={cn(
-                          "ml-1 text-xs",
-                          event.result === "REFUSED"
-                            ? "text-red-700"
-                            : "text-slate-500",
-                        )}
-                      >
-                        {human(event.result)}
-                      </span>
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500 tabular-nums">
-                      {date(event.occurred_at, current.timezone)}
-                    </p>
-                    {event.actor_role && (
-                      <p className="mt-1 text-xs text-slate-500 capitalize">
-                        {human(event.actor_role)}
-                      </p>
-                    )}
-                    {event.reason_code && (
-                      <p className="mt-1 text-xs text-red-700">
-                        {human(event.reason_code)}
-                      </p>
-                    )}
-                  </li>
-                ))}
-              </ol>
-            </aside>
-          </div>
-        )
-      )}
-    </div>
-  );
-}
-function ActionForm({
-  action,
-  current,
-  ops,
-  evidence,
-  busy,
-  error,
-  run,
-}: {
-  action: string;
-  current: Case;
-  ops: Operations;
-  evidence: Evidence[];
-  busy: boolean;
-  error: string;
-  run: (body: unknown) => void;
-}) {
-  const [confirmationBody, setConfirmationBody] = useState<unknown>(null);
-  const [outcome, setOutcome] = useState<"ACCEPT" | "DISPUTE">("ACCEPT");
-  const [decision, setDecision] = useState<"RETAIN" | "REASSIGN">("RETAIN");
-  function submit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    let body: unknown;
-    if (action === "validate")
-      body = {
-        category: current.category,
-        ward: current.ward,
-        department: current.department,
-        jurisdiction: ops.policy.municipality,
-      };
-    else if (action === "assign")
-      body = {
-        officer_id: data.get("officer"),
-        department: current.department,
-        reason: data.get("reason"),
-      };
-    else if (action === "reject")
-      body = {
-        reason_code: data.get("reason_code"),
-        explanation: data.get("explanation"),
-      };
-    else if (action === "deadline-extension")
-      body = {
-        new_deadline: new Date(String(data.get("new_deadline"))).toISOString(),
-        reason: data.get("reason"),
-      };
-    else if (action === "accept-assignment") body = { confirmation: true };
-    else if (action === "verification")
-      body = {
-        outcome,
-        confirmation: true,
-        statement: outcome === "DISPUTE" ? data.get("statement") : null,
-      };
-    else if (action === "review")
-      body = {
-        decision,
-        officer_id:
-          decision === "RETAIN" ? current.owner_id : data.get("officer"),
-        reason: data.get("reason"),
-      };
-    else
-      body = { note: data.get("note"), evidence_refs: data.getAll("evidence") };
-    if (
-      ["reject", "deadline-extension"].includes(action) ||
-      (action === "verification" && outcome === "ACCEPT")
-    )
-      setConfirmationBody(body);
-    else run(body);
-  }
-  return (
-    <form
-      className="mt-5 space-y-4 rounded-lg bg-slate-50 p-4"
-      onSubmit={submit}
-    >
-      {action === "deadline-extension" && (
-        <>
-          <p className="text-sm">
-            Current deadline: {date(current.current_deadline, current.timezone)}{" "}
-            ({current.timezone}).
-          </p>
-          <Field
-            label={`New deadline (device timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone})`}
-          >
-            <input name="new_deadline" type="datetime-local" required />
-          </Field>
-          <Field label="Extension reason">
-            <textarea name="reason" required maxLength={2000} />
-          </Field>
-        </>
-      )}
-      {action === "validate" && (
-        <>
-          <p className="text-sm">
-            Validate this case for {ops.policy.municipality}, {current.ward},{" "}
-            {human(current.category)} and {human(current.department)}.
-          </p>
-          <label className="flex items-start gap-2">
-            <input type="checkbox" required className="mt-1" />I reviewed the
-            jurisdiction, location, category and routing.
-          </label>
-        </>
-      )}
-      {action === "assign" && (
-        <>
-          <Field label="Responsible officer">
-            <select name="officer" required defaultValue="">
-              <option value="" disabled>
-                Select an eligible officer
-              </option>
-              {ops.officers.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.name}
-                </option>
-              ))}
-            </select>
-          </Field>
-          {ops.officers.length === 0 && (
-            <p className="text-sm text-slate-500">
-              An administrator must provision an officer for this ward and
-              department.
-            </p>
-          )}
-          <Field label="Assignment reason">
-            <textarea name="reason" required maxLength={2000} />
-          </Field>
-        </>
-      )}
-      {action === "reject" && (
-        <>
-          <Field label="Rejection reason">
-            <select name="reason_code">
-              {ops.policy.rejection_reason_codes.map((r) => (
-                <option key={r} value={r}>
-                  {human(r)}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Explanation">
-            <textarea name="explanation" required maxLength={2000} />
-          </Field>
-        </>
-      )}
-      {action === "accept-assignment" && (
-        <label className="flex items-start gap-2">
-          <input type="checkbox" required className="mt-1" />I accept ownership
-          of this assignment.
-        </label>
-      )}
-      {action === "resolution" && (
-        <>
-          <Field label="Work completed">
-            <textarea name="note" required maxLength={5000} rows={3} />
-          </Field>
-          <fieldset className="space-y-2">
-            <legend className="mb-2 text-sm font-medium">
-              Completed evidence
-            </legend>
-            {evidence.map((file) => (
-              <label key={file.id} className="flex gap-2">
-                <input type="checkbox" name="evidence" value={file.id} />{" "}
-                {human(file.kind)} · {file.sha256.slice(0, 12)}
-              </label>
-            ))}
-            {evidence.length === 0 && (
-              <p className="text-sm text-slate-500">
-                Upload the required photo before submitting a resolution.
-              </p>
-            )}
-          </fieldset>
-        </>
-      )}
-      {action === "verification" && (
-        <>
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-medium">
-              Your response to the submitted resolution
-            </legend>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="outcome"
-                checked={outcome === "ACCEPT"}
-                onChange={() => setOutcome("ACCEPT")}
-              />
-              Accept the resolution and close the case
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="outcome"
-                checked={outcome === "DISPUTE"}
-                onChange={() => setOutcome("DISPUTE")}
-              />
-              Dispute the resolution and request supervised rework
-            </label>
-          </fieldset>
-          {outcome === "DISPUTE" && (
-            <Field label="What still needs to be fixed?">
-              <textarea name="statement" required maxLength={2000} rows={3} />
-            </Field>
-          )}
-          <label className="flex items-start gap-2 text-sm">
-            <input type="checkbox" required className="mt-1" />I reviewed the
-            resolution and confirm this response.
-          </label>
-        </>
-      )}
-      {action === "review" && (
-        <>
-          <fieldset className="space-y-2">
-            <legend className="text-sm font-medium">Rework assignment</legend>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="decision"
-                checked={decision === "RETAIN"}
-                onChange={() => setDecision("RETAIN")}
-              />
-              Retain current officer
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="radio"
-                name="decision"
-                checked={decision === "REASSIGN"}
-                onChange={() => setDecision("REASSIGN")}
-              />
-              Assign another officer
-            </label>
-          </fieldset>
-          {decision === "REASSIGN" && (
-            <Field label="Rework officer">
-              <select name="officer" required defaultValue="">
-                <option value="" disabled>
-                  Select an eligible officer
-                </option>
-                {ops.officers
-                  .filter((o) => o.id !== current.owner_id)
-                  .map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.name}
-                    </option>
-                  ))}
-              </select>
-            </Field>
-          )}
-          <Field label="Supervisor review reason">
-            <textarea name="reason" required maxLength={2000} rows={3} />
-          </Field>
-        </>
-      )}
-      <ErrorText message={error} />
-      <button
-        disabled={
-          busy ||
-          (action === "resolution" && evidence.length === 0) ||
-          (action === "assign" && ops.officers.length === 0) ||
-          (action === "review" &&
-            decision === "REASSIGN" &&
-            ops.officers.filter((o) => o.id !== current.owner_id).length === 0)
-        }
-        className={button}
-      >
-        {busy
-          ? "Saving…"
-          : action === "resolution"
-            ? "Submit resolution"
-            : action === "verification"
-              ? outcome === "ACCEPT"
-                ? "Accept resolution"
-                : "Submit dispute"
-              : action === "review"
-                ? "Send for rework"
-                : `Confirm ${human(action)}`}
-      </button>
-      <AlertDialog.Root
-        open={confirmationBody !== null}
-        onOpenChange={(open) => {
-          if (!open) setConfirmationBody(null);
-        }}
-      >
-        <AlertDialog.Portal>
-          <AlertDialog.Overlay className="fixed inset-0 z-40 bg-black/40" />
-          <AlertDialog.Content className="fixed inset-x-5 top-1/3 z-50 mx-auto max-w-md rounded-xl bg-white p-6 shadow-xl">
-            <AlertDialog.Title className="text-lg font-semibold">
-              {action === "reject"
-                ? "Reject this grievance?"
-                : action === "verification"
-                  ? "Accept this resolution and close the case?"
-                  : "Extend this deadline?"}
-            </AlertDialog.Title>
-            <AlertDialog.Description className="mt-2 text-sm text-slate-600">
-              {action === "reject"
-                ? "Rejection ends this case. The selected reason and explanation will be recorded in its audit history."
-                : action === "verification"
-                  ? "Your explicit acceptance closes the case. This action is recorded in the case history."
-                  : "The new deadline and reason will be recorded and the citizen notified. Prior breaches and the original deadline remain in the case history."}
-            </AlertDialog.Description>
-            <div className="mt-5 flex justify-end gap-3">
-              <AlertDialog.Cancel className={secondary}>
-                {action === "reject"
-                  ? "Keep case open"
-                  : action === "verification"
-                    ? "Keep reviewing"
-                    : "Keep current deadline"}
-              </AlertDialog.Cancel>
-              <AlertDialog.Action
-                className={button}
-                onClick={() => {
-                  run(confirmationBody);
-                  setConfirmationBody(null);
-                }}
-              >
-                {action === "reject"
-                  ? "Confirm rejection"
-                  : action === "verification"
-                    ? "Accept and close case"
-                    : "Confirm extension"}
-              </AlertDialog.Action>
-            </div>
-          </AlertDialog.Content>
-        </AlertDialog.Portal>
-      </AlertDialog.Root>
-    </form>
-  );
-}
-function Upload({
-  token,
-  item,
-  ops,
-  done,
-}: {
-  token: string;
-  item: Case;
-  ops: Operations;
-  done: () => void;
-}) {
-  const [busy, setBusy] = useState(false),
-    [error, setError] = useState("");
-  const attempt = useRef<{ digest: string; key: string } | null>(null);
-  const kinds =
-    ops.policy.categories.find((c) => c.code === item.category)
-      ?.resolution_evidence || [];
-  async function upload(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    const file = data.get("file") as File;
-    setBusy(true);
-    setError("");
-    try {
-      if (!file.size || file.size > ops.evidence_max_bytes)
-        throw new Error(
-          `Choose a photo under ${ops.evidence_max_bytes / 1024 / 1024} MB.`,
-        );
-      const bytes = await file.arrayBuffer();
-      const checksum = Array.from(
-        new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)),
-      )
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-      const kind = String(data.get("kind"));
-      const digest = JSON.stringify([
-        item.id,
-        item.version,
-        checksum,
-        kind,
-        file.type,
-      ]);
-      if (attempt.current?.digest !== digest)
-        attempt.current = { digest, key: crypto.randomUUID() };
-      await api(
-        token,
-        `/cases/${item.id}/evidence?kind=${encodeURIComponent(kind)}`,
-        {
-          method: "POST",
-          body: file,
-          headers: {
-            "Content-Type": file.type,
-            "X-Content-SHA256": checksum,
-            "Idempotency-Key": attempt.current.key,
-            "If-Match": `"${item.version}"`,
-          },
-        },
-      );
-      attempt.current = null;
-      form.reset();
-      done();
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <form
-      onSubmit={upload}
-      className="mt-4 space-y-3 rounded-lg bg-slate-50 p-4"
-    >
-      <Field label="Evidence kind">
-        <select name="kind">
-          {kinds.map((kind) => (
-            <option key={kind} value={kind}>
-              {human(kind)}
-            </option>
-          ))}
-        </select>
-      </Field>
-      <Field label="Resolution photo">
-        <input
-          name="file"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          required
+          expired={expired}
         />
-      </Field>
-      <p className="text-xs text-slate-500">
-        PNG, JPEG or WebP · Up to {ops.evidence_max_bytes / 1024 / 1024} MB ·
-        Remove sensitive location metadata before uploading.
-      </p>
-      <ErrorText message={error} />
-      <button className={secondary} disabled={busy}>
-        {busy ? "Verifying upload…" : "Upload photo"}
-      </button>
-    </form>
-  );
-}
-function Download({
-  token,
-  caseId,
-  file,
-}: {
-  token: string;
-  caseId: string;
-  file: Evidence;
-}) {
-  const [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
-  async function download() {
-    setBusy(true);
-    setError("");
-    try {
-      const response = await fetch(`/v1/cases/${caseId}/evidence/${file.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!response.ok) {
-        const body = await response.json();
-        throw new Error(body.error?.message || "Download failed.");
-      }
-      const url = URL.createObjectURL(await response.blob());
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${file.kind.toLowerCase()}.${file.content_type === "image/jpeg" ? "jpg" : file.content_type.split("/")[1]}`;
-      link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <div>
-      <button className={secondary} onClick={download} disabled={busy}>
-        Download photo
-      </button>
-      <ErrorText message={error} />
+      )}
+
+      {/* Report New Grievance Modal */}
+      {showNewGrievance && policy && (
+        <NewGrievanceModal
+          policy={policy}
+          onClose={() => setShowNewGrievance(false)}
+          onSubmit={handleNewGrievanceSubmit}
+          busy={busy}
+        />
+      )}
     </div>
   );
 }
+
 createRoot(document.getElementById("root")!).render(<App />);

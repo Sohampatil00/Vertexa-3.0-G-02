@@ -1,0 +1,729 @@
+<!DOCTYPE html><html lang="en" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container-high": "#dce9ff", "surface-container-lowest": "#ffffff", "on-secondary-fixed-variant": "#3f465c", "on-secondary-fixed": "#131b2e", "error": "#ba1a1a", "on-tertiary-fixed": "#0d1c2e", "surface-variant": "#d3e4fe", "tertiary": "#374559", "on-error": "#ffffff", "on-secondary": "#ffffff", "secondary-fixed-dim": "#bec6e0", "background": "#f8f9ff", "error-container": "#ffdad6", "surface-container-highest": "#d3e4fe", "on-primary-container": "#cad3ff", "inverse-on-surface": "#eaf1ff", "on-surface-variant": "#434655", "secondary-fixed": "#dae2fd", "on-tertiary-fixed-variant": "#3a485b", "on-surface": "#0b1c30", "primary-fixed-dim": "#b7c4ff", "inverse-primary": "#b7c4ff", "on-tertiary-container": "#c7d6ee", "on-primary": "#ffffff", "tertiary-fixed-dim": "#b9c7df", "surface-tint": "#2151da", "secondary": "#565e74", "on-error-container": "#93000a", "on-background": "#0b1c30", "on-tertiary": "#ffffff", "on-primary-fixed": "#001551", "primary": "#0037b0", "surface-container-low": "#eff4ff", "on-secondary-container": "#5c647a", "surface-dim": "#cbdbf5", "outline-variant": "#c4c5d7", "primary-fixed": "#dce1ff", "primary-container": "#1d4ed8", "secondary-container": "#dae2fd", "on-primary-fixed-variant": "#0039b5", "tertiary-fixed": "#d5e3fc", "outline": "#747686", "surface": "#f8f9ff", "surface-bright": "#f8f9ff", "tertiary-container": "#4f5d71", "surface-container": "#e5eeff", "inverse-surface": "#213145" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-md": "0.75rem", "gutter-lg": "1.5rem", "margin-md": "1.5rem", "space-xs": "0.25rem", "margin-lg": "2rem", "margin": "1rem", "gutter": "1rem", "space-xl": "1.5rem", "space-sm": "0.5rem", "space-lg": "1rem" }, "fontFamily": { "label-md": ["Public Sans"], "body-lg": ["Public Sans"], "label-sm": ["Public Sans"], "headline-xl-mobile": ["Public Sans"], "code-id": ["JetBrains Mono"], "headline-lg": ["Public Sans"], "headline-sm": ["Public Sans"], "body-sm": ["Public Sans"], "body-md": ["Public Sans"], "code-timer": ["JetBrains Mono"], "headline-xl": ["Public Sans"], "headline-md": ["Public Sans"] }, "fontSize": { "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "600"}], "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}], "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500"}], "headline-xl-mobile": ["26px", {"lineHeight": "34px", "letterSpacing": "-0.015em", "fontWeight": "700"}], "code-id": ["13px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}], "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600"}], "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}], "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}], "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}], "code-timer": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}], "headline-xl": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}], "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}] } } } }</script></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex items-center justify-between px-margin-lg"><div class="flex items-center gap-space-lg"><img alt="GovFix Municipal Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFhZmnRG6eehBTTjLFI5P9k3myffnpqaqP9_Xubb4DELsgyE78M5khYZZvbA1RFHcsKbUBF3xtE6PWwZ8xgfHURTeja019KLOUVT39Ht8y1XqtrLszrnGDivDpRqcMf6-PsAORD_WTna5dv_ly-52BmAocRzAioaR9IJbcM6kd92962o4C_NhiWbz3zwm2e7F0CAzNSzJfzq3SevANJMIZX9Q3-DgAO9Z9yVSRh6QhSZMTh99SbJCW"><div class="flex flex-col"><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">Fictional Demo Municipality</span><span class="px-space-sm py-0.5 rounded-lg bg-surface-container text-on-surface-variant font-code-timer text-code-timer tracking-wide uppercase">Demo policy</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">GovFix Central Grievance Dispatch &amp; Public SLA Engine</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-md py-1 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-primary" style="background-color: rgb(247, 127, 0);"></span><span class="">Ward A &amp; B • Operations</span></div><button class="relative p-space-sm text-on-surface-variant hover:text-on-surface rounded-lg transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span></button><div class="flex items-center gap-space-sm pl-space-sm"><div class="text-right hidden sm:block"><div class="font-label-md text-label-md text-on-surface leading-tight">Elena Rostova</div><div class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Lead Dispatcher (Lvl II)</div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center" style="background-color: rgb(247, 127, 0);"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface-container-low flex flex-col z-40 overflow-y-auto"><div class="p-space-lg"><div class="px-space-md py-space-sm rounded-lg bg-surface-container mb-space-sm"><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Role Switch Sandbox</span><div class="flex items-center justify-between mt-space-xs"><span class="font-label-md text-label-md text-primary font-medium">Dispatcher Mode</span><span class="material-symbols-outlined text-[16px] text-primary">swap_horiz</span></div></div></div><nav class="flex-1 px-space-md flex flex-col gap-1" data-active-classes="bg-primary-container text-on-primary font-label-md text-label-md rounded-lg"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="citizen-overview" href="#"><span class="material-symbols-outlined text-[20px]">analytics</span>Citizen Overview</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="intake-queue" href="#"><span class="material-symbols-outlined text-[20px]">inbox</span>Intake Queue</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="dispatcher" href="#"><span class="material-symbols-outlined text-[20px]">alt_route</span>Dispatcher</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="field-officer" href="#"><span class="material-symbols-outlined text-[20px]">engineering</span>Field Officer</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="supervisor-queue" href="#"><span class="material-symbols-outlined text-[20px]">verified</span>Supervisor Queue</a><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm transition-colors bg-primary-container text-on-primary font-label-md text-label-md rounded-lg" data-path="ward-head-oversight" href="#" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);"><span class="material-symbols-outlined text-[20px]">account_balance</span>Ward Head Oversight</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="auditor-portal" href="#"><span class="material-symbols-outlined text-[20px]">policy</span>Auditor Portal</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="notifications" href="#"><span class="material-symbols-outlined text-[20px]">notifications_active</span>Notifications</a></nav><div class="p-space-lg"><div class="p-space-md rounded-lg bg-surface-container flex flex-col gap-space-xs"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-primary" style="background-color: rgb(247, 127, 0);"></span><span class="font-label-sm text-label-sm text-on-surface font-semibold uppercase">Node Active</span></div><span class="font-code-id text-code-id text-on-surface-variant">SLA-SYS-NODE-04</span></div></div></aside><div class="pl-64"><main class="w-full pt-16 bg-background min-h-screen px-gutter-lg pb-margin-lg"><div class="flex flex-col w-full">
+<div class="flex flex-col gap-space-lg mb-margin-lg">
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="px-space-sm py-0.5 rounded-lg bg-surface-container-high text-primary font-code-timer text-code-timer tracking-wide uppercase font-semibold" style="color: rgb(247, 127, 0);">Demo policy v2.4</span>
+<span class="px-space-sm py-0.5 rounded-lg bg-tertiary text-on-tertiary font-label-sm text-label-sm tracking-wide">Read-Only Oversight</span>
+<span class="px-space-sm py-0.5 rounded-lg bg-surface-container-highest text-on-surface-variant font-code-timer text-code-timer">SHA-256: 9e8a..4f02</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Executive Governance &amp; Ward Oversight — Ward A &amp; B</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Administrative command console for Dr. Neeta Deshmukh (Ward Executive Oversight) with live cryptographic auditor verification rail.</p>
+</div>
+<div class="flex items-center gap-space-sm self-start lg:self-auto">
+<button class="flex items-center gap-space-xs px-space-md py-space-sm bg-surface-container-lowest text-on-surface hover:bg-surface-container shadow-sm rounded-lg font-label-md text-label-md transition-all" id="togglePolicyDrawerBtn">
+<span class="material-symbols-outlined text-[18px] text-primary">policy</span>
+          Charter v2.4 Spec
+        </button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm bg-primary text-on-primary hover:bg-primary-container shadow-sm rounded-lg font-label-md text-label-md transition-all" id="exportAuditLedgerBtn" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+          Export Audit Digest
+        </button>
+</div>
+</div>
+<!-- Metric Bento Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- Total Cases -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Active Ward Scope</span>
+<div class="font-headline-xl text-headline-xl text-on-surface mt-space-xs font-bold">42</div>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-primary" style="color: rgb(247, 127, 0);">
+<span class="material-symbols-outlined text-[22px]">account_tree</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-xs flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span class="">Ward A: 26</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="">Ward B: 16</span>
+<span class="w-1 h-1 rounded-full bg-outline-variant"></span>
+<span class="text-primary font-semibold" style="color: rgb(247, 127, 0);">93% On-Track</span>
+</div>
+<div class="w-full bg-surface-container h-1 mt-space-sm rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[93%]" style="background-color: rgb(247, 127, 0);"></div>
+</div>
+</div>
+<!-- SLA Level 1 -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Level 1 Alerts (@100% SLA)</span>
+<div class="font-headline-xl text-headline-xl text-tertiary mt-space-xs font-bold">02</div>
+</div>
+<div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[22px]">supervisor_account</span>
+</div>
+</div>
+<div class="mt-space-md flex items-center gap-space-xs">
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-tertiary font-code-timer text-code-timer font-semibold">SUPV ACTION ACTIVE</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ward A (1), Ward B (1)</span>
+</div>
+<div class="w-full bg-surface-container h-1 mt-space-sm rounded-full overflow-hidden">
+<div class="bg-tertiary-container h-full w-[24%]"></div>
+</div>
+</div>
+<!-- SLA Level 2 Critical -->
+<div class="p-space-lg rounded-xl bg-error-container/40 shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-error font-semibold uppercase tracking-wider block">Level 2 Escalation (@150%)</span>
+<div class="font-headline-xl text-headline-xl text-error mt-space-xs font-bold">01</div>
+</div>
+<div class="w-10 h-10 rounded-xl bg-error text-on-error flex items-center justify-center animate-pulse">
+<span class="material-symbols-outlined text-[22px]">gavel</span>
+</div>
+</div>
+<div class="mt-space-md flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-error font-semibold">Case GF-DEMO-1031</span>
+<span class="font-code-timer text-error font-semibold">+14h Overdue</span>
+</div>
+<div class="w-full bg-error-container h-1 mt-space-sm rounded-full overflow-hidden">
+<div class="bg-error h-full w-full"></div>
+</div>
+</div>
+<!-- Citizen Sign-off Rate -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Citizen Sign-Off Rate</span>
+<div class="font-headline-xl text-headline-xl text-primary mt-space-xs font-bold">89.4%</div>
+</div>
+<div class="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[22px]">verified</span>
+</div>
+</div>
+<div class="mt-space-md flex items-center justify-between text-on-surface-variant font-body-sm text-body-sm">
+<span class="">Threshold Target: 85.0%</span>
+<span class="text-primary font-semibold font-code-timer text-code-timer">+4.4% Delta</span>
+</div>
+<div class="w-full bg-surface-container h-1 mt-space-sm rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[89.4%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Primary Split Architecture: Escalated Action + Auditor Live Feed -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg mb-margin-lg">
+<!-- Left Column: Critical Escalation Case Focus (7 Cols) -->
+<div class="xl:col-span-7 flex flex-col gap-space-lg">
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col">
+<div class="flex items-center justify-between mb-space-md pb-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="w-3 h-3 rounded-full bg-error animate-ping"></span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Administrative Breach Attention</h2>
+</div>
+<span class="px-space-sm py-1 rounded bg-error-container text-on-error-container font-code-timer text-code-timer font-bold uppercase">
+            WARD HEAD DIRECTIVE
+          </span>
+</div>
+<!-- Case Highlight Card -->
+<div class="bg-surface-container-low rounded-xl p-space-lg mb-space-md flex flex-col gap-space-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-id text-code-id bg-surface-container-highest text-on-surface px-space-sm py-1 rounded font-semibold">GF-DEMO-1031</span>
+<span class="px-space-sm py-0.5 rounded-lg bg-surface-container text-on-surface-variant font-label-sm text-label-sm">Ward A • Water Supply &amp; Drainage</span>
+</div>
+<div class="flex items-center gap-space-xs font-code-timer text-code-timer text-error font-semibold">
+<span class="material-symbols-outlined text-[16px]">alarm</span>
+              62h Elapsed / 48h SLA (+14h Over)
+            </div>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mb-space-xs">Major Water Main Rupture — 4th Cross Road, Sector 3</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">High-pressure trunk line fracture causing localized road foundation washaway. 1,400 residences impacted by low-pressure supply. Previous deadline extension granted by Supervisor Shinde expired at 14:00 IST.</p>
+</div>
+<!-- Micro Visual: Incident Scene -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
+<div class="sm:col-span-2 relative h-36 rounded-lg overflow-hidden bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A municipal road maintenance crew with heavy hydraulic shoring and submersible drainage pumps repairing an excavated asphalt trench overflowing with water under daylight in an Indian municipal ward, high detailed documentary style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuChjkeEWi4oSPxswoqR00JOh3_xxaLGsfN8fTwFsUiAA6J64pNN9qoFoRaOUYn6vAJmIpnjh9lJ026ZIrbAEfftYYrugtLMsn7Uo0abX5Td9aqqDwC6lILM3szRGVtBM-HFQwgRKDT8hFuwxDvIFrndhME39hcgDZDGekksJqXoDyLJaf31OBHW4JIAHOcR590-jc5qJfSfFyuaCyQKacARc0bfLmAEpIUieK5zn1tjk6OGINunYvaf">
+<div class="absolute bottom-2 left-2 px-space-xs py-0.5 rounded bg-surface/90 text-on-surface font-label-sm text-label-sm backdrop-blur">
+                Field Dispatch Unit: Crew-7 (W-A)
+              </div>
+</div>
+<div class="flex flex-col justify-between bg-surface-container-lowest p-space-md rounded-lg">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-medium">Extension Audit</span>
+<div class="font-label-md text-label-md text-on-surface mt-space-xs font-semibold">1 Extension Logged</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-space-xs">Supv. R. Shinde added +8h citing municipal backhoe delay.</p>
+<div class="mt-space-sm pt-space-xs flex items-center gap-space-xs text-tertiary font-code-timer text-code-timer">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+                Log #EXT-4091
+              </div>
+</div>
+</div>
+<!-- Timeline Graph SLA Progression -->
+<div class="flex flex-col gap-space-xs bg-surface-container-lowest p-space-md rounded-lg">
+<div class="flex justify-between items-center text-label-sm font-label-sm text-on-surface-variant">
+<span class="">SLA Baseline (48h)</span>
+<span class="">Supervisor Extension (+8h)</span>
+<span class="text-error font-semibold">Ward Head Escalation 150% (72h)</span>
+</div>
+<div class="w-full h-3 bg-surface-container rounded-full overflow-hidden flex">
+<div class="bg-primary h-full" style="width: 60%; background-color: rgb(247, 127, 0);" title="Standard SLA (0-48h)"></div>
+<div class="bg-tertiary-container h-full" style="width: 15%" title="Extension (48-56h)"></div>
+<div class="bg-error h-full" style="width: 12%" title="Elapsed Overdue (56-62h)"></div>
+<div class="bg-surface-container-high h-full" style="width: 13%" title="Remaining to Hard Esc-2"></div>
+</div>
+<div class="flex justify-between text-code-timer font-code-timer text-on-surface-variant">
+<span class="">T+0h</span>
+<span class="">T+48h</span>
+<span class="">T+56h (Ext Expiry)</span>
+<span class="text-error font-bold">Now: T+62h</span>
+</div>
+</div>
+<!-- Non-destructive Executive Actions (Read-Only Operational Scope) -->
+<div class="flex flex-col gap-space-sm bg-surface-container-lowest p-space-md rounded-lg">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wide">Inter-Departmental Executive Push</span>
+<span class="font-label-sm text-label-sm text-tertiary">Operational commands remain with Field Supervisor</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
+<button class="px-space-md py-space-sm bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded-lg transition-colors flex items-center justify-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px]">priority_high</span>
+                Expedite Pumps
+              </button>
+<button class="px-space-md py-space-sm bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded-lg transition-colors flex items-center justify-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px]">traffic</span>
+                Request Traffic Halt
+              </button>
+<button class="px-space-md py-space-sm bg-primary text-on-primary hover:bg-primary-container font-label-md text-label-md rounded-lg transition-colors flex items-center justify-center gap-space-xs" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);">
+<span class="material-symbols-outlined text-[16px]">record_voice_over</span>
+                Summon Supv. Shinde
+              </button>
+</div>
+</div>
+</div>
+<!-- Secondary Cases under Level 1 Supervision -->
+<div class="flex flex-col gap-space-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Active Level 1 Escalations (Supervisor Queue Focus)</span>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-sm">
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-code-id text-code-id text-on-surface font-semibold">GF-DEMO-1044</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-tertiary font-code-timer text-code-timer">100% SLA</span>
+</div>
+<div class="font-body-md text-body-md text-on-surface font-medium mt-space-xs">Solid Waste Compactor Breakdown</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-1">Ward B • Solid Waste Dept • 48h / 48h limit reached. Secondary truck rerouted.</div>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-low flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-code-id text-code-id text-on-surface font-semibold">GF-DEMO-1049</span>
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-tertiary font-code-timer text-code-timer">104% SLA</span>
+</div>
+<div class="font-body-md text-body-md text-on-surface font-medium mt-space-xs">Streetlight Circuit Overload (Pole 44-52)</div>
+<div class="font-body-sm text-body-sm text-on-surface-variant mt-1">Ward A • Electrical Infrastructure • Parts awaiting depot sign-off.</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Auditor Portal & Verification Pipeline (5 Cols) -->
+<div class="xl:col-span-5 flex flex-col gap-space-lg">
+<!-- Cryptographic Integrity Panel -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col">
+<div class="flex items-center justify-between mb-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[22px]">policy</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Auditor Proof Rail</h2>
+</div>
+<span class="px-space-sm py-0.5 rounded-full bg-surface-container-high text-primary font-code-timer text-code-timer font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+            CHAIN VALID
+          </span>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-low mb-space-md flex flex-col gap-space-xs">
+<div class="flex justify-between items-center font-label-sm text-label-sm text-on-surface-variant">
+<span class="">Root State Tree (Epoch #419)</span>
+<span class="font-code-timer text-code-timer text-primary">Live Sync</span>
+</div>
+<div class="font-code-id text-code-id text-on-surface break-all bg-surface-container-lowest p-space-sm rounded" style="color: rgb(119, 121, 124); border: 1px solid rgb(217, 205, 186);">
+            merkle-root: 0x9f7b6291a10c812d33458b02e77ccaa841029e92
+          </div>
+<div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant pt-space-xs">
+<span class="">Signed by: Municipal Hardware HSM</span>
+<span class="font-code-timer text-code-timer">13:42:09 IST</span>
+</div>
+</div>
+<!-- Mini Visual Chart: SLA Compliance Distribution -->
+<div class="bg-surface-container-low rounded-lg p-space-md mb-space-md">
+<div class="flex justify-between items-center mb-space-sm">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold uppercase">Ward Compliance Matrix</span>
+<span class="font-code-timer text-code-timer text-on-surface-variant">42 Active</span>
+</div>
+<div class="flex items-center gap-space-md">
+<!-- Inline SVG Pie/Donut Chart -->
+<div class="w-24 h-24 relative flex-shrink-0">
+<svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
+<circle class="text-surface-container" cx="18" cy="18" fill="transparent" r="15.915" stroke="currentColor" stroke-width="3"></circle>
+<!-- Green: Normal 85% -->
+<circle class="text-primary" cx="18" cy="18" fill="transparent" r="15.915" stroke="currentColor" stroke-dasharray="85 15" stroke-dashoffset="0" stroke-width="3.5" style="stroke: rgb(247, 127, 0);"></circle>
+<!-- Amber: Esc-1 10% -->
+<circle class="text-tertiary" cx="18" cy="18" fill="transparent" r="15.915" stroke="currentColor" stroke-dasharray="10 90" stroke-dashoffset="-85" stroke-width="3.5"></circle>
+<!-- Red: Esc-2 5% -->
+<circle class="text-error" cx="18" cy="18" fill="transparent" r="15.915" stroke="currentColor" stroke-dasharray="5 95" stroke-dashoffset="-95" stroke-width="3.5"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">95%</span>
+</div>
+</div>
+<div class="flex flex-col gap-1 text-label-sm font-label-sm flex-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-sm bg-primary" style="background-color: rgb(247, 127, 0);"></span>
+<span class="text-on-surface">Within SLA Limit</span>
+</div>
+<span class="font-code-timer text-code-timer font-semibold">39 Cases</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-sm bg-tertiary"></span>
+<span class="text-on-surface">Escalation Level 1</span>
+</div>
+<span class="font-code-timer text-code-timer font-semibold">2 Cases</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-sm bg-error"></span>
+<span class="text-on-surface">Escalation Level 2</span>
+</div>
+<span class="font-code-timer text-code-timer font-semibold">1 Case</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Verification Pipeline Status -->
+<div class="flex flex-col gap-space-xs">
+<div class="font-label-md text-label-md text-on-surface font-semibold mb-space-xs">Auditor Verification Directives</div>
+<div class="flex items-start gap-space-sm p-space-sm rounded bg-surface-container-low">
+<span class="material-symbols-outlined text-[18px] text-primary mt-0.5">verified</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Citizen Consent Guard Active</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Cases cannot be marked resolved without OTP token or photo geofence verification.</p>
+</div>
+</div>
+<div class="flex items-start gap-space-sm p-space-sm rounded bg-surface-container-low">
+<span class="material-symbols-outlined text-[18px] text-tertiary mt-0.5">lock_clock</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Supervisor Extension Ceiling</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Maximum 1 extension permissible (capped at 25% original SLA) before hard breach.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Full-Width Section: Immutable Audit Log & Governance Timeline -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm mb-margin-lg flex flex-col">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md mb-space-lg">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[24px]">receipt_long</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Immutable Audit Log &amp; Governance Timeline</h2>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">Cryptographically chained state changes across dispatch, field execution, and supervisory overrides.</p>
+</div>
+<!-- Table Filter Tools -->
+<div class="flex items-center gap-space-sm flex-wrap">
+<div class="relative">
+<input class="h-9 px-space-md pl-9 rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20" id="auditSearchInput" placeholder="Filter by Case ID or Actor..." type="text">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-[18px] text-on-surface-variant">search</span>
+</div>
+<select class="h-9 px-space-md rounded-lg bg-surface-container-low text-on-surface font-body-sm text-body-sm focus:outline-none" id="eventFilterSelect">
+<option value="ALL">All Event Types</option>
+<option value="DEADLINE_EXTENDED">DEADLINE_EXTENDED</option>
+<option value="ASSIGNMENT_ACCEPTED">ASSIGNMENT_ACCEPTED</option>
+<option value="RESOLUTION_SUBMITTED">RESOLUTION_SUBMITTED</option>
+<option value="DISPUTE_FILED">DISPUTE_FILED</option>
+<option value="RETRY_DISPATCHED">RETRY_DISPATCHED</option>
+</select>
+</div>
+</div>
+<!-- Data Grid Table -->
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left font-body-sm text-body-sm" id="auditLogTable">
+<thead style="color: rgb(119, 121, 124); border-bottom: 1px solid rgb(217, 205, 186);">
+<tr class="bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-space-sm px-space-md">Timestamp (IST)</th>
+<th class="py-space-sm px-space-md">Case ID</th>
+<th class="py-space-sm px-space-md">Actor</th>
+<th class="py-space-sm px-space-md">Role</th>
+<th class="py-space-sm px-space-md">Event Kind</th>
+<th class="py-space-sm px-space-md">Policy Rule Checksum</th>
+<th class="py-space-sm px-space-md text-right">Verification</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container" style="border-color: rgb(217, 205, 186);">
+<!-- Row 1: DEADLINE_EXTENDED -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group cursor-pointer" onclick="togglePayload('payload-1')">
+<td class="py-space-md px-space-md font-code-timer text-code-timer text-on-surface-variant whitespace-nowrap">2025-05-18 10:14:02</td>
+<td class="py-space-md px-space-md font-code-id text-code-id font-semibold text-primary">GF-DEMO-1031</td>
+<td class="py-space-md px-space-md text-on-surface font-medium">Rajiv Shinde</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">SUPERVISOR</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-sm py-0.5 rounded bg-surface-container-high text-tertiary font-code-timer text-code-timer font-semibold">DEADLINE_EXTENDED</span>
+</td>
+<td class="py-space-md px-space-md font-code-timer text-code-timer text-on-surface-variant">POL-SLA-EXT-V2#7c12</td>
+<td class="py-space-md px-space-md text-right">
+<span class="inline-flex items-center gap-1 text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+                Verified
+              </span>
+</td>
+</tr>
+<!-- Row 1 Payload Expander -->
+<tr class="hidden bg-surface-container-low/40" id="payload-1">
+<td class="p-space-md" colspan="7">
+<div class="bg-surface-container-lowest p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant">
+<span class="font-semibold uppercase text-primary">Payload Inspection: Hash e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</span>
+<span class="font-code-timer text-code-timer">Signer Public Key: 0x48f2...b13a</span>
+</div>
+<div class="font-code-id text-code-id bg-surface-container-low p-space-sm rounded text-on-surface">
+                  { "case_id": "GF-DEMO-1031", "original_sla_limit": "2025-05-18T06:00:00Z", "extended_to": "2025-05-18T14:00:00Z", "extension_hours": 8, "reason": "Awaiting hydro-excavator unit from Central Fleet depot", "authorized_by": "supv_rajiv_shinde_wA", "previous_extensions": 0 }
+                </div>
+</div>
+</td>
+</tr>
+<!-- Row 2: DISPUTE_FILED -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group cursor-pointer" onclick="togglePayload('payload-2')">
+<td class="py-space-md px-space-md font-code-timer text-code-timer text-on-surface-variant whitespace-nowrap">2025-05-18 09:41:20</td>
+<td class="py-space-md px-space-md font-code-id text-code-id font-semibold text-primary">GF-DEMO-1028</td>
+<td class="py-space-md px-space-md text-on-surface font-medium">Aarti Kulkarni</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-surface-container-high text-primary font-label-sm text-label-sm">CITIZEN</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-sm py-0.5 rounded bg-error-container text-on-error-container font-code-timer text-code-timer font-semibold">DISPUTE_FILED</span>
+</td>
+<td class="py-space-md px-space-md font-code-timer text-code-timer text-on-surface-variant">POL-CIT-REJ-V1#a889</td>
+<td class="py-space-md px-space-md text-right">
+<span class="inline-flex items-center gap-1 text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+                Verified
+              </span>
+</td>
+</tr>
+<tr class="hidden bg-surface-container-low/40" id="payload-2">
+<td class="p-space-md" colspan="7">
+<div class="bg-surface-container-lowest p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant">
+<span class="font-semibold uppercase text-primary">Payload Inspection: Hash d2a4b870e23485c29a...</span>
+<span class="font-code-timer text-code-timer">Signer Token: Citizen SMS OTP</span>
+</div>
+<div class="font-code-id text-code-id bg-surface-container-low p-space-sm rounded text-on-surface">
+                  { "case_id": "GF-DEMO-1028", "citizen_rating": 1, "dispute_type": "INCOMPLETE_RESOLUTION", "citizen_comment": "Pothole filled with loose gravel without bitumen sealing; gravel already scattering into traffic lane", "photo_proof_hash": "sha256:4a8b...19ff" }
+                </div>
+</div>
+</td>
+</tr>
+<!-- Row 3: RETRY_DISPATCHED -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group cursor-pointer" onclick="togglePayload('payload-3')">
+<td class="py-space-md px-space-md font-code-timer text-code-timer text-on-surface-variant whitespace-nowrap">2025-05-18 09:44:05</td>
+<td class="py-space-md px-space-md font-code-id text-code-id font-semibold text-primary">GF-DEMO-1028</td>
+<td class="py-space-md px-space-md text-on-surface font-medium">Elena Rostova</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm">DISPATCHER</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-sm py-0.5 rounded bg-surface-container text-tertiary font-code-timer text-code-timer font-semibold">RETRY_DISPATCHED</span>
+</td>
+<td class="py-space-md px-space-md font-code-timer text-code-timer text-on-surface-variant">POL-AUTO-RETRY#443f</td>
+<td class="py-space-md px-space-md text-right">
+<span class="inline-flex items-center gap-1 text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+                Verified
+              </span>
+</td>
+</tr>
+<tr class="hidden bg-surface-container-low/40" id="payload-3">
+<td class="p-space-md" colspan="7">
+<div class="bg-surface-container-lowest p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant">
+<span class="font-semibold uppercase text-primary">Payload Inspection: Hash cb93f18e200...</span>
+<span class="font-code-timer text-code-timer">Signer Public Key: 0x9812...09cc</span>
+</div>
+<div class="font-code-id text-code-id bg-surface-container-low p-space-sm rounded text-on-surface">
+                  { "case_id": "GF-DEMO-1028", "retry_attempt": 1, "reassigned_team": "Civil Works Team C (Hot Mix Unit)", "priority_override": "HIGH", "previous_officer": "officer_manish_v" }
+                </div>
+</div>
+</td>
+</tr>
+<!-- Row 4: RESOLUTION_SUBMITTED -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group cursor-pointer" onclick="togglePayload('payload-4')">
+<td class="py-space-md px-space-md font-code-timer text-code-timer text-on-surface-variant whitespace-nowrap">2025-05-18 08:30:19</td>
+<td class="py-space-md px-space-md font-code-id text-code-id font-semibold text-primary">GF-DEMO-1035</td>
+<td class="py-space-md px-space-md text-on-surface font-medium">Vikram Patil</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">FIELD_OFFICER</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-sm py-0.5 rounded bg-surface-container-highest text-primary font-code-timer text-code-timer font-semibold">RESOLUTION_SUBMITTED</span>
+</td>
+<td class="py-space-md px-space-md font-code-timer text-code-timer text-on-surface-variant">POL-RESOLVE-V2#90ee</td>
+<td class="py-space-md px-space-md text-right">
+<span class="inline-flex items-center gap-1 text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+                Verified
+              </span>
+</td>
+</tr>
+<tr class="hidden bg-surface-container-low/40" id="payload-4">
+<td class="p-space-md" colspan="7">
+<div class="bg-surface-container-lowest p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant">
+<span class="font-semibold uppercase text-primary">Payload Inspection: Hash 77f0a12...</span>
+<span class="font-code-timer text-code-timer">Signer Public Key: 0xaa23...7f41</span>
+</div>
+<div class="font-code-id text-code-id bg-surface-container-low p-space-sm rounded text-on-surface">
+                  { "case_id": "GF-DEMO-1035", "department": "Solid Waste", "coordinates": "18.5204, 73.8567", "image_hashes": ["sha256:889f...", "sha256:114a..."], "time_spent_mins": 34 }
+                </div>
+</div>
+</td>
+</tr>
+<!-- Row 5: ASSIGNMENT_ACCEPTED -->
+<tr class="hover:bg-surface-container-low/60 transition-colors group cursor-pointer" onclick="togglePayload('payload-5')">
+<td class="py-space-md px-space-md font-code-timer text-code-timer text-on-surface-variant whitespace-nowrap">2025-05-18 07:11:44</td>
+<td class="py-space-md px-space-md font-code-id text-code-id font-semibold text-primary">GF-DEMO-1044</td>
+<td class="py-space-md px-space-md text-on-surface font-medium">Suresh Kadam</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-xs py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">FIELD_OFFICER</span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="px-space-sm py-0.5 rounded bg-surface-container-high text-on-surface-variant font-code-timer text-code-timer font-semibold">ASSIGNMENT_ACCEPTED</span>
+</td>
+<td class="py-space-md px-space-md font-code-timer text-code-timer text-on-surface-variant">POL-DISP-LOCK#01bc</td>
+<td class="py-space-md px-space-md text-right">
+<span class="inline-flex items-center gap-1 text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+                Verified
+              </span>
+</td>
+</tr>
+<tr class="hidden bg-surface-container-low/40" id="payload-5">
+<td class="p-space-md" colspan="7">
+<div class="bg-surface-container-lowest p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between text-label-sm font-label-sm text-on-surface-variant">
+<span class="font-semibold uppercase text-primary">Payload Inspection: Hash a90f...</span>
+<span class="font-code-timer text-code-timer">Signer Public Key: 0xbb82...199a</span>
+</div>
+<div class="font-code-id text-code-id bg-surface-container-low p-space-sm rounded text-on-surface">
+                  { "case_id": "GF-DEMO-1044", "device_id": "MOBI-TAB-098", "battery_level": 84, "geofence_distance_meters": 120 }
+                </div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Slide-out Municipal Policy Drawer Backdrop & Panel -->
+<div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-50 hidden transition-opacity" id="policyDrawerBackdrop">
+<div class="absolute right-0 top-0 bottom-0 w-full max-w-xl bg-surface-container-lowest shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out" id="policyDrawer">
+<!-- Drawer Header -->
+<div class="p-space-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[20px]">policy</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Municipal Policy Reference Charter</h3>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Fictional Demo Municipality • Policy Spec v2.4 (Active)</span>
+</div>
+</div>
+<button class="p-space-xs rounded-lg hover:bg-surface-container text-on-surface-variant hover:text-on-surface" id="closePolicyDrawerBtn">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Drawer Content -->
+<div class="flex-1 overflow-y-auto p-space-lg flex flex-col gap-space-lg">
+<!-- Core SLA Limits Table -->
+<div class="flex flex-col gap-space-sm">
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-semibold">1. Standard Resolution Windows (SLAs)</span>
+<div class="overflow-hidden rounded-lg bg-surface-container-low">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead class="bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+<tr>
+<th class="py-space-xs px-space-md">Category</th>
+<th class="py-space-xs px-space-md">Target SLA</th>
+<th class="py-space-xs px-space-md">Warning (80%)</th>
+<th class="py-space-xs px-space-md">Esc-1 (100%)</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<tr>
+<td class="py-space-sm px-space-md font-medium text-on-surface">Potholes &amp; Road Craters</td>
+<td class="py-space-sm px-space-md font-code-timer text-code-timer">72 Hours</td>
+<td class="py-space-sm px-space-md font-code-timer text-code-timer text-tertiary">57.6h</td>
+<td class="py-space-sm px-space-md font-code-timer text-code-timer text-error">72.0h</td>
+</tr>
+<tr>
+<td class="py-space-sm px-space-md font-medium text-on-surface">Solid Waste &amp; Dumps</td>
+<td class="py-space-sm px-space-md font-code-timer text-code-timer">48 Hours</td>
+<td class="py-space-sm px-space-md font-code-timer text-code-timer text-tertiary">38.4h</td>
+<td class="py-space-sm px-space-md font-code-timer text-code-timer text-error">48.0h</td>
+</tr>
+<tr>
+<td class="py-space-sm px-space-md font-medium text-on-surface">Streetlight Grid Failures</td>
+<td class="py-space-sm px-space-md font-code-timer text-code-timer">96 Hours</td>
+<td class="py-space-sm px-space-md font-code-timer text-code-timer text-tertiary">76.8h</td>
+<td class="py-space-sm px-space-md font-code-timer text-code-timer text-error">96.0h</td>
+</tr>
+<tr>
+<td class="py-space-sm px-space-md font-medium text-on-surface">Water Main &amp; Drainage Rupture</td>
+<td class="py-space-sm px-space-md font-code-timer text-code-timer">48 Hours</td>
+<td class="py-space-sm px-space-md font-code-timer text-code-timer text-tertiary">38.4h</td>
+<td class="py-space-sm px-space-md font-code-timer text-code-timer text-error">48.0h</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Escalation Mechanics -->
+<div class="flex flex-col gap-space-sm">
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-semibold">2. Escalation &amp; Oversight Ladder</span>
+<div class="flex flex-col gap-space-xs">
+<div class="p-space-md rounded-lg bg-surface-container-low flex items-start gap-space-sm">
+<span class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center font-code-timer text-code-timer font-bold text-on-surface flex-shrink-0">80%</span>
+<div>
+<span class="font-label-md text-label-md text-on-surface">Pre-Breach Warning</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Automated notification pushed to Field Officer mobile app; highlights red on dispatch map.</p>
+</div>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-low flex items-start gap-space-sm">
+<span class="w-6 h-6 rounded-full bg-tertiary text-on-tertiary flex items-center justify-center font-code-timer text-code-timer font-bold flex-shrink-0">100%</span>
+<div>
+<span class="font-label-md text-label-md text-on-surface">Level 1 — Supervisor Intervention</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">SLA limit crossed. Case lands in Supervisor Overrides queue with option for a single discretionary extension.</p>
+</div>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-low flex items-start gap-space-sm">
+<span class="w-6 h-6 rounded-full bg-error text-on-error flex items-center justify-center font-code-timer text-code-timer font-bold flex-shrink-0">150%</span>
+<div>
+<span class="font-label-md text-label-md text-on-surface">Level 2 — Ward Head Administrative Breach</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Critical administrative escalation visible to Dr. Neeta Deshmukh and Municipal Auditor. Triggers mandatory incident inquiry.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Citizen Sign-off & Rules -->
+<div class="flex flex-col gap-space-sm">
+<span class="font-label-md text-label-md text-on-surface uppercase tracking-wider font-semibold">3. Verification &amp; Audit Constants</span>
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col gap-space-xs font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex justify-between py-1">
+<span class="text-on-surface font-medium">Unanswered Citizen Sign-Off:</span>
+<span class="font-code-timer text-code-timer text-on-surface font-semibold">72-Hour Auto-Closure Window</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="text-on-surface font-medium">Dispute Filing Grace Period:</span>
+<span class="font-code-timer text-code-timer text-on-surface font-semibold">48 Hours post-resolution</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="text-on-surface font-medium">Canonical Timezone Engine:</span>
+<span class="font-code-timer text-code-timer text-on-surface font-semibold">Asia/Kolkata (IST, UTC+05:30)</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="text-on-surface font-medium">Ledger Audit Standard:</span>
+<span class="font-code-timer text-code-timer text-on-surface font-semibold">Append-Only SHA-256 Merkle Chaining</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Drawer Footer -->
+<div class="p-space-md bg-surface-container-low flex justify-end">
+<button class="px-space-md py-space-sm bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md rounded-lg transition-colors" id="closeDrawerFooterBtn">
+          Dismiss Policy View
+        </button>
+</div>
+</div>
+</div>
+<script>
+    // Expandable Audit Log Payloads
+    function togglePayload(rowId) {
+      const el = document.getElementById(rowId);
+      if (el) {
+        el.classList.toggle('hidden');
+      }
+    }
+
+    // Policy Drawer Behavior
+    const toggleBtn = document.getElementById('togglePolicyDrawerBtn');
+    const closeBtn = document.getElementById('closePolicyDrawerBtn');
+    const closeFooterBtn = document.getElementById('closeDrawerFooterBtn');
+    const backdrop = document.getElementById('policyDrawerBackdrop');
+    const drawer = document.getElementById('policyDrawer');
+
+    function openDrawer() {
+      backdrop.classList.remove('hidden');
+      setTimeout(() => {
+        drawer.classList.remove('translate-x-full');
+      }, 10);
+    }
+
+    function closeDrawer() {
+      drawer.classList.add('translate-x-full');
+      setTimeout(() => {
+        backdrop.classList.add('hidden');
+      }, 300);
+    }
+
+    if (toggleBtn) toggleBtn.addEventListener('click', openDrawer);
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    if (closeFooterBtn) closeFooterBtn.addEventListener('click', closeDrawer);
+    if (backdrop) {
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) closeDrawer();
+      });
+    }
+
+    // Audit Search & Filter
+    const searchInput = document.getElementById('auditSearchInput');
+    const filterSelect = document.getElementById('eventFilterSelect');
+    const table = document.getElementById('auditLogTable');
+
+    function filterAuditRows() {
+      const term = searchInput ? searchInput.value.toLowerCase() : '';
+      const selectedKind = filterSelect ? filterSelect.value : 'ALL';
+      const rows = table.querySelectorAll('tbody > tr:not([id^="payload-"])');
+
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        const matchesTerm = text.includes(term);
+        const matchesKind = selectedKind === 'ALL' || text.includes(selectedKind.toLowerCase());
+
+        if (matchesTerm && matchesKind) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+          const nextRow = row.nextElementSibling;
+          if (nextRow && nextRow.id && nextRow.id.startsWith('payload-')) {
+            nextRow.classList.add('hidden');
+          }
+        }
+      });
+    }
+
+    if (searchInput) searchInput.addEventListener('input', filterAuditRows);
+    if (filterSelect) filterSelect.addEventListener('change', filterAuditRows);
+
+    // Export Audit Digest Feedback
+    const exportBtn = document.getElementById('exportAuditLedgerBtn');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', () => {
+        const orig = exportBtn.innerHTML;
+        exportBtn.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Generating SHA Signed Digest...`;
+        setTimeout(() => {
+          exportBtn.innerHTML = `<span class="material-symbols-outlined text-[18px]">done_all</span> Digest Exported (GF-AUDIT-2025.sig)`;
+          setTimeout(() => {
+            exportBtn.innerHTML = orig;
+          }, 2400);
+        }, 800);
+      });
+    }
+  </script>
+</div></main></div>
+
+</body></html>

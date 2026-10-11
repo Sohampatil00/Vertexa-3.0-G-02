@@ -1,0 +1,688 @@
+<!DOCTYPE html><html lang="en" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container-high": "#dce9ff", "surface-container-lowest": "#ffffff", "on-secondary-fixed-variant": "#3f465c", "on-secondary-fixed": "#131b2e", "error": "#ba1a1a", "on-tertiary-fixed": "#0d1c2e", "surface-variant": "#d3e4fe", "tertiary": "#374559", "on-error": "#ffffff", "on-secondary": "#ffffff", "secondary-fixed-dim": "#bec6e0", "background": "#f8f9ff", "error-container": "#ffdad6", "surface-container-highest": "#d3e4fe", "on-primary-container": "#cad3ff", "inverse-on-surface": "#eaf1ff", "on-surface-variant": "#434655", "secondary-fixed": "#dae2fd", "on-tertiary-fixed-variant": "#3a485b", "on-surface": "#0b1c30", "primary-fixed-dim": "#b7c4ff", "inverse-primary": "#b7c4ff", "on-tertiary-container": "#c7d6ee", "on-primary": "#ffffff", "tertiary-fixed-dim": "#b9c7df", "surface-tint": "#2151da", "secondary": "#565e74", "on-error-container": "#93000a", "on-background": "#0b1c30", "on-tertiary": "#ffffff", "on-primary-fixed": "#001551", "primary": "#0037b0", "surface-container-low": "#eff4ff", "on-secondary-container": "#5c647a", "surface-dim": "#cbdbf5", "outline-variant": "#c4c5d7", "primary-fixed": "#dce1ff", "primary-container": "#1d4ed8", "secondary-container": "#dae2fd", "on-primary-fixed-variant": "#0039b5", "tertiary-fixed": "#d5e3fc", "outline": "#747686", "surface": "#f8f9ff", "surface-bright": "#f8f9ff", "tertiary-container": "#4f5d71", "surface-container": "#e5eeff", "inverse-surface": "#213145" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-md": "0.75rem", "gutter-lg": "1.5rem", "margin-md": "1.5rem", "space-xs": "0.25rem", "margin-lg": "2rem", "margin": "1rem", "gutter": "1rem", "space-xl": "1.5rem", "space-sm": "0.5rem", "space-lg": "1rem" }, "fontFamily": { "label-md": ["Public Sans"], "body-lg": ["Public Sans"], "label-sm": ["Public Sans"], "headline-xl-mobile": ["Public Sans"], "code-id": ["JetBrains Mono"], "headline-lg": ["Public Sans"], "headline-sm": ["Public Sans"], "body-sm": ["Public Sans"], "body-md": ["Public Sans"], "code-timer": ["JetBrains Mono"], "headline-xl": ["Public Sans"], "headline-md": ["Public Sans"] }, "fontSize": { "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "600"}], "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}], "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500"}], "headline-xl-mobile": ["26px", {"lineHeight": "34px", "letterSpacing": "-0.015em", "fontWeight": "700"}], "code-id": ["13px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}], "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600"}], "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}], "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}], "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}], "code-timer": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}], "headline-xl": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}], "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}] } } } }</script><style class="">:root { --primary-orange: #f77f00; --primary-orange-dark: #d96e00; --primary-orange-light: #ffedd5; --primary-orange-text: #954a00; } .bg-primary, .bg-primary-container { background-color: #f77f00 !important; } .hover\:bg-primary-container:hover { background-color: #d96e00 !important; } .text-primary { color: #f77f00 !important; } .bg-primary-fixed { background-color: #ffdcc6 !important; } .text-on-primary-fixed, .text-on-primary-fixed-variant { color: #592a00 !important; } .ring-primary { --tw-ring-color: #f77f00 !important; } circle.text-primary, path.text-primary { stroke: #f77f00 !important; }</style></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex items-center justify-between px-margin-lg"><div class="flex items-center gap-space-lg"><img alt="GovFix Municipal Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFhZmnRG6eehBTTjLFI5P9k3myffnpqaqP9_Xubb4DELsgyE78M5khYZZvbA1RFHcsKbUBF3xtE6PWwZ8xgfHURTeja019KLOUVT39Ht8y1XqtrLszrnGDivDpRqcMf6-PsAORD_WTna5dv_ly-52BmAocRzAioaR9IJbcM6kd92962o4C_NhiWbz3zwm2e7F0CAzNSzJfzq3SevANJMIZX9Q3-DgAO9Z9yVSRh6QhSZMTh99SbJCW"><div class="flex flex-col"><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">Fictional Demo Municipality</span><span class="px-space-sm py-0.5 rounded-lg bg-surface-container text-on-surface-variant font-code-timer text-code-timer tracking-wide uppercase">Demo policy</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">GovFix Central Grievance Dispatch &amp; Public SLA Engine</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-md py-1 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-primary"></span><span class="">Ward A &amp; B • Operations</span></div><button class="relative p-space-sm text-on-surface-variant hover:text-on-surface rounded-lg transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span></button><div class="flex items-center gap-space-sm pl-space-sm"><div class="text-right hidden sm:block"><div class="font-label-md text-label-md text-on-surface leading-tight">Elena Rostova</div><div class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Lead Dispatcher (Lvl II)</div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface-container-low flex flex-col z-40 overflow-y-auto"><div class="p-space-lg"><div class="px-space-md py-space-sm rounded-lg bg-surface-container mb-space-sm"><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Role Switch Sandbox</span><div class="flex items-center justify-between mt-space-xs"><span class="font-label-md text-label-md text-primary font-medium">Dispatcher Mode</span><span class="material-symbols-outlined text-[16px] text-primary">swap_horiz</span></div></div></div><nav class="flex-1 px-space-md flex flex-col gap-1" data-active-classes="bg-primary-container text-on-primary font-label-md text-label-md rounded-lg"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="citizen-overview" href="#"><span class="material-symbols-outlined text-[20px]">analytics</span>Citizen Overview</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="intake-queue" href="#"><span class="material-symbols-outlined text-[20px]">inbox</span>Intake Queue</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="dispatcher" href="#"><span class="material-symbols-outlined text-[20px]">alt_route</span>Dispatcher</a><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm transition-colors bg-primary-container text-on-primary font-label-md text-label-md rounded-lg" data-path="field-officer" href="#" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);"><span class="material-symbols-outlined text-[20px]">engineering</span>Field Officer</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="supervisor-queue" href="#"><span class="material-symbols-outlined text-[20px]">verified</span>Supervisor Queue</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="ward-head-oversight" href="#"><span class="material-symbols-outlined text-[20px]">account_balance</span>Ward Head Oversight</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="auditor-portal" href="#"><span class="material-symbols-outlined text-[20px]">policy</span>Auditor Portal</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="notifications" href="#"><span class="material-symbols-outlined text-[20px]">notifications_active</span>Notifications</a></nav><div class="p-space-lg"><div class="p-space-md rounded-lg bg-surface-container flex flex-col gap-space-xs"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-primary"></span><span class="font-label-sm text-label-sm text-on-surface font-semibold uppercase">Node Active</span></div><span class="font-code-id text-code-id text-on-surface-variant">SLA-SYS-NODE-04</span></div></div></aside><div class="pl-64"><main class="w-full pt-16 bg-background min-h-screen px-gutter-lg pb-margin-lg"><div class="flex flex-col w-full">
+<!-- Operational Sub-Header & Live Status Banner -->
+<div class="relative overflow-hidden bg-surface-container rounded-xl p-space-lg shadow-sm mb-margin-md" style="border: 1px solid rgb(217, 205, 186);">
+<div class="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-primary/5 pointer-events-none blur-2xl"></div>
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-lg relative z-10">
+<div class="flex items-start sm:items-center gap-space-lg">
+<div class="relative flex-shrink-0">
+<div class="w-14 h-14 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-md" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);">
+<span class="material-symbols-outlined text-[28px]">engineering</span>
+</div>
+<span class="absolute -bottom-1 -right-1 w-4 h-4 bg-primary-container rounded-full ring-2 ring-surface flex items-center justify-center" title="GPS Synchronized">
+<span class="w-2 h-2 bg-on-primary rounded-full animate-ping"></span>
+</span>
+</div>
+<div class="flex flex-col">
+<div class="flex flex-wrap items-center gap-space-sm mb-0.5">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Field Operations Console</h1>
+<span class="px-space-sm py-0.5 bg-surface-container-high text-primary font-code-timer text-code-timer rounded" style="background-color: rgb(255, 220, 198); color: rgb(113, 55, 0);">BADGE #PW-104</span>
+<span class="px-space-sm py-0.5 bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm rounded uppercase" style="background-color: rgb(255, 237, 213); color: rgb(149, 74, 0);">Ward A • Sector 4</span>
+</div>
+<div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<span class="font-medium text-on-surface">Rajesh Verma</span>
+<span class="">•</span>
+<span class="">Public Works Department</span>
+<span class="">•</span>
+<span class="font-code-id text-code-id text-tertiary">Asia/Kolkata (IST)</span>
+</div>
+</div>
+</div>
+<!-- Quick Operational Sync Notice -->
+<div class="bg-surface-container-lowest/90 backdrop-blur rounded-lg p-space-md shadow-sm max-w-xl">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] mt-0.5">verified_user</span>
+<div class="flex flex-col">
+<div class="font-label-md text-label-md text-on-surface flex items-center justify-between">
+<span class="">Authentication Protocol Strict</span>
+<span class="font-code-timer text-code-timer text-primary">GPS LOCKED</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 leading-snug">
+              Mobile-ready execution active. Case updates require cryptographic geo-tagged evidence. Direct municipal dispatch channel open.
+            </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Metric / KPI Strip -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-md mt-space-lg pt-space-md border-t-0">
+<div class="bg-surface-container-lowest rounded-lg p-space-md shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[22px]">inbox</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md text-on-surface">1</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">Pending Acceptance</div>
+</div>
+</div>
+<span class="px-space-sm py-0.5 rounded font-code-timer text-code-timer" style="background-color: rgb(255, 220, 198); color: rgb(113, 55, 0);">ACTION REQ</span>
+</div>
+<div class="bg-surface-container-lowest rounded-lg p-space-md shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-primary-fixed flex items-center justify-center text-primary" style="background-color: rgb(255, 237, 213); color: rgb(247, 127, 0);">
+<span class="material-symbols-outlined text-[22px]">pending_actions</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md text-on-surface">2</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant">In Progress</div>
+</div>
+</div>
+<span class="px-space-sm py-0.5 rounded bg-primary-fixed-dim/40 font-code-timer text-code-timer text-on-primary-fixed-variant" style="background-color: rgb(255, 237, 213); color: rgb(149, 74, 0);">ACTIVE WORK</span>
+</div>
+<div class="bg-surface-container-lowest rounded-lg p-space-md shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-lg bg-error-container flex items-center justify-center text-error">
+<span class="material-symbols-outlined text-[22px]">warning</span>
+</div>
+<div>
+<div class="font-headline-md text-headline-md text-error">1</div>
+<div class="font-label-sm text-label-sm text-error">Rework Ordered</div>
+</div>
+</div>
+<span class="px-space-sm py-0.5 rounded bg-error-container font-code-timer text-code-timer text-on-error-container">SUPERVISOR FLAG</span>
+</div>
+</div>
+</div>
+<!-- Interactive Section Layout -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter-lg items-start">
+<!-- Main Tabbed Workstream Area (8 Cols) -->
+<div class="xl:col-span-8 flex flex-col gap-space-lg">
+<!-- Workspace Navigation Tabs -->
+<div class="bg-surface-container-low p-1.5 rounded-xl flex items-center justify-between gap-1 shadow-sm" style="border: 1px solid rgb(217, 205, 186);">
+<div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto" id="workspaceTabs" role="tablist">
+<button class="px-space-md py-2 rounded-lg font-label-md text-label-md transition-all flex items-center gap-space-sm bg-surface-container-lowest text-primary shadow-sm" id="tab-pending" onclick="switchTab('pending')" role="tab">
+<span class="material-symbols-outlined text-[18px]">assignment_turned_in</span>
+<span class="">Pending Acceptance</span>
+<span class="px-1.5 py-0.2 rounded-full bg-primary text-on-primary font-code-timer text-code-timer" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);">1</span>
+</button>
+<button class="px-space-md py-2 rounded-lg font-label-md text-label-md transition-all flex items-center gap-space-sm text-on-surface-variant hover:text-on-surface" id="tab-rework" onclick="switchTab('rework')" role="tab">
+<span class="material-symbols-outlined text-[18px] text-error">error</span>
+<span class="">Rework Required</span>
+<span class="px-1.5 py-0.2 rounded-full bg-error text-on-error font-code-timer text-code-timer">1</span>
+</button>
+<button class="px-space-md py-2 rounded-lg font-label-md text-label-md transition-all flex items-center gap-space-sm text-on-surface-variant hover:text-on-surface" id="tab-in-progress" onclick="switchTab('in-progress')" role="tab">
+<span class="material-symbols-outlined text-[18px]">sync</span>
+<span class="">In Progress</span>
+<span class="px-1.5 py-0.2 rounded-full bg-surface-container-high text-on-surface font-code-timer text-code-timer">2</span>
+</button>
+</div>
+<div class="hidden sm:flex items-center gap-space-xs px-space-md text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span class="">Sort: Due Date (Nearest)</span>
+</div>
+</div>
+<!-- TAB 1: PENDING ACCEPTANCE CONTENT -->
+<div class="flex flex-col gap-space-lg transition-opacity duration-200" id="panel-pending" role="tabpanel">
+<!-- Case GF-DEMO-1047 Primary Focus Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md relative overflow-hidden" style="border: 1px solid rgb(217, 205, 186);">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="font-code-id text-code-id text-primary bg-surface-container-low px-space-sm py-1 rounded">GF-DEMO-1047</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-high text-on-surface font-label-sm text-label-sm">HIGH TRAFFIC CORRIDOR</span>
+<span class="px-space-sm py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm">ROADS &amp; ASPHALT</span>
+</div>
+<!-- SLA Counter -->
+<div class="flex items-center gap-space-xs px-space-md py-1 bg-surface-container-low rounded-lg text-tertiary">
+<span class="material-symbols-outlined text-[18px] text-primary">schedule</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">SLA Timer:</span>
+<span class="font-code-timer text-code-timer text-primary">68h 15m remaining</span>
+</div>
+</div>
+<!-- Title and Description -->
+<div class="flex flex-col">
+<h2 class="font-headline-md text-headline-md text-on-surface">Ring Road Pothole Cluster (Lane 3 - Northbound)</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+              Multiple deep fissures and asphalt depression reported between KM post 14.2 and 14.8. High axle load transit corridor causing secondary rim damage complaints. Requires rapid cold-mix leveling before evening commuter surge.
+            </p>
+</div>
+<!-- Metadata & Location Preview Split -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md bg-surface-container-low p-space-md rounded-lg" style="border: 1px solid rgb(217, 205, 186);">
+<div class="flex flex-col gap-space-xs font-body-sm text-body-sm">
+<div class="flex justify-between py-1 border-b-0">
+<span class="text-on-surface-variant">Assigned Time:</span>
+<span class="font-code-timer text-code-timer text-on-surface">Today, 10:30 IST</span>
+</div>
+<div class="flex justify-between py-1 border-b-0">
+<span class="text-on-surface-variant">Assigned By:</span>
+<span class="font-medium text-on-surface">Elena Rostova (Lead Dispatcher)</span>
+</div>
+<div class="flex justify-between py-1 border-b-0">
+<span class="text-on-surface-variant">Target Execution SLA:</span>
+<span class="font-medium text-on-surface">72 Hours Standard Fix</span>
+</div>
+<div class="flex justify-between py-1">
+<span class="text-on-surface-variant">Equipment Pre-alloc:</span>
+<span class="font-medium text-on-surface">Compactor Truck #04, Asphalt Mix</span>
+</div>
+</div>
+<div class="relative rounded-lg overflow-hidden h-36 bg-surface-container shadow-inner">
+<div class="w-full h-full bg-cover bg-center" data-location="Outer Ring Road, Ward A, New Delhi" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAKafjRICxyrMGa9ZnYjVdhNcoW2inkeE-xc6FuUZ2d06TsvyAX6fLQ43B6KBhvdjold1ZIb8T3e8D1PQJbH5-XENhwQzIq4grh_AIIeY8nSRxlYRg1YTD9xPkwIz3Q_NaA3-Xjkx47UU3X4O3vxYvBaAavsNA9c8z3wCniVhiFTzpbIt96K98jBwboiUxVI7UPUTCtP2lvr2rxs28APIq3pyTNf_5123KIEfD5Gy6n00p6ttkZrqNs')"></div>
+<div class="absolute bottom-2 left-2 bg-surface/90 backdrop-blur px-space-sm py-1 rounded text-on-surface font-label-sm text-label-sm flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">place</span>
+<span class="">Ring Road Post 14.4 (Ward A Sector 4)</span>
+</div>
+</div>
+</div>
+<!-- Callout & Action Strip -->
+<div class="bg-surface-container-high/60 rounded-lg p-space-md flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[24px]">flag</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Ownership Required</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Confirming acceptance alerts Central Dispatch and unlocks field telematics log.</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm flex-wrap sm:flex-nowrap">
+<button class="px-space-md py-2 rounded-lg bg-surface-container-lowest text-on-surface font-label-md text-label-md hover:bg-surface-container shadow-sm transition-all whitespace-nowrap" onclick="triggerReassignModal()">
+                Request Reassignment
+              </button>
+<button class="px-space-lg py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container shadow-md transition-all flex items-center gap-space-xs whitespace-nowrap" onclick="acceptCase('GF-DEMO-1047')" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span class="">Accept Assignment &amp; Begin Work</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- TAB 2: REWORK REQUIRED CONTENT (Hidden by default, switchable via JS) -->
+<div class="hidden flex flex-col gap-space-lg transition-opacity duration-200" id="panel-rework" role="tabpanel">
+<!-- Case GF-DEMO-1044 Rework Flag Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md relative overflow-hidden">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="font-code-id text-code-id text-error bg-error-container/40 px-space-sm py-1 rounded">GF-DEMO-1044</span>
+<span class="px-space-sm py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">DISPUTED BY CITIZEN</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container text-on-surface-variant font-label-sm text-label-sm">WATER UTILITY</span>
+</div>
+<div class="flex items-center gap-space-xs px-space-md py-1 bg-error-container/30 rounded-lg text-error">
+<span class="material-symbols-outlined text-[18px]">priority_high</span>
+<span class="font-code-timer text-code-timer">CORRECTION SLA: 14h 20m</span>
+</div>
+</div>
+<div class="flex flex-col">
+<h2 class="font-headline-md text-headline-md text-on-surface">Water pipeline leak patch — Ward A Lane 2</h2>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+              Original repair concluded on 18 Oct. Citizen verified unresolved seepage during post-repair audit. Case re-routed for mandatory physical verification and joint excavation.
+            </p>
+</div>
+<!-- Dual Discrepancy Box -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Citizen Feedback -->
+<div class="bg-surface-container-low p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-tertiary">
+<span class="material-symbols-outlined text-[18px] text-error">campaign</span>
+<span class="font-label-md text-label-md text-on-surface">Citizen Dispute Statement</span>
+</div>
+<blockquote class="font-body-sm text-body-sm text-on-surface italic bg-surface-container-lowest p-space-sm rounded">
+                “Water is still trickling through the asphalt seam after repair. Soil beneath driveway is getting waterlogged again.”
+              </blockquote>
+<div class="flex justify-between items-center text-on-surface-variant font-label-sm text-label-sm mt-1">
+<span class="">Verified Resident (ID: C-8810)</span>
+<span class="">Audit Photo Attached (1)</span>
+</div>
+</div>
+<!-- Supervisor Intervention Directive -->
+<div class="bg-error-container/20 p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-on-error-container">
+<span class="material-symbols-outlined text-[18px] text-error">supervisor_account</span>
+<span class="font-label-md text-label-md text-on-error-container">Supervisor Order: P. Shinde</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface bg-surface-container-lowest p-space-sm rounded">
+                “Re-excavate joint and reseal collar. Ensure hydraulic pressure test holds 15 minutes. Fresh photographic evidence of bare weld required before backfilling.”
+              </p>
+<div class="flex justify-between items-center text-on-surface-variant font-label-sm text-label-sm mt-1">
+<span class="font-code-timer text-code-timer text-error font-semibold">Priority Escalation #E-401</span>
+<span class="">Mandatory Inspection</span>
+</div>
+</div>
+</div>
+<!-- Photographic Verification Grid Placeholder -->
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Disputed Prior Submission Evidence</span>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-space-sm">
+<div class="relative rounded-lg overflow-hidden h-24 bg-surface-container group">
+<img class="w-full h-full object-cover" data-alt="A detailed high resolution close-up of cracked wet road asphalt with water leaking from a freshly tarred patch, daylight, civil engineering context with subtle blue tones" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSHnfwhXQ0iNHvYPXgOk8EGc6MzS1U1rEfsNB4iO4NiWo_ZcC1uTKctRmB4e2e4L6NrsLZOv2gCVQ7zduUM8L4u6npbWQUk4mMn9WsOiiCNr5DCnuyogjkszXx1KhNCWOy37QuNYrIYThoQ_FXRqbXCF-vqDHRWHp0dywzQGS1iSZ3yCwhV54-buGlp37JJjL2YJm5aUXWW53QZsBK5Q0EA4txTTdKHV-ef-laMQE6G5t9I0Ou1Gcl">
+<span class="absolute top-1 left-1 bg-surface-dim/80 backdrop-blur text-on-surface font-code-timer text-code-timer px-1 rounded">PRIOR FIX</span>
+</div>
+<div class="relative rounded-lg overflow-hidden h-24 bg-surface-container group">
+<img class="w-full h-full object-cover" data-alt="Citizen inspection photograph taken with a phone showing clear puddle formation on asphalt seam near a municipal drain, realistic documentary lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-dqa1iZcwqWs1jXNj6mXqYVz8G5AWXyaW5epqruCHIBhZnN9pqKxc8zbZI2wp6ZAPmL6BzfC3fAA6ot8ROlgioHcz2rX317yMVqJ8OEOtiKzYhu6I4r7npptiDeUbErOyHVXQDJPFnoG66p0BWPn6CQOl6oGjvxuW_uncxCcBASXkIEMNQSvi_qaOXIFI1yta_lSIzmZq1euddZcU85W4nOIfoWDxB0GhUFz5ink1yrOU9imt9pMe">
+<span class="absolute top-1 left-1 bg-error-container text-on-error-container font-code-timer text-code-timer px-1 rounded">CITIZEN PROOF</span>
+</div>
+<div class="rounded-lg bg-surface-container-low flex flex-col items-center justify-center text-on-surface-variant p-space-sm text-center">
+<span class="material-symbols-outlined text-[20px] mb-1">add_a_photo</span>
+<span class="font-label-sm text-label-sm">Target Photo 1</span>
+<span class="font-code-timer text-[10px] text-tertiary">Excavated Collar</span>
+</div>
+<div class="rounded-lg bg-surface-container-low flex flex-col items-center justify-center text-on-surface-variant p-space-sm text-center">
+<span class="material-symbols-outlined text-[20px] mb-1">add_a_photo</span>
+<span class="font-label-sm text-label-sm">Target Photo 2</span>
+<span class="font-code-timer text-[10px] text-tertiary">Pressure Dial</span>
+</div>
+</div>
+</div>
+<!-- Urgent Resolution Trigger -->
+<div class="flex flex-col sm:flex-row items-center justify-between gap-space-md pt-space-sm">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[18px] text-error">notification_important</span>
+<span class="">Disputed cases are audited directly by Municipal SLA Ombudsman.</span>
+</div>
+<button class="w-full sm:w-auto px-space-lg py-2.5 rounded-lg bg-error text-on-error font-label-md text-label-md hover:bg-on-error-container shadow-md transition-all flex items-center justify-center gap-space-xs" onclick="openEvidenceDrawer('GF-DEMO-1044', 'Water pipeline leak patch')">
+<span class="material-symbols-outlined text-[20px]">upload_file</span>
+<span class="">Open Case &amp; Upload Correction Evidence</span>
+</button>
+</div>
+</div>
+</div>
+<!-- TAB 3: IN PROGRESS CASES (Hidden by default, switchable via JS) -->
+<div class="hidden flex flex-col gap-space-lg transition-opacity duration-200" id="panel-in-progress" role="tabpanel">
+<!-- Active Case Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-id text-code-id text-primary bg-surface-container-low px-space-sm py-1 rounded">GF-DEMO-1038</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm">ELECTRICAL &amp; LIGHTING</span>
+</div>
+<div class="flex items-center gap-space-xs px-space-md py-1 bg-surface-container-high rounded-lg text-primary">
+<span class="material-symbols-outlined text-[18px]">timelapse</span>
+<span class="font-code-timer text-code-timer">SLA: 22h 40m remaining</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Streetlight Luminaire Malfunction — Crossroad 9</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+              Capacitor unit replacement on 3x LED fixtures along school corridor. Cherry-picker vehicle mobilized.
+            </p>
+</div>
+<!-- Progress Visual Metric -->
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span class="">Execution Progress</span>
+<span class="font-code-timer text-code-timer text-primary font-medium">65% Stage II (Parts Installed)</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 65%;"></div>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row items-center justify-between gap-space-md pt-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">done_all</span>
+<span class="">1 of 2 proofs uploaded (Defective ballasts)</span>
+</span>
+<div class="flex items-center gap-space-sm w-full sm:w-auto">
+<button class="w-full sm:w-auto px-space-md py-2 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors" onclick="openEvidenceDrawer('GF-DEMO-1038', 'Streetlight Luminaire Malfunction')">
+                Append Photo
+              </button>
+<button class="w-full sm:w-auto px-space-md py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center justify-center gap-1" onclick="openEvidenceDrawer('GF-DEMO-1038', 'Streetlight Luminaire Malfunction')">
+<span class="">Submit Resolution</span>
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Active Case Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-id text-code-id text-primary bg-surface-container-low px-space-sm py-1 rounded">GF-DEMO-1041</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm">SANITATION &amp; SOLID WASTE</span>
+</div>
+<div class="flex items-center gap-space-xs px-space-md py-1 bg-surface-container-high rounded-lg text-primary">
+<span class="material-symbols-outlined text-[18px]">timelapse</span>
+<span class="font-code-timer text-code-timer">SLA: 41h 10m remaining</span>
+</div>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Commercial Dumpster Overflow &amp; Debris Clearance</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1">
+              Market yard waste staging area cleared. Sanitization spray applied. Awaiting final post-rinse confirmation photograph.
+            </p>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between font-label-sm text-label-sm text-on-surface-variant">
+<span class="">Execution Progress</span>
+<span class="font-code-timer text-code-timer text-primary font-medium">90% Stage III (Verification Pending)</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary rounded-full transition-all duration-500" style="width: 90%;"></div>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row items-center justify-between gap-space-md pt-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">done_all</span>
+<span class="">Before &amp; Mid photos confirmed</span>
+</span>
+<div class="flex items-center gap-space-sm w-full sm:w-auto">
+<button class="w-full sm:w-auto px-space-lg py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors flex items-center justify-center gap-1" onclick="openEvidenceDrawer('GF-DEMO-1041', 'Commercial Dumpster Clearance')">
+<span class="">Upload Final Proof &amp; Resolve</span>
+<span class="material-symbols-outlined text-[18px]">check</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Rail: Evidence Guidelines, Telematics & Activity Log (4 Cols) -->
+<div class="xl:col-span-4 flex flex-col gap-space-lg">
+<!-- Field Evidence Submission Guidelines Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md" style="border: 1px solid rgb(217, 205, 186);">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[22px]">photo_camera</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Evidence Criteria</h3>
+</div>
+<span class="px-space-sm py-0.5 rounded bg-surface-container font-code-timer text-code-timer text-tertiary">MUNICIPAL ISO-4</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Images are stored on immutable civic audit servers with timestamp and GPS coordinates embedded into cryptographic hashes.
+        </p>
+<!-- Requirements Checklist -->
+<div class="flex flex-col gap-space-sm font-body-sm text-body-sm">
+<div class="flex items-center gap-space-sm p-space-sm bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-primary text-[20px]">check_circle</span>
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Format &amp; Sizing</span>
+<span class="text-on-surface-variant text-[12px]">JPEG or PNG, up to 5MB per upload</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm p-space-sm bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-primary text-[20px]">location_searching</span>
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Active Geo-Tagging</span>
+<span class="text-on-surface-variant text-[12px]">Must be within 75m of incident site coordinates</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm p-space-sm bg-surface-container-low rounded-lg">
+<span class="material-symbols-outlined text-primary text-[20px]">visibility</span>
+<div class="flex flex-col">
+<span class="font-medium text-on-surface">Dual Vantage Proof</span>
+<span class="text-on-surface-variant text-[12px]">Wide environmental shot + close-up repaired seam</span>
+</div>
+</div>
+</div>
+<!-- Inline Visual SLA Quality Metric Ring -->
+<div class="p-space-md bg-surface-container-high/40 rounded-xl flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Officer First-Time Pass Rate</span>
+<span class="font-headline-md text-headline-md text-primary">94.2%</span>
+<span class="font-label-sm text-label-sm text-secondary" style="color: rgb(119, 121, 124);">Ward A Average: 89.0%</span>
+</div>
+<div class="relative w-16 h-16 flex items-center justify-center">
+<svg class="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
+<path class="text-surface-container" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<path class="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="94.2, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<span class="absolute font-code-timer text-code-timer text-on-surface font-bold">94%</span>
+</div>
+</div>
+</div>
+<!-- Live Shift Audit Log -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md" style="border: 1px solid rgb(217, 205, 186);">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Shift Telematics Stream</h3>
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+</div>
+<div class="flex flex-col gap-space-md font-body-sm text-body-sm relative">
+<!-- Flow Line -->
+<div class="absolute left-3 top-2 bottom-2 w-0.5 bg-surface-container"></div>
+<div class="flex items-start gap-space-md relative z-10">
+<div class="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-on-primary flex-shrink-0">
+<span class="material-symbols-outlined text-[14px]">send</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-code-timer text-code-timer text-on-surface">11:15 IST</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">DISPATCH ACK</span>
+</div>
+<span class="text-on-surface-variant">Acknowledged route for Case GF-DEMO-1047.</span>
+</div>
+</div>
+<div class="flex items-start gap-space-md relative z-10">
+<div class="w-6 h-6 rounded-full bg-error flex items-center justify-center text-on-error flex-shrink-0">
+<span class="material-symbols-outlined text-[14px]">priority_high</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-code-timer text-code-timer text-on-surface">10:48 IST</span>
+<span class="font-label-sm text-label-sm text-error font-semibold">REWORK ALERT</span>
+</div>
+<span class="text-on-surface-variant">Supervisor P. Shinde rejected resolution for GF-DEMO-1044.</span>
+</div>
+</div>
+<div class="flex items-start gap-space-md relative z-10">
+<div class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant flex-shrink-0">
+<span class="material-symbols-outlined text-[14px]">login</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-code-timer text-code-timer text-on-surface">08:00 IST</span>
+<span class="font-label-sm text-label-sm text-tertiary">SHIFT COMMENCE</span>
+</div>
+<span class="text-on-surface-variant">Rajesh Verma logged into Ward A field terminal.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Emergency Hotline Callout -->
+<div class="bg-surface-container p-space-md rounded-xl flex items-center justify-between" style="border: 1px solid rgb(217, 205, 186);">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[24px]">contact_phone</span>
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface">Supervisor Direct Hotline</span>
+<span class="font-code-id text-code-id text-tertiary">+91 11-2309-8801</span>
+</div>
+</div>
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container-lowest text-on-surface font-label-sm text-label-sm hover:bg-surface-container-high transition-colors">
+          Call Voice
+        </button>
+</div>
+</div>
+</div>
+<!-- Evidence Upload / Case Resolution Modal Drawer -->
+<div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-50 hidden flex justify-end transition-opacity duration-200" id="evidenceDrawer">
+<div class="w-full max-w-xl bg-surface-container-lowest h-full overflow-y-auto shadow-2xl p-space-lg flex flex-col justify-between">
+<div class="flex flex-col gap-space-lg">
+<!-- Drawer Header -->
+<div class="flex items-center justify-between pb-space-md border-b-0">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-code-id text-code-id text-primary bg-surface-container-high px-space-sm py-0.5 rounded font-bold" id="drawerCaseId">GF-DEMO-1044</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container font-label-sm text-label-sm text-on-surface-variant">PROOF SUBMISSION</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface mt-1" id="drawerCaseTitle">Water pipeline leak patch — Ward A Lane 2</h3>
+</div>
+<button class="p-space-sm text-on-surface-variant hover:text-on-surface rounded-lg" onclick="closeEvidenceDrawer()">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+</div>
+<!-- Evidence Attachment Zone -->
+<div class="flex flex-col gap-space-sm">
+<label class="font-label-md text-label-md text-on-surface">Capture or Upload Correction Photos (Minimum 2 required)</label>
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col items-center justify-center text-center cursor-pointer hover:bg-surface-container transition-colors">
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary mb-space-sm">
+<span class="material-symbols-outlined text-[26px]">add_a_photo</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface">Tap to take photo or drag &amp; drop</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-1">PNG, JPEG up to 5MB. GPS coordinate overlay will be applied automatically.</span>
+</div>
+<!-- Uploaded Items Simulated List -->
+<div class="grid grid-cols-2 gap-space-sm mt-space-xs">
+<div class="relative bg-surface-container rounded-lg p-space-sm flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded bg-surface-container-high flex-shrink-0 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">image</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface truncate">collar_weld_v2.jpg</span>
+<span class="font-code-timer text-[10px] text-tertiary">3.4 MB • GEO-OK</span>
+</div>
+<button class="absolute top-1 right-1 text-on-surface-variant hover:text-error">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+</button>
+</div>
+<div class="relative bg-surface-container rounded-lg p-space-sm flex items-center gap-space-sm">
+<div class="w-12 h-12 rounded bg-surface-container-high flex-shrink-0 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">image</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface truncate">pressure_dial_test.jpg</span>
+<span class="font-code-timer text-[10px] text-tertiary">2.1 MB • GEO-OK</span>
+</div>
+<button class="absolute top-1 right-1 text-on-surface-variant hover:text-error">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Field Resolution Remarks Form -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md text-on-surface">Officer Field Remarks &amp; Rectification Statement</label>
+<textarea class="w-full bg-surface-container-low rounded-lg p-space-md font-body-md text-body-md text-on-surface placeholder-on-surface-variant focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Describe the remediation actions taken (e.g., replaced 4-inch sleeve gasket, re-torqued clamps to 60Nm, held hydrostatic pressure at 4.2 bar)..." rows="4"></textarea>
+</div>
+<!-- Telematics Safety Attestation -->
+<div class="flex items-start gap-space-sm bg-surface-container-high/40 p-space-md rounded-lg">
+<input checked="" class="mt-1 w-4 h-4 rounded text-primary focus:ring-primary" id="attestCheck" type="checkbox">
+<label class="font-body-sm text-body-sm text-on-surface" for="attestCheck">
+            I certify under municipal policy that the above remediation work has been completed in person by Rajesh Verma (PW-104) and conforms to Ward A public works technical standards.
+          </label>
+</div>
+</div>
+<!-- Action Footer -->
+<div class="flex items-center justify-end gap-space-md pt-space-lg">
+<button class="px-space-lg py-2.5 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors" onclick="closeEvidenceDrawer()">
+          Cancel
+        </button>
+<button class="px-space-xl py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container shadow-md transition-all flex items-center gap-space-xs" onclick="submitCaseEvidence()" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);">
+<span class="material-symbols-outlined text-[20px]">verified</span>
+<span class="">Submit Verification to Supervisor</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Reassignment Request Modal -->
+<div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-space-md" id="reassignModal">
+<div class="w-full max-w-md bg-surface-container-lowest rounded-xl p-space-lg shadow-2xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[24px]">alt_route</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Request Reassignment</h3>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface" onclick="closeReassignModal()">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+        This case (GF-DEMO-1047) will be returned to Elena Rostova (Dispatcher) with your stated reason.
+      </p>
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md text-on-surface">Primary Justification</label>
+<select class="w-full bg-surface-container-low rounded-lg p-space-md font-body-md text-body-md text-on-surface focus:outline-none">
+<option>Equipment Unavailability (Cold asphalt roller)</option>
+<option>SLA Conflict / Current Overload</option>
+<option>Jurisdiction Boundary Mismatch (Ward B boundary)</option>
+<option>Severe Weather Impediment</option>
+</select>
+</div>
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md text-on-surface">Internal Supervisor Note</label>
+<textarea class="w-full bg-surface-container-low rounded-lg p-space-md font-body-sm text-body-sm text-on-surface placeholder-on-surface-variant focus:outline-none" placeholder="Provide operational detail..." rows="3"></textarea>
+</div>
+<div class="flex items-center justify-end gap-space-sm pt-space-xs">
+<button class="px-space-md py-2 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors" onclick="closeReassignModal()">
+          Keep Case
+        </button>
+<button class="px-space-md py-2 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container shadow-sm transition-colors" onclick="confirmReassign()" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);">
+          Transmit Reassignment
+        </button>
+</div>
+</div>
+</div>
+<!-- Notification Toast Container -->
+<div class="fixed bottom-6 right-6 z-50 bg-inverse-surface text-inverse-on-surface px-space-lg py-space-md rounded-xl shadow-2xl flex items-center gap-space-sm transition-all duration-300 opacity-0 pointer-events-none translate-y-4" id="toastNotification">
+<span class="material-symbols-outlined text-[20px] text-primary-fixed" id="toastIcon">check_circle</span>
+<span class="font-body-sm text-body-sm" id="toastMessage">Case accepted successfully.</span>
+</div>
+<!-- Client-side tab switching and interactive controllers -->
+<script>
+    function switchTab(tabName) {
+      // Hide all panels
+      const panels = ['pending', 'rework', 'in-progress'];
+      panels.forEach(p => {
+        const el = document.getElementById('panel-' + p);
+        const btn = document.getElementById('tab-' + p);
+        if (el) el.classList.add('hidden');
+        if (btn) {
+          btn.className = "px-space-md py-2 rounded-lg font-label-md text-label-md transition-all flex items-center gap-space-sm text-on-surface-variant hover:text-on-surface";
+        }
+      });
+
+      // Show selected panel
+      const targetPanel = document.getElementById('panel-' + tabName);
+      const targetBtn = document.getElementById('tab-' + tabName);
+      if (targetPanel) {
+        targetPanel.classList.remove('hidden');
+      }
+      if (targetBtn) {
+        targetBtn.className = "px-space-md py-2 rounded-lg font-label-md text-label-md transition-all flex items-center gap-space-sm bg-surface-container-lowest text-primary shadow-sm";
+      }
+    }
+
+    function openEvidenceDrawer(caseId, title) {
+      const drawer = document.getElementById('evidenceDrawer');
+      const caseIdEl = document.getElementById('drawerCaseId');
+      const titleEl = document.getElementById('drawerCaseTitle');
+      if (caseIdEl) caseIdEl.textContent = caseId;
+      if (titleEl) titleEl.textContent = title;
+      if (drawer) drawer.classList.remove('hidden');
+    }
+
+    function closeEvidenceDrawer() {
+      const drawer = document.getElementById('evidenceDrawer');
+      if (drawer) drawer.classList.add('hidden');
+    }
+
+    function triggerReassignModal() {
+      const modal = document.getElementById('reassignModal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeReassignModal() {
+      const modal = document.getElementById('reassignModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toastNotification');
+      const msgEl = document.getElementById('toastMessage');
+      const iconEl = document.getElementById('toastIcon');
+      if (!toast || !msgEl || !iconEl) return;
+
+      msgEl.textContent = message;
+      iconEl.textContent = isError ? 'error' : 'check_circle';
+      iconEl.className = isError ? 'material-symbols-outlined text-[20px] text-error' : 'material-symbols-outlined text-[20px] text-primary-fixed';
+
+      toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+      }, 3500);
+    }
+
+    function acceptCase(id) {
+      showToast('Case ' + id + ' accepted. Shift telematics tracking active.');
+      setTimeout(() => {
+        switchTab('in-progress');
+      }, 700);
+    }
+
+    function submitCaseEvidence() {
+      closeEvidenceDrawer();
+      showToast('Correction evidence uploaded and cryptographic proof anchored.');
+    }
+
+    function confirmReassign() {
+      closeReassignModal();
+      showToast('Reassignment logged. Notification queued for Dispatcher E. Rostova.');
+    }
+  </script>
+</div></main></div>
+
+</body></html>

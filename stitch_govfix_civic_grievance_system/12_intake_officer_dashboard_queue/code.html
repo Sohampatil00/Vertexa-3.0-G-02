@@ -1,0 +1,408 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><meta content="web_dashboard" name="shell-type"><link href="https://fonts.googleapis.com" rel="preconnect"><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "surface-container-high": "#dce9ff", "surface-container-lowest": "#ffffff", "on-secondary-fixed-variant": "#3f465c", "on-secondary-fixed": "#131b2e", "error": "#ba1a1a", "on-tertiary-fixed": "#0d1c2e", "surface-variant": "#d3e4fe", "tertiary": "#374559", "on-error": "#ffffff", "on-secondary": "#ffffff", "secondary-fixed-dim": "#bec6e0", "background": "#f8f9ff", "error-container": "#ffdad6", "surface-container-highest": "#d3e4fe", "on-primary-container": "#cad3ff", "inverse-on-surface": "#eaf1ff", "on-surface-variant": "#434655", "secondary-fixed": "#dae2fd", "on-tertiary-fixed-variant": "#3a485b", "on-surface": "#0b1c30", "primary-fixed-dim": "#b7c4ff", "inverse-primary": "#b7c4ff", "on-tertiary-container": "#c7d6ee", "on-primary": "#ffffff", "tertiary-fixed-dim": "#b9c7df", "surface-tint": "#2151da", "secondary": "#565e74", "on-error-container": "#93000a", "on-background": "#0b1c30", "on-tertiary": "#ffffff", "on-primary-fixed": "#001551", "primary": "#0037b0", "surface-container-low": "#eff4ff", "on-secondary-container": "#5c647a", "surface-dim": "#cbdbf5", "outline-variant": "#c4c5d7", "primary-fixed": "#dce1ff", "primary-container": "#1d4ed8", "secondary-container": "#dae2fd", "on-primary-fixed-variant": "#0039b5", "tertiary-fixed": "#d5e3fc", "outline": "#747686", "surface": "#f8f9ff", "surface-bright": "#f8f9ff", "tertiary-container": "#4f5d71", "surface-container": "#e5eeff", "inverse-surface": "#213145" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-md": "0.75rem", "gutter-lg": "1.5rem", "margin-md": "1.5rem", "space-xs": "0.25rem", "margin-lg": "2rem", "margin": "1rem", "gutter": "1rem", "space-xl": "1.5rem", "space-sm": "0.5rem", "space-lg": "1rem" }, "fontFamily": { "label-md": ["Public Sans"], "body-lg": ["Public Sans"], "label-sm": ["Public Sans"], "headline-xl-mobile": ["Public Sans"], "code-id": ["JetBrains Mono"], "headline-lg": ["Public Sans"], "headline-sm": ["Public Sans"], "body-sm": ["Public Sans"], "body-md": ["Public Sans"], "code-timer": ["JetBrains Mono"], "headline-xl": ["Public Sans"], "headline-md": ["Public Sans"] }, "fontSize": { "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.04em", "fontWeight": "600"}], "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}], "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.02em", "fontWeight": "500"}], "headline-xl-mobile": ["26px", {"lineHeight": "34px", "letterSpacing": "-0.015em", "fontWeight": "700"}], "code-id": ["13px", {"lineHeight": "16px", "letterSpacing": "-0.01em", "fontWeight": "500"}], "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "600"}], "headline-sm": ["16px", {"lineHeight": "24px", "fontWeight": "600"}], "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}], "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}], "code-timer": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}], "headline-xl": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}], "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}] } } } }</script></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 h-16 z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex items-center justify-between px-margin-lg"><div class="flex items-center gap-space-lg"><img alt="GovFix Municipal Emblem" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDFhZmnRG6eehBTTjLFI5P9k3myffnpqaqP9_Xubb4DELsgyE78M5khYZZvbA1RFHcsKbUBF3xtE6PWwZ8xgfHURTeja019KLOUVT39Ht8y1XqtrLszrnGDivDpRqcMf6-PsAORD_WTna5dv_ly-52BmAocRzAioaR9IJbcM6kd92962o4C_NhiWbz3zwm2e7F0CAzNSzJfzq3SevANJMIZX9Q3-DgAO9Z9yVSRh6QhSZMTh99SbJCW"><div class="flex flex-col"><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm text-on-surface tracking-tight">Fictional Demo Municipality</span><span class="px-space-sm py-0.5 rounded-lg bg-surface-container text-on-surface-variant font-code-timer text-code-timer tracking-wide uppercase">Demo policy</span></div><span class="font-label-sm text-label-sm text-on-surface-variant">GovFix Central Grievance Dispatch &amp; Public SLA Engine</span></div></div><div class="flex items-center gap-space-md"><div class="flex items-center gap-space-xs px-space-md py-1 rounded-full bg-surface-container-high text-on-surface font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-primary"></span><span class="">Ward A &amp; B • Operations</span></div><button class="relative p-space-sm text-on-surface-variant hover:text-on-surface rounded-lg transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1 right-1 w-2 h-2 bg-error rounded-full"></span></button><div class="flex items-center gap-space-sm pl-space-sm"><div class="text-right hidden sm:block"><div class="font-label-md text-label-md text-on-surface leading-tight">Elena Rostova</div><div class="font-label-sm text-label-sm text-on-surface-variant leading-tight">Lead Dispatcher (Lvl II)</div></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface-container-low flex flex-col z-40 overflow-y-auto"><div class="p-space-lg"><div class="px-space-md py-space-sm rounded-lg bg-surface-container mb-space-sm"><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider block">Role Switch Sandbox</span><div class="flex items-center justify-between mt-space-xs"><span class="font-label-md text-label-md text-primary font-medium">Dispatcher Mode</span><span class="material-symbols-outlined text-[16px] text-primary">swap_horiz</span></div></div></div><nav class="flex-1 px-space-md flex flex-col gap-1" data-active-classes="bg-primary-container text-on-primary font-label-md text-label-md rounded-lg"><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="citizen-overview" href="#"><span class="material-symbols-outlined text-[20px]">analytics</span>Citizen Overview</a><a aria-current="page" class="flex items-center gap-space-md px-space-md py-space-sm transition-colors bg-primary-container text-on-primary font-label-md text-label-md rounded-lg" data-path="intake-queue" href="#" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);"><span class="material-symbols-outlined text-[20px]">inbox</span>Intake Queue</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="dispatcher" href="#"><span class="material-symbols-outlined text-[20px]">alt_route</span>Dispatcher</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="field-officer" href="#"><span class="material-symbols-outlined text-[20px]">engineering</span>Field Officer</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="supervisor-queue" href="#"><span class="material-symbols-outlined text-[20px]">verified</span>Supervisor Queue</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="ward-head-oversight" href="#"><span class="material-symbols-outlined text-[20px]">account_balance</span>Ward Head Oversight</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="auditor-portal" href="#"><span class="material-symbols-outlined text-[20px]">policy</span>Auditor Portal</a><a class="flex items-center gap-space-md px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface font-body-sm text-body-sm transition-colors" data-path="notifications" href="#"><span class="material-symbols-outlined text-[20px]">notifications_active</span>Notifications</a></nav><div class="p-space-lg"><div class="p-space-md rounded-lg bg-surface-container flex flex-col gap-space-xs"><div class="flex items-center gap-space-xs"><span class="w-2 h-2 rounded-full bg-primary"></span><span class="font-label-sm text-label-sm text-on-surface font-semibold uppercase">Node Active</span></div><span class="font-code-id text-code-id text-on-surface-variant">SLA-SYS-NODE-04</span></div></div></aside><div class="pl-64"><main class="w-full pt-16 bg-background min-h-screen px-gutter-lg pb-margin-lg"><div class="flex flex-col w-full">
+<!-- Top Operational Banner & Officer Profile Bar -->
+<section class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md p-space-lg rounded-xl bg-surface-container shadow-sm mb-space-lg">
+<div class="flex items-start sm:items-center gap-space-md">
+<div class="w-12 h-12 rounded-lg bg-primary flex items-center justify-center shrink-0 text-on-primary shadow-sm">
+<span class="material-symbols-outlined text-[26px]">how_to_reg</span>
+</div>
+<div class="flex flex-col">
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="font-headline-md text-headline-md text-on-surface">Municipal Intake Queue</span>
+<span class="px-space-sm py-0.5 rounded-full bg-secondary-container text-on-secondary-fixed font-code-timer text-code-timer uppercase">Desk 04B</span>
+<span class="px-space-sm py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm">Validation Active</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+          Desk Officer: <strong class="text-on-surface font-label-md text-label-md">Anand Sharma</strong> • Public Works &amp; Sanitation Intake Desk • Jurisdiction: Ward A &amp; Ward B
+        </p>
+</div>
+</div>
+<!-- Scoped Mini Metrics -->
+<div class="flex items-center gap-space-sm sm:gap-space-md overflow-x-auto pb-1 sm:pb-0">
+<div class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg bg-surface-container-lowest shadow-sm shrink-0">
+<div class="w-2.5 h-2.5 rounded-full bg-primary"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">New Today</span>
+<span class="font-headline-sm text-headline-sm text-on-surface leading-tight">06</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg bg-surface-container-lowest shadow-sm shrink-0">
+<div class="w-2.5 h-2.5 rounded-full bg-error animate-pulse"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Pending Validation</span>
+<span class="font-headline-sm text-headline-sm text-error leading-tight">03</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg bg-surface-container-lowest shadow-sm shrink-0">
+<div class="w-2.5 h-2.5 rounded-full bg-tertiary"></div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Routing Query Flag</span>
+<span class="font-headline-sm text-headline-sm text-on-surface leading-tight">01</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Work Area Split: Queue Table & Persistent Validation Inspector -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+<!-- Left Column: Filter Controls and Submissions Table (7 Cols on desktop) -->
+<div class="xl:col-span-7 flex flex-col gap-space-md">
+<!-- Filters and Search Bar -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span>
+<input class="w-full h-9 pl-9 pr-space-md bg-surface-container-low rounded-lg text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm focus:outline-none focus:bg-surface-container-lowest" placeholder="Search Case ID (GF-DEMO-XXXX) or street location..." type="text" value="Shivaji Market">
+</div>
+<div class="flex items-center gap-space-xs self-end sm:self-auto">
+<button class="px-space-md h-9 rounded-lg bg-surface-container-high hover:bg-surface-variant text-on-surface font-label-md text-label-md flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span class="">Filter Presets</span>
+</button>
+<button class="p-2 h-9 rounded-lg bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Export batch audit">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+</div>
+</div>
+<!-- Filter Chips Bar -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs">
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant mr-1">Jurisdiction:</span>
+<button class="px-space-sm py-1 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm">All Wards</button>
+<button class="px-space-sm py-1 rounded-full bg-surface-container-low text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-colors">Ward A (6)</button>
+<button class="px-space-sm py-1 rounded-full bg-surface-container-low text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm transition-colors">Ward B (8)</button>
+</div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Category:</span>
+<select class="h-7 px-space-xs bg-surface-container-low rounded-md text-on-surface font-label-sm text-label-sm focus:outline-none">
+<option>All Sectors</option>
+<option selected="">Roads &amp; Potholes</option>
+<option>Solid Waste &amp; Sanitation</option>
+<option>Water Supply</option>
+<option>Street Lighting</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Queue Cards / Table Header Counter -->
+<div class="flex items-center justify-between px-space-xs">
+<div class="flex items-center gap-space-sm">
+<span class="font-label-md text-label-md text-on-surface">Submissions Awaiting Validation</span>
+<span class="px-space-sm py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-code-timer text-code-timer">14 Total</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Showing 1–3 of 14</span>
+</div>
+<!-- Case 1: GF-DEMO-1049 (Selected / Active) -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md transition-shadow">
+<div class="flex items-start justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-id text-code-id px-space-sm py-0.5 rounded bg-primary-container text-on-primary" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);">GF-DEMO-1049</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-high text-primary font-label-sm text-label-sm uppercase">Active Focus</span>
+<span class="flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 2h ago
+            </span>
+</div>
+<div class="px-space-sm py-0.5 rounded bg-error-container text-on-error-container font-code-timer text-code-timer">
+            SLA: 72 hrs (Standard)
+          </div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">
+            Deep crater pothole near Shivaji Market Bus Stop
+          </h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+            "Significant asphalt cave-in opposite Shivaji Market main passenger shelter. High risk for two-wheelers during peak evening congestion. Water ponding inside cavity."
+          </p>
+</div>
+<div class="flex flex-wrap items-center gap-y-2 gap-x-space-md pt-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">person</span>
+<span class="">Citizen Ramesh K.</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-tertiary">location_on</span>
+<span class="">Ward A • Shivaji Market Sector 3</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">category</span>
+<span class="">Public Works Engineering</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-sm">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">attach_file</span>
+<span class="">2 Photo Evidences Attached</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="px-space-md h-9 rounded-lg bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors">
+              Inspect Full Telemetry
+            </button>
+<button class="px-space-md h-9 rounded-lg bg-primary text-on-primary font-label-md text-label-md flex items-center gap-space-xs shadow-sm hover:opacity-95 transition-all" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);">
+<span class="material-symbols-outlined text-[16px]">verified</span>
+<span class="">Validate &amp; Route</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Case 2: GF-DEMO-1050 (Sanitation) -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md hover:bg-surface-bright transition-all">
+<div class="flex items-start justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-id text-code-id px-space-sm py-0.5 rounded bg-surface-container-high text-on-surface">GF-DEMO-1050</span>
+<span class="px-space-sm py-0.5 rounded bg-surface-container-low text-on-surface-variant font-label-sm text-label-sm uppercase">Pending Triage</span>
+<span class="flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 3h ago
+            </span>
+</div>
+<div class="px-space-sm py-0.5 rounded bg-surface-container text-on-tertiary-fixed font-code-timer text-code-timer">
+            SLA: 48 hrs (Priority)
+          </div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">
+            Overflowing community bin uncollected for 3 days
+          </h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-2">
+            "Municipal waste container on 4th Cross Road spilling into pedestrian corridor. Stray cattle present, foul smell dispersing toward adjacent residential block."
+          </p>
+</div>
+<div class="flex flex-wrap items-center gap-y-2 gap-x-space-md pt-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">person</span>
+<span class="">Citizen Maya P.</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-tertiary">location_on</span>
+<span class="">Ward B • 4th Cross Green Park</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">delete</span>
+<span class="">Solid Waste Management</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Single geolocated photo</span>
+<div class="flex items-center gap-space-sm">
+<button class="px-space-md h-9 rounded-lg bg-surface-container-low hover:bg-error-container hover:text-on-error-container text-error font-label-md text-label-md transition-colors">
+              Reject with Reason
+            </button>
+<button class="px-space-md h-9 rounded-lg bg-surface-container-high text-primary hover:bg-primary hover:text-on-primary font-label-md text-label-md flex items-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">alt_route</span>
+<span class="">Validate &amp; Route</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Case 3: GF-DEMO-1051 (Private Property Flagged) -->
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md hover:bg-surface-bright transition-all">
+<div class="flex items-start justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<span class="font-code-id text-code-id px-space-sm py-0.5 rounded bg-surface-container-high text-on-surface">GF-DEMO-1051</span>
+<span class="px-space-sm py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm uppercase flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">warning</span> Flagged: Out of Scope
+            </span>
+<span class="flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 4h ago
+            </span>
+</div>
+<div class="px-space-sm py-0.5 rounded bg-surface-container text-on-surface-variant font-code-timer text-code-timer">
+            SLA: N/A
+          </div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-space-sm">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">
+              Private building interior seepage complaint
+            </h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            "Flat 302 ceiling plaster peeling due to upper floor bathroom leakage inside Navjeevan Cooperative Society."
+          </p>
+</div>
+<div class="p-space-md rounded-lg bg-surface-container-low flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-error text-[18px] shrink-0 mt-0.5">report_problem</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface font-semibold">Automated Flag: Non-Municipal Private Property</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Municipal charter excludes internal structural disputes within private cooperative societies without public easement impact.</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px]">location_off</span>
+<span class="">Ward A • Private Residential Title</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<button class="px-space-md h-9 rounded-lg bg-surface-container-low text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors">
+              Re-evaluate Scope
+            </button>
+<button class="px-space-md h-9 rounded-lg bg-error text-on-error font-label-md text-label-md flex items-center gap-space-xs shadow-sm hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined text-[16px]">block</span>
+<span class="">Reject with Configured Reason</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Pagination Footer -->
+<div class="flex items-center justify-between px-space-md py-space-sm rounded-lg bg-surface-container-lowest shadow-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Showing 1 to 3 of 14 Submissions</span>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm h-8 rounded bg-surface-container-low text-on-surface-variant disabled:opacity-40" disabled="">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<button class="w-8 h-8 rounded bg-primary text-on-primary font-label-sm text-label-sm" style="background-color: #F77F00; color: #FFFFFF;">1</button>
+<button class="w-8 h-8 rounded bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm">2</button>
+<button class="w-8 h-8 rounded bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm">3</button>
+<button class="w-8 h-8 rounded bg-surface-container-low hover:bg-surface-container-high text-on-surface font-label-sm text-label-sm">4</button>
+<button class="px-space-sm h-8 rounded bg-surface-container-low hover:bg-surface-container-high text-on-surface">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Right Column: Grievance Validation Inspection Drawer Preview (5 Cols on desktop) -->
+<div class="xl:col-span-5 flex flex-col gap-space-md sticky top-20">
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-md flex flex-col gap-space-md">
+<!-- Drawer Header -->
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">Inspection &amp; Validation Pane</span>
+<span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Case Focus: GF-DEMO-1049</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="px-space-sm py-1 rounded bg-surface-container text-on-surface font-code-timer text-code-timer">Triage Stage 1</span>
+</div>
+</div>
+<!-- Non-editable Citizen Text Box Notice -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-start gap-space-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-[16px] shrink-0 mt-0.5">lock</span>
+<span class="font-label-sm text-label-sm">
+<strong>Integrity Lock:</strong> Citizen original complaint text is cryptographically pinned. Modification or paraphrasing of citizen statements is disabled by municipal policy.
+          </span>
+</div>
+<!-- Verified Telemetry & Citizen Data -->
+<div class="space-y-space-sm">
+<div class="p-space-md rounded-lg bg-surface-container">
+<div class="flex items-center justify-between mb-1">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Submitted Grievance Text</span>
+<span class="font-code-timer text-code-timer text-on-surface-variant">Received 10:42 AM IST</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface font-normal">
+              "Deep crater pothole near Shivaji Market Bus Stop. Heavy vehicle traffic creates severe hazard. Rainwater pooled inside masking depth. Multiple scooters skidding this morning."
+            </p>
+<div class="mt-space-sm pt-space-xs flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm">
+<span class="">Filer: <strong>Ramesh K. (Verified Citizen ID: CZ-8841)</strong></span>
+<span class="text-primary font-semibold">OTP Authenticated</span>
+</div>
+</div>
+<!-- Geolocation Information & Static Location Mock -->
+<div class="p-space-md rounded-lg bg-surface-container flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Geolocation &amp; GIS Coordinate</span>
+<span class="font-code-timer text-code-timer text-primary">18.5204° N, 73.8567° E</span>
+</div>
+<div class="flex items-center gap-space-sm text-on-surface font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-primary text-[18px]">place</span>
+<span class="font-medium">Opposite Post Office, Shivaji Market Road, Ward A</span>
+</div>
+<!-- Map Component -->
+<div class="w-full h-32 rounded-lg bg-surface-container-high bg-cover bg-center relative overflow-hidden shadow-inner flex items-end p-space-sm" data-location="Shivaji Market, Pune, India" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCstZteClDh9NOpVUV3FQWS83_OXjIcMz88sps1l3keA3QbEuzgNGsfkP9fFpa7mXpZltGjXvoTW86HIb97i9Z7-0DxiIZRlMeVgXy0r_B654g2JI0FDXBdIN3UKk1TR7fLiKebiUagZvIhtqgHn9joiiREWzfkxQ5Na8MXPj33mpQiCjxp8j-kkhu-4UV1ab8bMjCzAgu6eqHG1p7zdW5sJ6sdTwmmUkf10mm5APVJ8E8gLbH4fYpZ')">
+<div class="px-space-sm py-1 rounded bg-surface/90 backdrop-blur-sm text-on-surface font-label-sm text-label-sm flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px] text-primary">pin_drop</span>
+<span class="">Ward Boundary: Zone A-4 Validated</span>
+</div>
+</div>
+</div>
+<!-- Photographic Evidence Strip -->
+<div class="p-space-md rounded-lg bg-surface-container flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Attached Citizen Photographic Evidence</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">2 Attachments</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm">
+<div class="relative rounded-lg overflow-hidden h-24 bg-surface-container-high group">
+<img class="w-full h-full object-cover" data-alt="Close up photograph of a severe deep pothole filled with murky rainwater in the middle of a municipal asphalt street next to a bus curb with cracked pavement edges in clean daytime lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDivAOLwEsSIHiGB1mqFiKimTP_IxCvqaumhRlIEK2Gfi4HGrbr6yJhpsidKyUHucToEgOOwEBdGmKPc_RNNjYXWexh7tQILFmzo1AzKX2PWT9Bx1zrexmLOFZhSGYHD2TySb51FMGLBVP8RUs3bBavEmYj1Wjm3U2cjJBKnYwZiSf6gedz10MJyqbyyfw7ngo1zv2vzKVAEoGNV_fDSxsde-yHl7IIvAOGSixSKvFGZJEClCXPqKg0">
+<div class="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-surface/80 font-code-timer text-code-timer text-on-surface">
+                  IMG_01.JPG
+                </div>
+</div>
+<div class="relative rounded-lg overflow-hidden h-24 bg-surface-container-high group">
+<img class="w-full h-full object-cover" data-alt="Wide perspective photograph showing the same street pothole relative to the blue Shivaji Market municipal bus stop shelter with passing traffic in clear municipal environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1U2A3yXpzGdiVyRJuUUtxOBO2M_10WT1ZOLBPCYIby2eHyCA08gHyJI4qh-2eUOefPbo42_gic6PTZbKcN12JdgMV7D2kXdgUCAuN89mRplkqeYCtSlbuBRvXjR95IrNolGqaJa6UFde8SmMBkDO-t4otEiqVg1maZiVVTRBKcSJjmsx-vIU_TCgRPXq0qzzuLAy3TV4RwBJoYqNqCAaQCCRMGk5D0pwEO8Exi_uApeA5f8mPwmUV">
+<div class="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-surface/80 font-code-timer text-code-timer text-on-surface">
+                  IMG_02.JPG
+                </div>
+</div>
+</div>
+</div>
+<!-- Intake Triage Selectors -->
+<div class="p-space-md rounded-lg bg-surface-container-high flex flex-col gap-space-sm">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Target Operational Assignment</span>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface">Verified Municipal Category</label>
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-lowest text-on-surface font-body-sm text-body-sm shadow-sm">
+<span class="">Pothole / Road Repair</span>
+<span class="material-symbols-outlined text-primary text-[18px]">check_circle</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface">Assigned Department</label>
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-lowest text-on-surface font-body-sm text-body-sm shadow-sm">
+<span class="">Public Works Engineering</span>
+<span class="material-symbols-outlined text-primary text-[18px]">business</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-1 mt-1">
+<label class="font-label-sm text-label-sm text-on-surface">Default SLA Target Commitment</label>
+<div class="flex items-center justify-between p-2 rounded bg-surface-container-lowest text-on-surface font-body-sm text-body-sm shadow-sm">
+<div class="flex items-center gap-space-xs">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<span class="">72 Hours (Class II Road Defect)</span>
+</div>
+<span class="font-code-timer text-code-timer text-on-surface-variant">SLA-CODE-RD72</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Policy Warning Footer -->
+<div class="p-space-sm rounded-lg bg-surface-container-high flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px] shrink-0">info</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+<strong>Validation locks jurisdiction</strong> and automatically routes this case to the Lead Dispatcher queue.
+          </p>
+</div>
+<!-- Action Command Buttons -->
+<div class="flex flex-col sm:flex-row items-center gap-space-sm pt-space-xs">
+<button class="w-full sm:w-1/3 h-10 rounded-lg bg-surface-container-high hover:bg-error-container hover:text-on-error-container text-error font-label-md text-label-md flex items-center justify-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+<span class="">Reject with Reason</span>
+</button>
+<button class="w-full sm:w-2/3 h-10 rounded-lg bg-primary text-on-primary font-label-md text-label-md flex items-center justify-center gap-space-xs shadow-md hover:bg-primary-container transition-all" style="background-color: rgb(247, 127, 0); color: rgb(255, 255, 255);">
+<span class="material-symbols-outlined text-[18px]">verified_user</span>
+<span class="">Confirm Valid Municipal Submission</span>
+</button>
+</div>
+</div>
+<!-- Quick Desk Metrics & Performance Card -->
+<div class="p-space-md rounded-xl bg-surface-container-low shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[22px]">timer</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Officer Anand Sharma's Avg Triage Time</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">4.2 min <span class="font-label-sm text-label-sm text-on-surface-variant font-normal">/ case</span></span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-code-timer text-code-timer text-primary font-semibold">98.4% Accuracy</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Audited 120 Cases</span>
+</div>
+</div>
+</div>
+</div>
+</div></main></div>
+
+</body></html>
