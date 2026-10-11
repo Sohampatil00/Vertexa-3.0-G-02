@@ -4,7 +4,7 @@
 
 GovFix is a proposed municipal grievance workflow system. Citizens can report an issue by text or voice, staff can validate and resolve it, and citizens can verify the result. A deterministic backend is responsible for status changes, assignments, deadlines, escalations, and the audit trail. AI and ElevenLabs help people communicate with the system; they do not independently change a case.
 
-> **Project status:** Phase 1 backend foundation. The demo API runs locally with authentication, case commands, policy pinning, and audit. Citizen/staff interfaces and voice integrations are planned. See the [implementation tracker](./docs/implemented.md).
+> **Project status:** Phase 2 operations implemented locally. Citizen/staff screens support text submission through verified evidence and resolution submission, with scoped queues and ownership history. SLA workers, citizen verification screens, and voice integrations remain planned. See the [implementation tracker](./docs/implemented.md).
 
 ## Why this project
 
@@ -58,12 +58,14 @@ The original [research and concept memo](./info.md) contains background, example
 The backend uses Python 3.12, FastAPI, SQLAlchemy, and Alembic. With [uv](https://docs.astral.sh/uv/getting-started/installation/) installed, run from the repository root:
 
 ```sh
+npm ci --prefix web
+npm run build --prefix web
 uv sync --locked
 uv run govfix init-db
 uv run uvicorn govfix.api:app --host 127.0.0.1 --port 8000
 ```
 
-Open [API documentation](http://127.0.0.1:8000/docs). Provision accounts and follow the first case path in [backend.md](./docs/backend.md). Run `uv run pytest -q` for the test suite. The default database is local SQLite; PostgreSQL is also supported and tested. All current policy values are fictional demonstration rules.
+Open the [operations interface](http://127.0.0.1:8000/app/) or [API documentation](http://127.0.0.1:8000/docs). Provision accounts and follow the first case path in [backend.md](./docs/backend.md). Run `uv run pytest -q` for the test suite. The default database is local SQLite; PostgreSQL is also supported and tested. All current policy values are fictional demonstration rules.
 
 ## Design principle
 

@@ -2,7 +2,6 @@
 
 import hashlib
 import json
-import re
 from typing import Annotated
 
 from fastapi import Depends, Header, Query, Request
@@ -11,6 +10,7 @@ from sqlalchemy import func, select
 from starlette.concurrency import run_in_threadpool
 
 from govfix.auth import Actor, load_actor
+from govfix.command_headers import require_key, require_version
 from govfix.database import as_utc, utcnow, write_transaction
 from govfix.errors import Refusal
 from govfix.evidence import EvidenceStore, project_evidence, validate_image
@@ -35,15 +35,16 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
         }
 
     @app.get("/v1/intake-options")
-    def intake_options(actor: Annotated[Actor, Depends(require_actor)]):
+    def intake_options(request: Request, actor: Annotated[Actor, Depends(require_actor)]):
         with sessions() as session:
             return {
                 "policy": options(workflow.policy_for(session, None)),
                 "evidence_max_bytes": store.max_bytes,
+                "request_id": request.state.request_id,
             }
 
     @app.get("/v1/operations/summary")
-    def summary(actor: Annotated[Actor, Depends(require_actor)]):
+    def summary(request: Request, actor: Annotated[Actor, Depends(require_actor)]):
         with sessions() as session:
             counts = dict(
                 session.execute(
@@ -61,10 +62,17 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
                     Case.current_deadline <= utcnow(),
                 )
             )
-            return {"states": counts, "total": sum(counts.values()), "overdue": overdue}
+            return {
+                "states": counts,
+                "total": sum(counts.values()),
+                "overdue": overdue,
+                "request_id": request.state.request_id,
+            }
 
     @app.get("/v1/cases/{case_id}/operations")
-    def case_operations(case_id: str, actor: Annotated[Actor, Depends(require_actor)]):
+    def case_operations(
+        case_id: str, request: Request, actor: Annotated[Actor, Depends(require_actor)]
+    ):
         with sessions() as session:
             case = read_case(session, actor, case_id)
             policy = workflow.policy_for(session, case)
@@ -109,10 +117,13 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
                 "assignments": history,
                 "owner_name": owner.display_name if owner else None,
                 "evidence_max_bytes": store.max_bytes,
+                "request_id": request.state.request_id,
             }
 
     @app.get("/v1/cases/{case_id}/evidence")
-    def evidence_list(case_id: str, actor: Annotated[Actor, Depends(require_actor)]):
+    def evidence_list(
+        case_id: str, request: Request, actor: Annotated[Actor, Depends(require_actor)]
+    ):
         with sessions() as session:
             case = read_case(session, actor, case_id)
             items = session.scalars(
@@ -124,7 +135,10 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
                 )
                 .order_by(Evidence.uploaded_at, Evidence.id)
             ).all()
-            return {"evidence": [project_evidence(item) for item in items]}
+            return {
+                "evidence": [project_evidence(item) for item in items],
+                "request_id": request.state.request_id,
+            }
 
     @app.get("/v1/cases/{case_id}/evidence/{evidence_id}")
     def download(case_id: str, evidence_id: str, actor: Annotated[Actor, Depends(require_actor)]):
@@ -156,6 +170,13 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
     def persist_upload(
         actor_id, case_id, data, kind, checksum, content_type, key, version, request_id
     ):
+        # Decode before acquiring the actor/case locks; audit any refusal inside the transaction.
+        validation_error = None
+        try:
+            validate_image(data, content_type, checksum)
+        except Refusal as refusal:
+            validation_error = refusal
+        actual_checksum = hashlib.sha256(data).hexdigest()
         saved_key = None
         committed = False
         try:
@@ -168,11 +189,19 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
                     raise Refusal("CASE_ACCESS_DENIED", "Case not found.", 404)
                 record = None
                 digest = hashlib.sha256(
-                    json.dumps([case_id, kind, checksum, content_type, len(data), version]).encode()
+                    json.dumps(
+                        [
+                            case_id,
+                            kind,
+                            checksum,
+                            actual_checksum,
+                            content_type,
+                            version,
+                        ]
+                    ).encode()
                 ).hexdigest()
                 try:
-                    if not key or not key.strip() or len(key) > 200:
-                        raise Refusal("IDEMPOTENCY_KEY_REQUIRED", "Supply an Idempotency-Key.", 400)
+                    require_key(key)
                     record = session.scalar(
                         select(IdempotencyRecord).where(
                             IdempotencyRecord.actor_id == actor.id,
@@ -189,17 +218,9 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
                             )
                         committed = True
                         return record.status_code, {**record.response, "request_id": request_id}
-                    if not version or not re.fullmatch(
-                        r'(?:[1-9][0-9]{0,18}|"[1-9][0-9]{0,18}")', version
-                    ):
-                        raise Refusal(
-                            "CASE_VERSION_REQUIRED", "Supply the current case version.", 400
-                        )
-                    if int(version.strip('"')) != case.version:
-                        raise Refusal(
-                            "CASE_VERSION_CONFLICT", "Refresh the case and try again.", 409
-                        )
-                    validate_image(data, content_type, checksum)
+                    require_version(version, case.version)
+                    if validation_error:
+                        raise validation_error
                     item = Evidence(
                         id=new_id(),
                         case_id=case.id,
@@ -243,7 +264,7 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
                         reason=refusal.code,
                     )
                     status, response = refusal.status, refusal.response(request_id, case.version)
-                if key and key.strip() and len(key) <= 200 and record is None:
+                if key and key.strip() and len(key) <= 200 and record is None and status < 500:
                     session.add(
                         IdempotencyRecord(
                             actor_id=actor.id,
@@ -260,7 +281,19 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
             if saved_key and not committed:
                 store.path(saved_key).unlink(missing_ok=True)
 
-    @app.post("/v1/cases/{case_id}/evidence", status_code=201)
+    @app.post(
+        "/v1/cases/{case_id}/evidence",
+        status_code=201,
+        openapi_extra={
+            "requestBody": {
+                "required": True,
+                "content": {
+                    content_type: {"schema": {"type": "string", "format": "binary"}}
+                    for content_type in ("image/png", "image/jpeg", "image/webp")
+                },
+            }
+        },
+    )
     async def upload(
         case_id: str,
         request: Request,

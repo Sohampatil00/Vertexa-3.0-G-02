@@ -12,3 +12,4 @@ node_modules/
 govfix/static/
 var/
 *.tsbuildinfo
+artifacts/

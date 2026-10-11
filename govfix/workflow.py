@@ -2,13 +2,13 @@
 
 import hashlib
 import json
-import re
 from datetime import timedelta
 
 from pydantic import ValidationError
 from sqlalchemy import select
 
 from govfix.auth import Actor, load_actor
+from govfix.command_headers import require_key, require_version
 from govfix.database import as_utc, utcnow, write_transaction
 from govfix.errors import Refusal
 from govfix.evidence import EvidenceStore
@@ -180,10 +180,7 @@ class Workflow:
             try:
                 if case_id and not may_see:
                     raise Refusal("CASE_ACCESS_DENIED", "Case not found.", 404)
-                if not key or not key.strip() or len(key) > 200:
-                    raise Refusal(
-                        "IDEMPOTENCY_KEY_REQUIRED", "A valid Idempotency-Key is required.", 400
-                    )
+                require_key(key)
                 record = session.scalar(
                     select(IdempotencyRecord).where(
                         IdempotencyRecord.actor_id == actor.id,
@@ -202,16 +199,7 @@ class Workflow:
                         )
                     return record.status_code, {**record.response, "request_id": request_id}
                 if case:
-                    if expected_version is None or not re.fullmatch(
-                        r'(?:[1-9][0-9]{0,18}|"[1-9][0-9]{0,18}")', expected_version
-                    ):
-                        raise Refusal(
-                            "CASE_VERSION_REQUIRED", "If-Match must contain the case version.", 400
-                        )
-                    if int(expected_version.strip('"')) != case.version:
-                        raise Refusal(
-                            "STALE_CASE_VERSION", "The case has changed. Reload and try again.", 409
-                        )
+                    require_version(expected_version, case.version)
                 policy = self.policy_for(session, case)
                 try:
                     command = COMMAND_SCHEMAS[operation].model_validate(body)

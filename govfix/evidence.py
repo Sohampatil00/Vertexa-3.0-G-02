@@ -44,6 +44,8 @@ class EvidenceStore:
     def __init__(self, settings):
         self.root = Path(settings.evidence_directory).resolve()
         self.max_bytes = settings.evidence_max_bytes
+        if self.root.is_relative_to((Path(__file__).parent / "static").resolve()):
+            raise ValueError("Evidence storage must be outside the public static directory")
 
     def path(self, key):
         # Object names are server-generated UUIDs. Never accept client paths.
@@ -58,15 +60,18 @@ class EvidenceStore:
 
     def save(self, key, data):
         path = self.path(key)
+        created = False
         try:
             self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
             descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+            created = True
             with os.fdopen(descriptor, "wb") as stream:
                 stream.write(data)
                 stream.flush()
                 os.fsync(stream.fileno())
         except OSError as exc:
-            path.unlink(missing_ok=True)
+            if created:
+                path.unlink(missing_ok=True)
             raise Refusal("EVIDENCE_UNAVAILABLE", "Evidence storage is unavailable.", 503) from exc
 
     def read(self, evidence):

@@ -22,10 +22,12 @@ This log distinguishes **accepted product scope** from **proposed engineering ch
 | ID | Proposal | Why / validation needed |
 |---|---|---|
 | P-01 | Modular API and PostgreSQL selected; private object storage and durable workers planned. | Phase 1 verifies atomic mutation/audit; hosting and delivery infrastructure remain open. |
-| P-02 | Next.js and TypeScript for web interfaces. | Shared UI platform for citizen and staff views; assess accessibility and deployment. |
+| P-02 | React, TypeScript, Vite and Tailwind selected for Phase 2, superseding the Next.js proposal. | Current local interfaces need no server rendering; API serves the compiled client from the same origin. Browser tests verify the text path and mobile layout. |
 | P-03 | FastAPI for the backend — selected for Phase 1. | Builds on the Python policy validator and provides generated command schemas; tested with PostgreSQL and SQLite. |
 | P-04 | Transactional outbox selected and implemented for verification/review requests. | Requests commit with their events; delivery and retry workers remain planned. |
 | P-05 | Scope voice tools by operation rather than exposing generic case mutation. | Reduces model and integration authority; validate ElevenLabs tool behavior in a prototype. |
+
+**Phase 2 implementation choice, 11 October 2026:** Private local evidence storage supports the single-host demo. Images are decoded and checksum verified, with transactional metadata/audit and rollback cleanup. Production object storage, reconciliation, retention, and deployment are still open.
 
 ## Open decisions requiring named owners
 

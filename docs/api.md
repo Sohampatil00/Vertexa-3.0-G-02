@@ -1,6 +1,6 @@
 # Proposed API contract
 
-**Status:** Phase 1 implements `/v1/me`, case reads/list/timeline/allowed actions, auditor policy reads, and case submission/validation/rejection/assignment/acceptance/resolution/verification/review commands. `/v1/auth/login` and `/v1/auth/logout` provide local account sessions. Deadline extension, evidence upload, and voice endpoints below remain planned. Run the [backend](./backend.md) to inspect generated OpenAPI at `/docs` and `/openapi.json`.
+**Status:** Phase 1 implements `/v1/me`, case reads/list/timeline/allowed actions, auditor policy reads, and case submission/validation/rejection/assignment/acceptance/resolution/verification/review commands. `/v1/auth/login` and `/v1/auth/logout` provide local account sessions. Phase 2 adds scoped operations data, queue filters, and private image uploads/downloads. Deadline extension and voice endpoints remain planned. Run the [backend](./backend.md) to inspect generated OpenAPI at `/docs` and `/openapi.json`.
 
 Current submission requires a configured category and ward as well as description, location, and confirmation, so a provisional demo deadline can be pinned immediately. Validation confirms those values; correction cannot silently change the original deadline. Voice commands remain refused until a verified voice-session implementation exists.
 
@@ -23,6 +23,8 @@ Current submission requires a configured category and ward as well as descriptio
 | `GET /v1/cases/{id}/allowed-actions` | Authorized user | Actions possible for the actor at the observed version, with missing requirements where safe to reveal |
 | `GET /v1/policies/{version}` | Admin/auditor | Published policy definition and checksum |
 
+Phase 2 also implements `GET /v1/intake-options` (active demo catalog), `GET /v1/operations/summary` (counts within scope), `GET /v1/cases/{id}/operations` (pinned catalog, eligible officer choices for dispatchers/supervisors, owner name, ownership history for supervisors/ward heads/auditors), and `GET /v1/cases/{id}/evidence` with authenticated `GET /v1/cases/{id}/evidence/{evidence_id}` downloads. Case lists accept `state`, `owned`, `limit`, and `offset`; scope restrictions apply before filters. See [backend setup](./backend.md) for upload headers and storage limits.
+
 Read responses are projections; a citizen must never receive another citizen's contact data or internal-only audit details.
 
 ## Governed command endpoints
@@ -38,7 +40,7 @@ Read responses are projections; a citizen must never receive another citizen's c
 | `POST /v1/cases/{id}/verification` | Verified citizen | `ACCEPT` or `DISPUTE`, explicit confirmation, optional statement | `CLOSED` or `DISPUTED` case version |
 | `POST /v1/cases/{id}/review` | Supervisor | Rework decision, owner, reason | `ASSIGNED` or `IN_PROGRESS` case version |
 | `POST /v1/cases/{id}/deadline-extension` | Authorized supervisor | New deadline and reason | Updated SLA, audit event, citizen notification request |
-| `POST /v1/cases/{id}/evidence-uploads` | Authorized case participant | Kind, MIME type, size; then upload completion/checksum | Private upload target and confirmed evidence record |
+| `POST /v1/cases/{id}/evidence?kind=...` | Current assigned officer, in progress | Raw image bytes; MIME type, SHA-256 header, idempotency key, case version | Verified private evidence record; workflow version unchanged |
 
 The `resolution` endpoint should commit the officer action and enqueue or perform the deterministic transition to `CITIZEN_VERIFICATION` exactly once. The API must expose the actual committed state consistently; it must not report a state transition before its transaction succeeds.
 

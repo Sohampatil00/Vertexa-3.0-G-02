@@ -108,7 +108,7 @@ def test_upload_role_and_scope(backend, who, status):
         ({"data": b"fake image"}, "INVALID_IMAGE"),
         ({"content_type": "image/jpeg"}, "INVALID_IMAGE"),
         ({"kind": "BEFORE_PHOTO"}, "INVALID_EVIDENCE_KIND"),
-        ({"version": 1}, "CASE_VERSION_CONFLICT"),
+        ({"version": 1}, "STALE_CASE_VERSION"),
     ],
 )
 def test_invalid_upload_never_completes(backend, change, code):
@@ -245,3 +245,52 @@ def test_web_served_without_exposing_private_files(backend):
     assert backend.client.get("/app/").status_code == 200
     assert "Municipal operations" in backend.client.get("/app/").text
     assert backend.client.get("/app/../var/evidence/test").status_code == 404
+
+
+def test_retry_after_transient_storage_failure(backend, monkeypatch):
+    from govfix.errors import Refusal
+    from govfix.evidence import EvidenceStore
+
+    case = backend.in_progress()
+    original = EvidenceStore.save
+
+    def unavailable(*_args):
+        raise Refusal("EVIDENCE_UNAVAILABLE", "Temporary failure", 503)
+
+    monkeypatch.setattr(EvidenceStore, "save", unavailable)
+    assert upload(backend, case).status_code == 503
+    monkeypatch.setattr(EvidenceStore, "save", original)
+    assert upload(backend, case).status_code == 201
+
+
+def test_same_length_different_bytes_conflict(backend):
+    case = backend.in_progress()
+    assert upload(backend, case).status_code == 201
+    original = photo()
+    changed = original[:-1] + bytes([original[-1] ^ 1])
+    result = upload(backend, case, data=changed, checksum=hashlib.sha256(original).hexdigest())
+    assert result.status_code == 409
+
+
+def test_exclusive_storage_preserves_existing_object(tmp_path):
+    from govfix.errors import Refusal
+    from govfix.evidence import EvidenceStore
+    from govfix.models import new_id
+    from govfix.settings import Settings
+
+    store = EvidenceStore(Settings(evidence_directory=str(tmp_path / "objects")))
+    key = new_id()
+    store.save(key, b"existing")
+    with pytest.raises(Refusal):
+        store.save(key, b"replacement")
+    assert store.path(key).read_bytes() == b"existing"
+
+
+def test_private_store_cannot_be_configured_under_static():
+    from pathlib import Path
+    from govfix.evidence import EvidenceStore
+    from govfix.settings import Settings
+
+    public = Path(__file__).resolve().parents[1] / "govfix/static/evidence"
+    with pytest.raises(ValueError, match="outside the public"):
+        EvidenceStore(Settings(evidence_directory=str(public)))

@@ -78,7 +78,8 @@ function App() {
       setUser(null);
       setError("");
     } catch (err) {
-      setError((err as Error).message);
+      if (err instanceof ApiError && err.status === 401) expired();
+      else setError((err as Error).message);
     } finally {
       setBusy(false);
     }
@@ -121,6 +122,11 @@ function App() {
           )}
         </div>
       </header>
+      {user && error && (
+        <div className="mx-auto max-w-7xl px-5 pt-4">
+          <ErrorText message={error} />
+        </div>
+      )}
       {!user ? (
         <main className="mx-auto max-w-md px-5 py-16">
           <p className="mb-3 text-sm font-semibold text-blue-700">
@@ -201,20 +207,12 @@ function Workspace({
     let live = true;
     setLoading(true);
     setError("");
-    Promise.all([
-      api<{ cases: Case[] }>(
-        token,
-        `/cases?limit=20&offset=${offset}&owned=${owned}&state=${state}`,
-      ),
-      api<{ policy: Policy }>(token, "/intake-options"),
-      api<typeof summary>(token, "/operations/summary"),
-    ])
-      .then(([list, options, totals]) => {
-        if (live) {
-          setItems(list.cases);
-          setPolicy(options.policy);
-          setSummary(totals);
-        }
+    api<{ cases: Case[] }>(
+      token,
+      `/cases?limit=20&offset=${offset}&owned=${owned}&state=${state}`,
+    )
+      .then((list) => {
+        if (live) setItems(list.cases);
       })
       .catch((err) => {
         if (live) {
@@ -229,6 +227,25 @@ function Workspace({
       live = false;
     };
   }, [token, state, owned, offset, revision]);
+  useEffect(() => {
+    let live = true;
+    Promise.all([
+      api<{ policy: Policy }>(token, "/intake-options"),
+      api<typeof summary>(token, "/operations/summary"),
+    ])
+      .then(([options, totals]) => {
+        if (live) {
+          setPolicy(options.policy);
+          setSummary(totals);
+        }
+      })
+      .catch((err) => {
+        if (live) setError(err.message);
+      });
+    return () => {
+      live = false;
+    };
+  }, [token, revision]);
   function refreshed(item: Case) {
     setSelected(item);
     setIntake(false);
@@ -793,9 +810,9 @@ function Detail({
                           {assignment.assigned_by}
                         </p>
                         <p className="mt-1 text-xs tabular-nums">
-                          {date(assignment.started_at)} →{" "}
+                          {date(assignment.started_at, current.timezone)} →{" "}
                           {assignment.ended_at
-                            ? date(assignment.ended_at)
+                            ? date(assignment.ended_at, current.timezone)
                             : "Active"}
                         </p>
                       </li>
@@ -826,7 +843,7 @@ function Detail({
                       </span>
                     </p>
                     <p className="mt-1 text-xs text-slate-500 tabular-nums">
-                      {date(event.occurred_at)}
+                      {date(event.occurred_at, current.timezone)}
                     </p>
                     {event.actor_role && (
                       <p className="mt-1 text-xs text-slate-500 capitalize">

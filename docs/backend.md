@@ -1,12 +1,14 @@
-# Running the workflow foundation
+# Running GovFix locally
 
-Phase 1 provides a FastAPI service with SQLAlchemy persistence, Alembic migrations, local account authentication, scoped role grants, versioned case commands, and transactional audit/idempotency records. It uses the fictional `DEMO_ONLY` policy. Python 3.12 and [uv](https://docs.astral.sh/uv/getting-started/installation/) are required.
+Phases 1–2 provide a React operations interface and a FastAPI service with SQLAlchemy persistence, Alembic migrations, local account authentication, scoped role grants, versioned case commands, and transactional audit/idempotency records. It uses the fictional `DEMO_ONLY` policy. Python 3.12 and [uv](https://docs.astral.sh/uv/getting-started/installation/) are required.
 
 ## Setup
 
 From the repository root:
 
 ```sh
+npm ci --prefix web
+npm run build --prefix web
 uv sync --locked
 uv run govfix init-db
 uv run govfix create-user citizen --name "Demo Citizen" --role CITIZEN --verified
@@ -19,6 +21,8 @@ uv run uvicorn govfix.api:app --host 127.0.0.1 --port 8000
 ```
 
 Each account command prompts for a password of at least 12 characters. No default credentials or staff registration endpoint exist. Save the officer ID printed by account creation for the assignment request. `--verified` records administrator-established demo identity; it is not an OTP or production identity verification integration.
+
+Open the [operations interface](http://127.0.0.1:8000/app/) and sign in with a provisioned account. Sessions stay in browser memory and are cleared on reload. Citizen intake, staff validation/assignment, an officer queue, resolution upload/submission, and scoped supervisor ownership history are available. Citizen accept/dispute and supervisor rework screens remain Phase 4 work.
 
 Open [API documentation](http://127.0.0.1:8000/docs). Call `POST /v1/auth/login` with a username and password, then use **Authorize** to supply the returned bearer token. Sessions expire after 60 minutes by default and `POST /v1/auth/logout` revokes them. Passwords use Argon2; only a SHA-256 hash of each random session token is stored. Roles are read from the database on each request.
 
@@ -33,7 +37,7 @@ For steps 2–4, send a new `Idempotency-Key` and an `If-Match` header containin
 
 Citizen reads are restricted to their own cases. Staff reads are restricted to explicitly granted wards and optional departments. An officer's grant permits reading cases in that scope; changing a case still requires current ownership. Supervisors, ward heads, and auditors can see refused attempts in the timeline. Other roles receive only accepted timeline events without internal audit details.
 
-The resolution, verification, and rework commands implement the backend gates for the complete P0 graph. Resolution requires existing, completed evidence records from the same case; supplied object references alone cannot create evidence. Private upload completion is Phase 2 work, so full resolution demonstrations currently use trusted test fixtures. Internal verification/review transitions and their pending outbox requests commit atomically. There is no delivery worker yet, so queued requests remain `PENDING`.
+The resolution, verification, and rework commands implement the backend gates for the complete P0 graph. Resolution requires existing, completed evidence records from the same case; supplied object references alone cannot create evidence. Phase 2 uploads actual private images and verifies their checksum, format, size, and completion before resolution submission. Internal verification/review transitions and their pending outbox requests commit atomically. There is no delivery worker yet, so queued requests remain `PENDING`.
 
 ## Configuration and database
 
@@ -45,9 +49,31 @@ Case mutation, ownership intervals, audit events, and idempotency results share 
 
 The elapsed-hour demo deadline is recorded at submission and SLA status is derived on reads. Automatic escalation, deadline extensions, notifications, and the verification wait review worker remain Phase 3/4 work. Voice commands are refused until a verified voice-session implementation exists.
 
+
+## Operations interface and evidence
+
+The web client uses React, TypeScript, Vite and Tailwind. `npm run dev --prefix web` runs its development server, with `/v1` proxied to the API on port 8000. The production build writes generated files to `govfix/static/`; restart the API after the first build so `/app/` is mounted. Generated assets and `node_modules` are ignored; the source and npm lockfile are tracked. Node 22.12+ is required. This selects Vite for the local client instead of the earlier Next.js proposal; the current screens need no server rendering or separate web server. See [Vite build guidance](https://vite.dev/guide/build) and [Tailwind’s Vite integration](https://tailwindcss.com/docs/installation/using-vite).
+
+The default private store is `./var/evidence`, outside the static directory. Override it with `GOVFIX_EVIDENCE_DIRECTORY`, pointing to a private writable directory. Set `GOVFIX_EVIDENCE_MAX_BYTES` to change the 5 MiB default, up to 20 MiB. Still PNG, JPEG, and WebP images of at most 20 megapixels are accepted. The API verifies the actual decoded format and SHA-256 rather than trusting the filename or supplied MIME type. Original bytes are preserved, including any EXIF metadata; officers should remove sensitive metadata before upload. Automated metadata removal and approved retention remain hardening work.
+
+The assigned officer uploads during `IN_PROGRESS` using `POST /v1/cases/{id}/evidence?kind=AFTER_PHOTO`. Send raw image bytes with `Content-Type`, `X-Content-SHA256`, `Idempotency-Key`, and `If-Match`. Uploads do not change the workflow version. Exact retries return the same evidence record; altered bytes conflict, and transient storage failures can retry. Accepted/refused attempts are audited. Listing and downloading evidence require a valid session and current case access; there are no public object URLs. Session expiry or revocation also ends download access. Files are served as attachments with no caching. Resolution submission and downloads recheck stored bytes against the recorded checksum.
+
+Completed evidence metadata and audit share one database transaction. If that transaction fails, the new file is removed. A process crash between durable file creation and database commit can leave an unreferenced private file; production storage needs reconciliation and coordinated database/object backups. The local store is for one demo host, not a multi-host production storage solution.
+
+To run the browser workflow against a temporary database with generated credentials and private files:
+
+```sh
+uv run playwright install chromium
+uv run python scripts/test_browser.py
+```
+
+It exercises citizen submission, intake validation, dispatcher assignment, officer acceptance/upload/resolution, supervisor history, private download, and mobile layout. Temporary credentials, database, and evidence are cleaned up. Synthetic screenshots are written to ignored `artifacts/`.
+
 ## Validation
 
 ```sh
+npm ci --prefix web
+npm run build --prefix web
 uv run pytest -q
 uv run ruff check .
 uv run ruff format --check .
@@ -65,4 +91,4 @@ The helper creates a temporary database, runs the suite, stops PostgreSQL, and r
 
 The authentication implementation follows [FastAPI's security guidance](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/) for Argon2 password hashing while using opaque, revocable sessions. Transaction handling follows [SQLAlchemy's SQLite transaction documentation](https://docs.sqlalchemy.org/en/20/dialects/sqlite.html). CI installation follows [uv's GitHub Actions guidance](https://docs.astral.sh/uv/guides/integration/github/).
 
-This local foundation still needs approved municipal policy, production citizen identity verification, login/request rate limits, private evidence storage, operational interfaces, workers, and release validation before a real pilot.
+This local foundation still needs approved municipal policy, production citizen identity verification, login/request rate limits, production object storage, workers, and release validation before a real pilot.

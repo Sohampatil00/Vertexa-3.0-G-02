@@ -1,6 +1,6 @@
 # Proposed architecture
 
-**Status:** The Phase 1 modular backend is implemented with FastAPI, SQLAlchemy, and Alembic. SQLite supports local development and PostgreSQL supports the intended database path; both pass the backend suite. Web, storage, workers, voice, notifications, and deployment below remain proposals. See [backend setup](./backend.md) and the [implementation tracker](./implemented.md).
+**Status:** The Phase 1 modular backend is implemented with FastAPI, SQLAlchemy, and Alembic. SQLite supports local development and PostgreSQL supports the intended database path; both pass the backend suite. Phase 2 adds a React client and authenticated private local image storage. Production storage, workers, voice, notifications, and deployment below remain proposals. See [backend setup](./backend.md) and the [implementation tracker](./implemented.md).
 
 ## System context
 
@@ -25,10 +25,10 @@ The **GovFix API is the sole authority** for case mutations. Browser and voice c
 
 | Component | Responsibility | Proposed implementation |
 |---|---|---|
-| Web application | Citizen and staff interfaces, accessible text fallback | Next.js with TypeScript |
+| Web application | Citizen and staff interfaces, accessible text fallback | React with TypeScript, Vite and Tailwind; Phase 2 implemented |
 | API | Auth context, workflow service, policy evaluation, case queries, assignment, evidence metadata, audit writes | FastAPI with Python 3.12, SQLAlchemy, and Alembic; Phase 1 implemented |
 | Database | Cases, versioned policies, assignments, SLA state, event history | PostgreSQL; SQLite for local development; Phase 1 schema implemented |
-| Object storage | Private evidence and optional voice artifacts | S3-compatible storage with short-lived signed access |
+| Object storage | Private evidence and optional voice artifacts | Private local files for the demo; authenticated downloads. S3-compatible production storage remains planned |
 | Job queue and worker | Deadline checks, escalation, notifications, retry handling | Queue backed by Redis or a database outbox; choose with deployment constraints |
 | Voice provider | Speech, conversation, status tools, confirmed action intents, optional outbound calls | ElevenLabs Agents and documented webhook tools |
 | Notification adapter | Citizen and staff alerts | Provider-neutral API, with one pilot channel implemented first |
