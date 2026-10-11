@@ -19,7 +19,10 @@ def audit(connection):
             connection.execute(
                 text("""
             SELECT c.relrowsecurity AS rls,
-              (SELECT count(*) FROM pg_policy WHERE polrelid=c.oid) AS policies,
+              (SELECT count(*) FROM pg_policy WHERE polrelid=c.oid AND
+                polroles IS DISTINCT FROM ARRAY[(SELECT oid FROM pg_roles
+                  WHERE rolname='govfix_backend')])
+                AS policies,
               EXISTS (SELECT 1 FROM pg_roles r WHERE
                 r.rolname IN ('anon','authenticated','service_role') AND
                 has_table_privilege(r.oid,c.oid,

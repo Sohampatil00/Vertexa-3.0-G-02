@@ -7,6 +7,12 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Settings:
     database_url: str = "sqlite:///./govfix.db"
+    require_restricted_role: bool = False
+    migration_database_url: str | None = None
+    login_account_limit: int = 5
+    login_ip_limit: int = 30
+    login_window_seconds: int = 900
+    login_rate_secret: str = "local-demo-login-budget"
     policy_version: str = "demo-pilot-v1"
     session_minutes: int = 60
     evidence_directory: str = "./var/evidence"
@@ -24,6 +30,12 @@ class Settings:
     elevenlabs_agent_mr: str | None = None
 
     def __post_init__(self):
+        if not 1 <= self.login_account_limit <= 100 or not 1 <= self.login_ip_limit <= 1000:
+            raise ValueError("Login limits must be within account 1–100 and IP 1–1000")
+        if not 1 <= self.login_window_seconds <= 86400:
+            raise ValueError("Login window must be 1–86400 seconds")
+        if len(self.login_rate_secret) < 16:
+            raise ValueError("Login rate secret must have at least 16 characters")
         if self.auth_provider not in ("local", "supabase"):
             raise ValueError("auth_provider must be local or supabase")
         if self.auth_provider == "supabase" and not (self.supabase_url and self.supabase_anon_key):
@@ -50,6 +62,13 @@ class Settings:
             elevenlabs_agent_hi=os.getenv("GOVFIX_ELEVENLABS_AGENT_HI"),
             elevenlabs_agent_mr=os.getenv("GOVFIX_ELEVENLABS_AGENT_MR"),
             database_url=database_url,
+            require_restricted_role=os.getenv("GOVFIX_REQUIRE_RESTRICTED_ROLE", "false").lower()
+            in {"true", "1", "yes"},
+            migration_database_url=os.getenv("GOVFIX_MIGRATION_DATABASE_URL"),
+            login_account_limit=int(os.getenv("GOVFIX_LOGIN_ACCOUNT_LIMIT", "5")),
+            login_ip_limit=int(os.getenv("GOVFIX_LOGIN_IP_LIMIT", "30")),
+            login_window_seconds=int(os.getenv("GOVFIX_LOGIN_WINDOW_SECONDS", "900")),
+            login_rate_secret=os.getenv("GOVFIX_LOGIN_RATE_SECRET", "local-demo-login-budget"),
             auth_provider=os.getenv("GOVFIX_AUTH_PROVIDER", "local"),
             policy_version=os.getenv("GOVFIX_POLICY_VERSION", "demo-pilot-v1"),
             evidence_directory=os.getenv("GOVFIX_EVIDENCE_DIRECTORY", "./var/evidence"),

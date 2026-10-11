@@ -234,3 +234,10 @@ class VoiceSession(Base):
     draft_hash: Mapped[str | None] = mapped_column(String(64))
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     result: Mapped[dict | None] = mapped_column(JSON)
+
+
+class LoginBudget(Base):
+    __tablename__ = "login_budgets"
+    key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    attempts: Mapped[int] = mapped_column(Integer)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)

@@ -2,13 +2,22 @@
 
 from datetime import timedelta
 
-from sqlalchemy import or_, select
+from sqlalchemy import delete, or_, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from govfix.auth import load_actor
 from govfix.database import as_utc, utcnow, write_transaction
 from govfix.errors import Refusal
-from govfix.models import AuditEvent, Case, Notification, OutboxMessage, RoleGrant, User, new_id
+from govfix.models import (
+    AuditEvent,
+    Case,
+    LoginBudget,
+    Notification,
+    OutboxMessage,
+    RoleGrant,
+    User,
+    new_id,
+)
 from govfix.sla import record_due
 from govfix.workflow import Workflow, snapshot, visible
 
@@ -233,12 +242,31 @@ class Worker:
                     return counts
         return counts
 
+    def prune_login_budgets(self, limit=100):
+        now = as_utc(self.clock())
+        with write_transaction(self.sessions) as session:
+            keys = session.scalars(
+                select(LoginBudget.key)
+                .where(LoginBudget.expires_at <= now)
+                .order_by(LoginBudget.expires_at, LoginBudget.key)
+                .limit(limit)
+                .with_for_update(skip_locked=True)
+            ).all()
+            if keys:
+                session.execute(
+                    delete(LoginBudget).where(
+                        LoginBudget.key.in_(keys), LoginBudget.expires_at <= now
+                    )
+                )
+        return len(keys)
+
     def run_once(self, limit=100):
         try:
             return {
                 "sla": self.scan(limit),
                 "verification": self.scan_verification(limit),
                 "notifications": self.dispatch(limit),
+                "login_budgets_pruned": self.prune_login_budgets(limit),
             }
         except SQLAlchemyError:
             # Keep polling through transient database failure; no transaction can partially commit.

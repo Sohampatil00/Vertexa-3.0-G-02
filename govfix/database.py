@@ -54,3 +54,18 @@ def write_transaction(sessions):
         if session.get_bind().dialect.name == "sqlite":
             session.connection(execution_options={"govfix_write": True})
         yield session
+
+
+def verify_runtime_role(connection):
+    """Fail startup if a hardened runtime has administrative database privileges."""
+    if connection.dialect.name != "postgresql":
+        raise RuntimeError("Restricted runtime requires PostgreSQL")
+    privileged = connection.exec_driver_sql("""
+        SELECT rolsuper OR rolcreatedb OR rolcreaterole OR rolreplication OR rolbypassrls
+          OR has_schema_privilege(current_user, 'public', 'CREATE')
+          OR NOT pg_has_role(current_user, 'govfix_backend', 'MEMBER')
+          OR EXISTS (SELECT 1 FROM pg_tables WHERE schemaname='public' AND tableowner=current_user)
+        FROM pg_roles WHERE rolname=current_user
+    """).scalar_one()
+    if privileged:
+        raise RuntimeError("API/worker must use the restricted backend database login")

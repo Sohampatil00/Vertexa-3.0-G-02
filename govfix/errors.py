@@ -6,6 +6,7 @@ class Refusal(Exception):
     code: str
     message: str
     status: int
+    retry_after: int | None = None
 
     def response(self, request_id: str, case_version: int | None = None) -> dict:
         error = {"code": self.code, "message": self.message}

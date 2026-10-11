@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from govfix.auth import password_hasher
-from govfix.database import make_engine, make_sessions, write_transaction
+from govfix.database import make_engine, make_sessions, verify_runtime_role, write_transaction
 from govfix.models import PolicyVersion, RoleGrant, User
 from govfix.policy import PolicyError, load_policy
 from govfix.settings import Settings
@@ -94,10 +94,18 @@ def main():
         getpass.getpass("Password (12+ characters): ") if args.operation == "create-user" else None
     )
     settings = Settings.from_env()
-    engine = make_engine(settings.database_url)
+    database_url = (
+        settings.database_url
+        if args.operation == "worker"
+        else settings.migration_database_url or settings.database_url
+    )
+    engine = make_engine(database_url)
     sessions = make_sessions(engine)
     try:
         if args.operation == "worker":
+            if settings.require_restricted_role:
+                with engine.connect() as connection:
+                    verify_runtime_role(connection)
             if not 1 <= args.poll_seconds <= 3600 or not 1 <= args.batch_size <= 1000:
                 raise ValueError("Poll interval must be 1–3600 seconds; batch size 1–1000")
             runner = Worker(sessions, settings)
@@ -111,7 +119,7 @@ def main():
                 pass
             return
         if args.operation == "init-db":
-            migrate(settings.database_url)
+            migrate(database_url)
         with write_transaction(sessions) as session:
             if args.operation in {"init-db", "import-policy"}:
                 version = import_policy(

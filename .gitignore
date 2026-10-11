@@ -13,3 +13,5 @@ govfix/static/
 var/
 *.tsbuildinfo
 artifacts/
+
+.env.provisioning

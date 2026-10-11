@@ -40,3 +40,11 @@ The [PRD](../prd.md) places officer voice dictation, outbound verification calls
 ## Scope change rule
 
 A feature moves into P0 only if its acceptance criterion, owner, and impact on the critical workflow are recorded in [decisions.md](./decisions.md) and the [PRD](../prd.md) is updated. Do not trade away transition enforcement, role checks, escalation, or audit to add a presentation feature.
+
+
+## Phase 6 progress
+
+Supabase Data API permissions and login-to-case verification are complete. The authentication
+hardening slice adds shared login rate limits, a restricted PostgreSQL backend login and
+separate migration/administration credentials. Next: readiness checks, structured logs and
+worker failure visibility, followed by backup/restore and pilot load/accessibility validation.

@@ -6,7 +6,12 @@ from govfix.settings import Settings
 
 config = context.config
 target_metadata = Base.metadata
-url = config.attributes.get("database_url", Settings.from_env().database_url)
+settings = Settings.from_env()
+url = (
+    config.attributes.get("database_url")
+    or settings.migration_database_url
+    or settings.database_url
+)
 if url.startswith("postgres://"):
     url = "postgresql+psycopg://" + url.removeprefix("postgres://")
 elif url.startswith("postgresql://"):

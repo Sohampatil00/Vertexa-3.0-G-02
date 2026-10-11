@@ -22,7 +22,7 @@ def verify(settings):
         raise ValueError(
             "Live smoke requires local provider; native Auth needs a provisioned identity"
         )
-    engine = make_engine(settings.database_url)
+    engine = make_engine(settings.migration_database_url or settings.database_url)
     try:
         with engine.connect() as connection:
             transaction = connection.begin()
@@ -41,6 +41,9 @@ def verify(settings):
                             password=password,
                             role="CITIZEN",
                         )
+                if settings.migration_database_url:
+                    # Seed with administration rights, then verify under backend RLS/privileges.
+                    connection.exec_driver_sql("SET LOCAL ROLE govfix_backend")
                 with patch("govfix.api.make_sessions", return_value=sessions):
                     app = create_app(settings)
                 with TestClient(app) as client:

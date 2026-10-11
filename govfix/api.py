@@ -14,8 +14,15 @@ from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 
 from govfix.auth import Actor, authenticate, login, login_supabase, token_hash
-from govfix.database import as_utc, make_engine, make_sessions, write_transaction
+from govfix.database import (
+    as_utc,
+    make_engine,
+    make_sessions,
+    verify_runtime_role,
+    write_transaction,
+)
 from govfix.errors import Refusal
+from govfix.login_limits import reserve_login
 from govfix.models import AuditEvent, AuthSession, Case, PolicyVersion, new_id
 from govfix.notifications import register_notifications
 from govfix.operations import register_operations
@@ -52,9 +59,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(_app):
         try:
             with sessions() as session:
+                if settings.require_restricted_role:
+                    verify_runtime_role(session.connection())
                 revision = session.execute(text("SELECT version_num FROM alembic_version")).scalar()
                 if (
-                    revision != "0007"
+                    revision != "0008"
                     or session.get(PolicyVersion, settings.policy_version) is None
                 ):
                     raise RuntimeError("Run 'uv run govfix init-db' before starting the API")
@@ -130,7 +139,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return JSONResponse(
             refusal.response(request.state.request_id),
             status_code=refusal.status,
-            headers={"WWW-Authenticate": "Bearer"} if refusal.status == 401 else None,
+            headers=(
+                {"Retry-After": str(refusal.retry_after)}
+                if refusal.retry_after is not None
+                else {"WWW-Authenticate": "Bearer"}
+                if refusal.status == 401
+                else None
+            ),
         )
 
     def channel_from_body(body):
@@ -202,6 +217,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/v1/auth/login")
     def sign_in(body: Login, request: Request):
+        # Forwarded headers are intentionally ignored; deployment must trust only its proxy.
+        reserve_login(
+            sessions, settings, request.client.host if request.client else "unknown", body.username
+        )
         if settings.auth_provider == "supabase":
             response = login_supabase(
                 sessions, settings, body.username, body.password.get_secret_value()

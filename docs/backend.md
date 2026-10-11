@@ -132,8 +132,9 @@ trigger function. No Data API policies are installed: all governed reads and wri
 through the backend's scoped authorization, transactions, idempotency and audit checks.
 Private Storage uses its own schema; its service-role integration still works.
 Default table privileges for the migration owner are revoked for future tables in `public`.
-Downgrading does not restore unsafe grants. The backend currently connects as `postgres`;
-a dedicated restricted backend database role remains a deployment hardening task.
+Downgrading does not restore unsafe grants. Migration `0008` adds the `govfix_backend` group and explicit policies confined to that
+trusted backend role. The API and worker connect as `govfix_runtime`, with no ownership,
+RLS bypass, schema creation, role administration or password/role-grant mutation rights.
 See [Supabase's grants and RLS guidance](https://supabase.com/docs/guides/api/securing-your-api).
 
 After loading `.env` (`set -a; source .env; set +a`):
@@ -144,7 +145,7 @@ uv run python scripts/audit_supabase.py
 uv run python scripts/verify_login_case.py
 ```
 
-The audit exits nonzero for missing tables, disabled RLS, policies or API-role grants.
+The audit exits nonzero for missing tables, disabled RLS, unexpected policies or API-role grants.
 The live workflow check creates temporary accounts inside a transaction and exercises
 login → identity → intake options → case creation → list/detail/timeline/actions → logout.
 It verifies another citizen cannot see the case and a revoked session is denied. Nested
@@ -155,3 +156,66 @@ real native login still needs a provisioned and linked Supabase Auth account.
 
 Never point `GOVFIX_TEST_DATABASE_URL` at Supabase: the main test fixture drops its schema.
 Use `scripts/test_postgres.py` for the disposable PostgreSQL suite.
+
+
+## Phase 6 authentication hardening
+
+### Shared login budgets
+
+Every well-formed login attempt reserves a PostgreSQL budget before Argon2 or Supabase Auth:
+5 attempts per account and 30 per peer IP in a 900-second window by default. Successful
+attempts count too. Both checks are atomic across processes; account keys are normalized
+for budgeting and never used to resolve the account identity. Stored keys are HMAC hashes;
+passwords, account names and IP addresses are never stored in budget rows. Blocked requests
+return `LOGIN_RATE_LIMITED`, HTTP 429 and `Retry-After`; a database outage refuses login
+with HTTP 503. Budgets survive restarts; the worker removes expired rows in bounded batches.
+
+Configure `GOVFIX_LOGIN_ACCOUNT_LIMIT`, `GOVFIX_LOGIN_IP_LIMIT`,
+`GOVFIX_LOGIN_WINDOW_SECONDS`, and a generated `GOVFIX_LOGIN_RATE_SECRET` shared by all
+API processes. Changing the secret resets budgets; keep it stable across restarts.
+The fallback secret is for isolated local demonstrations only.
+
+The app reads the peer address from the ASGI request, never `X-Forwarded-For` itself.
+For direct access, run Uvicorn with `--no-proxy-headers`. Behind a reverse proxy, explicitly
+set `--forwarded-allow-ips` to that proxy's addresses; never trust arbitrary forwarding
+headers. Account limits remain shared when many citizens use one address; adjust IP limits
+for the pilot's network after measuring legitimate traffic. These limits reduce guessing;
+they do not replace edge traffic limits or approved identity verification.
+
+### Restricted PostgreSQL login
+
+```sh
+# Load the existing owner connection, then apply the schema migration.
+set -a; source .env; set +a
+uv run govfix init-db
+uv run python scripts/provision_database_role.py        # preview
+uv run python scripts/provision_database_role.py --apply
+# Reload the changed environment before restarting API/worker.
+set -a; source .env; set +a
+uv run python scripts/audit_supabase.py
+uv run python scripts/verify_login_case.py
+```
+
+Provisioning creates a generated password for `govfix_runtime`, verifies its connection,
+and atomically updates the private `.env` without printing credentials. It retains the
+owner URI as `GOVFIX_MIGRATION_DATABASE_URL`. `govfix init-db`, policy import, account
+provisioning and Alembic use that owner URI; API and worker use `GOVFIX_DATABASE_URL`.
+Do not rerun provisioning to rotate passwords: it refuses existing role/URI configurations.
+
+The backend can read provisioned users and role grants, create/update workflow records,
+append audit/evidence/SLA records, and prune login budgets. `UPDATE(active)` on `users`
+is the minimum column permission needed for PostgreSQL account row locks; password hashes
+and role grants remain read-only. Schema ownership, CREATE, TRUNCATE, history mutation,
+policy mutation and RLS bypass are denied. RLS policies grant row access solely to the
+trusted backend group; case-level scope checks remain in the API and transactional workflow.
+Data API roles have no grants and cannot inherit the backend group.
+
+`GOVFIX_REQUIRE_RESTRICTED_ROLE=true` rejects API/worker startup with an administrative
+connection; provisioning enables it. Future tables receive no automatic backend grants:
+add exact privileges and policies in a reviewed migration.
+
+In deployment, provide the migration URI only to the administration job, never the API or
+worker process; local `.env` combines both for developer administration. Store production
+credentials in the deployment secret manager, with separate runtime and administration
+access. The live rollback verification seeds using the admin connection, then switches to
+`govfix_backend` for all application requests and rolls back every generated record.

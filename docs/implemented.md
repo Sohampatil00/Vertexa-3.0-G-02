@@ -61,3 +61,18 @@ Move an item to **Implemented** only when its code exists. Move it to **Verified
 
 - Direct Supabase Data API user reads denied: anon HTTP 401; service_role HTTP 403.
   The configured evidence bucket exists and is private. API and worker restarted successfully.
+
+
+## Phase 6 authentication hardening — 11 October 2026
+
+- Migration `0008`: shared login budgets, trusted backend group, exact SQL privileges and
+  role-specific RLS policies. Supabase applied; 15/15 tables pass the Data API audit.
+- API/worker switched to `govfix_runtime`: no superuser/CREATEDB/CREATEROLE/BYPASSRLS,
+  no public table ownership and no schema CREATE. Administration uses a separate owner URI.
+- Live login-to-case verification passed under backend privileges with all smoke records
+  rolled back. Private evidence storage remains separate from the public SQL schema.
+- Atomic account/IP budgets, shared-process behavior, expiry, bounded pruning, concurrent
+  attempts, forwarded-header handling, dependency outage and privilege denials tested.
+- SQLite: 137 passed, 4 PostgreSQL checks skipped. Disposable PostgreSQL: 141 passed.
+- Full operations browser workflow passed. This completes the authentication slice of
+  Phase 6; observability, backup/restore, load/accessibility sessions and live voice gates remain.
