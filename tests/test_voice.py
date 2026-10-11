@@ -202,7 +202,7 @@ def test_signed_url_adapter_is_private_and_single_use(monkeypatch):
     assert "private" not in str(result)
 
 
-def test_webhook_authentication_dedup_and_no_mutation(backend):
+def test_webhook_authentication_dedup_and_no_mutation(backend, monkeypatch):
     import hashlib
     import hmac
     import json
@@ -232,7 +232,10 @@ def test_webhook_authentication_dedup_and_no_mutation(backend):
         ).hexdigest()
         return f"t={timestamp},v0={mac}"
 
-    now = int(utcnow().timestamp())
+    # Keep startup and requests from moving the future timestamp into tolerance.
+    fixed_now = utcnow()
+    monkeypatch.setattr("govfix.voice.utcnow", lambda: fixed_now)
+    now = int(fixed_now.timestamp())
     with TestClient(app) as client:
         path = "/v1/webhooks/elevenlabs"
         assert client.post(path, content=payload).status_code == 401
