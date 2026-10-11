@@ -75,3 +75,10 @@ Run `uv run govfix worker --poll-seconds 30` in a separate terminal to monitor d
 
 Readiness probes use `/ready`; operational checks use `uv run govfix check-operations`.
 See [observability and monitoring](./docs/observability.md) for worker alerts and safe logs.
+
+## Deploy on Render
+
+Use the included `render.yaml` Blueprint to deploy the API/interface and worker
+with your existing Supabase database and private Storage bucket. Follow the
+[Render deployment guide](./docs/render-deployment.md) for secrets, migrations,
+account setup and verification.

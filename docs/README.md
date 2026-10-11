@@ -25,3 +25,6 @@ The [root README](../README.md) introduces the project. The [PRD](../prd.md) is 
 [Citizen verification](./citizen-verification.md) explains Phase 4 acceptance, disputes, supervised rework, and unanswered verification alerts.
 
 Phase 5 setup and safeguards: [Voice access](./voice-access.md).
+
+[Render deployment](./render-deployment.md) covers the Docker image, web/worker
+Blueprint, Supabase secrets and deployment verification.

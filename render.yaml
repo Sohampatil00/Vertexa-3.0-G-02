@@ -1,0 +1,63 @@
+# Database migrations run from a trusted administrator's machine before deployment.
+# The API and worker receive only the existing restricted Supabase runtime login.
+services:
+  - type: web
+    name: govfix-web
+    runtime: docker
+    plan: 0.5c-512mb
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerCommand: python scripts/render_start.py web
+    autoDeployTrigger: "off"
+    healthCheckPath: /ready
+    envVars:
+      - fromGroup: govfix-runtime
+      - key: GOVFIX_DATABASE_URL
+        sync: false
+      - key: GOVFIX_LOGIN_RATE_SECRET
+        generateValue: true
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: evidence
+      - key: GOVFIX_AUTH_PROVIDER
+        value: local
+      # Conservative proxy trust: account limits stay at 5, while the proxy IP
+      # budget covers multiple citizens until trusted proxy ranges are configured.
+      - key: GOVFIX_LOGIN_IP_LIMIT
+        value: "300"
+
+  - type: worker
+    name: govfix-worker
+    runtime: docker
+    plan: 0.5c-512mb
+    region: singapore
+    dockerfilePath: ./Dockerfile
+    dockerCommand: python scripts/render_start.py worker
+    autoDeployTrigger: "off"
+    envVars:
+      - fromGroup: govfix-runtime
+      - key: GOVFIX_DATABASE_URL
+        fromService:
+          type: web
+          name: govfix-web
+          envVarKey: GOVFIX_DATABASE_URL
+      - key: GOVFIX_LOGIN_RATE_SECRET
+        fromService:
+          type: web
+          name: govfix-web
+          envVarKey: GOVFIX_LOGIN_RATE_SECRET
+
+envVarGroups:
+  - name: govfix-runtime
+    envVars:
+      - key: GOVFIX_REQUIRE_RESTRICTED_ROLE
+        value: "true"
+      - key: GOVFIX_POLICY_VERSION
+        value: demo-pilot-v1
+      - key: GOVFIX_WORKER_STALE_SECONDS
+        value: "120"
+      - key: GOVFIX_READINESS_TIMEOUT_MS
+        value: "2000"
