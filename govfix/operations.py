@@ -88,11 +88,26 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
                     Case.verification_alerted_at.is_not(None),
                 )
             )
+            escalation_counts = dict(
+                session.execute(
+                    select(Case.escalation_level, func.count())
+                    .where(
+                        *filters,
+                        Case.terminal_at.is_(None),
+                        Case.escalation_level.in_((1, 2)),
+                    )
+                    .group_by(Case.escalation_level)
+                ).all()
+            )
             return {
                 "states": counts,
                 "total": sum(counts.values()),
                 "overdue": overdue,
                 "verification_waiting": verification_waiting,
+                "escalations": {
+                    "level_1": escalation_counts.get(1, 0),
+                    "level_2": escalation_counts.get(2, 0),
+                },
                 "request_id": request.state.request_id,
             }
 
@@ -195,7 +210,7 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
             raise Refusal("INVALID_EVIDENCE_KIND", "Choose a required evidence kind.", 422)
 
     def persist_upload(
-        actor_id, case_id, data, kind, checksum, content_type, key, version, request_id
+        actor_id, case_id, data, kind, checksum, content_type, key, version, request_id, active_role
     ):
         # Decode before acquiring the actor/case locks; audit any refusal inside the transaction.
         validation_error = None
@@ -208,7 +223,7 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
         committed = False
         try:
             with write_transaction(sessions) as session:
-                actor = load_actor(session, actor_id, lock=True)
+                actor = load_actor(session, actor_id, lock=True, active_role=active_role)
                 case = session.scalar(
                     select(Case).where(Case.public_id == case_id).with_for_update()
                 )
@@ -354,5 +369,6 @@ def register_operations(app, sessions, settings, workflow, require_actor, read_c
             key,
             version,
             request.state.request_id,
+            actor.active_role,
         )
         return JSONResponse(response, status_code=status)

@@ -24,40 +24,69 @@ export function DispatcherDashboard({
 }) {
   const validatedCases = cases.filter((c) => c.workflow_state === "VALIDATED");
   const [activeCase, setActiveCase] = useState<Case | null>(null);
-  const [officers, setOfficers] = useState<{ id: string; name: string }[]>([]);
+  const [roster, setRoster] = useState<{
+    caseId: string | null;
+    status: "loading" | "loaded" | "error";
+    officers: { id: string; name: string }[];
+    error: string;
+  }>({ caseId: null, status: "loading", officers: [], error: "" });
   const [selectedOfficer, setSelectedOfficer] = useState<string>("");
   const [reason, setReason] = useState<string>(
     "Standard municipal triage assignment to on-duty sector crew.",
   );
-  const [loadingOps, setLoadingOps] = useState<boolean>(false);
-
+  const [rosterRefresh, setRosterRefresh] = useState(0);
   const selectedCase =
-    validatedCases.find((item) => item.id === activeCase?.id) || validatedCases[0] || null;
+    validatedCases.find((item) => item.id === activeCase?.id) ||
+    validatedCases[0] ||
+    null;
+  const currentRoster = roster.caseId === selectedCase?.id ? roster : null;
+  const officers = currentRoster?.officers ?? [];
+  const loadingOps = !!selectedCase && (!currentRoster || currentRoster.status === "loading");
+  const canAssign =
+    !busy &&
+    !loadingOps &&
+    officers.some((officer) => officer.id === selectedOfficer);
 
   // Load eligible officers when active case changes
   useEffect(() => {
-    if (!selectedCase) return;
+    if (!selectedCase) {
+      setSelectedOfficer("");
+      return;
+    }
     let live = true;
-    setLoadingOps(true);
-    api<Operations>(token, `/cases/${selectedCase.id}/operations`)
+    setSelectedOfficer("");
+    setRoster({ caseId: selectedCase.id, status: "loading", officers: [], error: "" });
+    api<Operations>(token, `/cases/${selectedCase.id}/operations`, {
+      role: "DISPATCHER",
+    })
       .then((ops) => {
         if (live) {
-          setOfficers(ops.officers || []);
-          if (ops.officers.length > 0) {
-            setSelectedOfficer(ops.officers[0].id);
-          }
+          const eligible = ops.officers || [];
+          setRoster({ caseId: selectedCase.id, status: "loaded", officers: eligible, error: "" });
+          setSelectedOfficer(eligible[0]?.id || "");
         }
       })
-      .catch(() => {
-        if (live) setOfficers([]);
-      })
-      .finally(() => {
-        if (live) setLoadingOps(false);
+      .catch((error: Error) => {
+        if (live) {
+          setRoster({
+            caseId: selectedCase.id,
+            status: "error",
+            officers: [],
+            error: error.message,
+          });
+          setSelectedOfficer("");
+        }
       });
     return () => {
       live = false;
     };
-  }, [selectedCase?.id, token]);
+  }, [selectedCase?.id, token, rosterRefresh]);
+
+  function refreshRoster() {
+    setSelectedOfficer("");
+    setRoster({ caseId: selectedCase?.id ?? null, status: "loading", officers: [], error: "" });
+    setRosterRefresh((value) => value + 1);
+  }
 
   return (
     <div className="flex flex-col w-full gap-6">
@@ -88,7 +117,10 @@ export function DispatcherDashboard({
             </span>
           </div>
           <button
-            onClick={onRefresh}
+            onClick={() => {
+              refreshRoster();
+              onRefresh();
+            }}
             className="p-2 bg-white rounded-lg border border-[#d9cdba] text-[#434655] hover:text-[#0b1c30] transition-colors"
             title="Refresh queue"
           >
@@ -324,6 +356,13 @@ export function DispatcherDashboard({
                     <div className="p-2 text-xs text-[#434655] bg-[#eff4ff] rounded">
                       Loading available officers…
                     </div>
+                  ) : currentRoster?.status === "error" ? (
+                    <div role="alert" className="p-2.5 text-xs text-red-800 bg-red-50 rounded border border-red-200">
+                      Could not load eligible officers: {currentRoster.error}
+                      <button type="button" onClick={refreshRoster} className="ml-2 font-semibold underline">
+                        Retry
+                      </button>
+                    </div>
                   ) : officers.length > 0 ? (
                     <select
                       aria-label="Select field officer in department"
@@ -360,7 +399,7 @@ export function DispatcherDashboard({
 
                 <button
                   onClick={() => {
-                    if (!selectedOfficer) {
+                    if (!officers.some((officer) => officer.id === selectedOfficer)) {
                       alert("Please select an eligible officer.");
                       return;
                     }
@@ -370,7 +409,7 @@ export function DispatcherDashboard({
                     }
                     onAssign(selectedCase, selectedOfficer, reason);
                   }}
-                  disabled={busy || officers.length === 0}
+                  disabled={!canAssign}
                   className="w-full py-2.5 bg-[#f77f00] hover:bg-[#d96e00] text-white font-semibold text-xs rounded shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
                 >
                   <span className="material-symbols-outlined text-[18px]">

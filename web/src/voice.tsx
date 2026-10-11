@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Conversation } from "@elevenlabs/client";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
-import { api, ApiError, human, type Case, type Policy } from "./api";
+import { api as request, ApiError, human, type Case, type Policy } from "./api";
 import { button, secondary, ErrorText, Field } from "./ui";
 
 type Draft = {
@@ -18,16 +18,22 @@ type ActiveSession = {
   review: Review | null;
 };
 
+function api<T>(token: string, path: string, init: RequestInit = {}) {
+  return request<T>(token, path, { ...init, role: "CITIZEN" });
+}
+
 export function VoiceAccess({
   token,
   policy,
   saved,
+  languages,
 }: {
   token: string;
   policy: Policy;
   saved: (item: Case) => void;
+  languages: string[];
 }) {
-  const [language, setLanguage] = useState("en");
+  const [language, setLanguage] = useState(languages[0]);
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [connected, setConnected] = useState(false);
@@ -204,7 +210,10 @@ export function VoiceAccess({
       }
       if (!id && err instanceof ApiError && err.status === 409) {
         try {
-          const previous = await api<ActiveSession | null>(token, "/voice/session");
+          const previous = await api<ActiveSession | null>(
+            token,
+            "/voice/session",
+          );
           if (previous && current === generation.current) {
             session.current = previous.session_id;
             setLanguage(previous.language);
@@ -278,8 +287,8 @@ export function VoiceAccess({
       <h2 className="text-balance text-xl font-semibold">Voice assistance</h2>
       <p className="text-pretty text-sm text-slate-600">
         Describe a grievance or ask for the status of your case. Voice needs a
-        verified citizen account. You can always use Report New Grievance to submit by
-        text.
+        verified citizen account. You can always use Report New Grievance to
+        submit by text.
       </p>
       <div className="flex flex-wrap items-end gap-4">
         <Field label="Voice language">
@@ -288,9 +297,16 @@ export function VoiceAccess({
             disabled={busy || !!session.current}
             onChange={(e) => setLanguage(e.target.value)}
           >
-            <option value="en">English</option>
-            <option value="hi">हिन्दी</option>
-            <option value="mr">मराठी</option>
+            {languages.map((value) => (
+              <option key={value} value={value}>
+                {(
+                  { en: "English", hi: "हिन्दी", mr: "मराठी" } as Record<
+                    string,
+                    string
+                  >
+                )[value] || value}
+              </option>
+            ))}
           </select>
         </Field>
         {!session.current && (

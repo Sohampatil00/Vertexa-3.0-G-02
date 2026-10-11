@@ -2,7 +2,7 @@
 
 import hashlib
 import secrets
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import timedelta
 
 from pwdlib import PasswordHash
@@ -34,9 +34,23 @@ class Actor:
     display_name: str
     identity_verified: bool
     grants: tuple[Grant, ...]
+    active_role: str | None = None
+
+    def for_role(self, role: str | None) -> "Actor":
+        """Limit this request to one stored role without adding any permissions."""
+        if role is None:
+            return self
+        grants = tuple(grant for grant in self.grants if grant.role == role)
+        if not grants:
+            raise Refusal(
+                "ROLE_NOT_ALLOWED", "This dashboard is not available to your account.", 403
+            )
+        return replace(self, grants=grants, active_role=role)
 
     @property
     def recorded_role(self) -> str:
+        if self.active_role:
+            return self.active_role
         if len(self.grants) == 1:
             return self.grants[0].role
         return "MULTIPLE_ROLES" if self.grants else "NO_ROLE"
@@ -56,7 +70,9 @@ class Actor:
         )
 
 
-def load_actor(session, user_id: str, *, lock: bool = False) -> Actor:
+def load_actor(
+    session, user_id: str, *, lock: bool = False, active_role: str | None = None
+) -> Actor:
     query = select(User).where(User.id == user_id)
     if lock:
         # Serialize commands without blocking foreign-key KEY SHARE checks during delivery.
@@ -71,7 +87,7 @@ def load_actor(session, user_id: str, *, lock: bool = False) -> Actor:
         user.display_name,
         user.identity_verified,
         tuple(Grant(grant.role, grant.ward, grant.department) for grant in grants),
-    )
+    ).for_role(active_role)
 
 
 def authenticate(session, token: str | None) -> Actor:

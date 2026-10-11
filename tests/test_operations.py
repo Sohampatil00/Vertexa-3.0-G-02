@@ -24,6 +24,49 @@ def test_dashboard_summary_counts_only_owned_assignments(backend):
     assert [row["id"] for row in listed.json()["cases"]] == [assigned["id"]]
 
 
+def test_dashboard_summary_escalations_respect_scope_and_exclude_terminal_cases(backend):
+    level_1 = backend.submit().json()["case"]
+    level_2 = backend.submit().json()["case"]
+    other_citizen = backend.submit(who="other-citizen").json()["case"]
+    outside_ward = backend.submit(who="other-citizen", ward="WARD-B").json()["case"]
+    terminal = backend.submit().json()["case"]
+    rejected = backend.command(
+        terminal,
+        "reject",
+        {"reason_code": "DUPLICATE", "explanation": "Already reported"},
+        "intake",
+    )
+    assert rejected.status_code == 200
+    with backend.sessions() as session, session.begin():
+        for case, level in (
+            (level_1, 1),
+            (level_2, 2),
+            (other_citizen, 2),
+            (outside_ward, 2),
+            (terminal, 2),
+        ):
+            row = session.scalar(select(Case).where(Case.public_id == case["id"]))
+            row.escalation_level = level
+        session.add(RoleGrant(user_id=backend.users["citizen"], role="SUPERVISOR", ward="WARD-A"))
+
+    def escalations(who, role=None, **params):
+        headers = backend.headers(who)
+        if role:
+            headers["X-GovFix-Role"] = role
+        response = backend.client.get("/v1/operations/summary", headers=headers, params=params)
+        assert response.status_code == 200
+        return response.json()["escalations"]
+
+    assert escalations("supervisor") == {"level_1": 1, "level_2": 2}
+    assert escalations("outside-supervisor") == {"level_1": 0, "level_2": 1}
+    assert escalations("citizen", role="CITIZEN") == {"level_1": 1, "level_2": 1}
+    assert escalations("citizen", role="SUPERVISOR") == {"level_1": 1, "level_2": 2}
+    assert escalations("citizen", role="SUPERVISOR", mine=True) == {
+        "level_1": 1,
+        "level_2": 1,
+    }
+
+
 def test_personal_dashboard_does_not_include_other_citizens_cases_for_mixed_roles(backend):
     own = backend.submit().json()["case"]
     backend.submit(who="other-citizen")

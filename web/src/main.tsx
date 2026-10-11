@@ -1,7 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { Header } from "./components/Header";
-import { Sidebar, type DashboardView } from "./components/Sidebar";
+import {
+  Sidebar,
+  DASHBOARD_ROLES,
+  type DashboardView,
+} from "./components/Sidebar";
 import { CitizenDashboard } from "./views/CitizenDashboard";
 import { IntakeDashboard } from "./views/IntakeDashboard";
 import { DispatcherDashboard } from "./views/DispatcherDashboard";
@@ -16,6 +20,7 @@ import {
   ApiError,
   command,
   type Case,
+  type DashboardRole,
   type Policy,
   type User,
 } from "./api";
@@ -75,7 +80,12 @@ function App() {
 
   return (
     <div className="min-h-dvh bg-[#f8f9ff] text-[#0b1c30]">
-      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:p-3">Skip to main content</a>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:p-3"
+      >
+        Skip to main content
+      </a>
       {!user ? (
         <div className="min-h-dvh flex flex-col justify-center items-center px-4 py-12">
           <div className="absolute right-4 top-4 z-10">
@@ -189,7 +199,7 @@ function Workspace({
   expired: () => void;
 }) {
   // Determine default view based on user roles
-  const defaultView: DashboardView = (() => {
+  const defaultView: Exclude<DashboardView, "notifications"> = (() => {
     if (user.roles.some((r) => r.role === "AUDITOR")) return "auditor-portal";
     if (user.roles.some((r) => r.role === "WARD_HEAD"))
       return "ward-head-oversight";
@@ -203,7 +213,14 @@ function Workspace({
   })();
 
   const [currentView, setCurrentView] = useState<DashboardView>(defaultView);
-  const [cases, setCases] = useState<Case[]>([]);
+  const [activeDashboard, setActiveDashboard] = useState(defaultView);
+  const activeRole = DASHBOARD_ROLES[activeDashboard];
+  const viewGeneration = useRef(0);
+  const [caseResults, setCaseResults] = useState<{
+    role: DashboardRole | null;
+    cases: Case[];
+  }>({ role: null, cases: [] });
+  const cases = caseResults.role === activeRole ? caseResults.cases : [];
   const [policy, setPolicy] = useState<Policy | null>(null);
   const [summary, setSummary] = useState<{
     total: number;
@@ -220,9 +237,27 @@ function Workspace({
   const [busy, setBusy] = useState(false);
   const [revision, setRevision] = useState(0);
 
+  function selectView(view: DashboardView) {
+    if (busy) return;
+    viewGeneration.current++;
+    setSelectedCase(null);
+    setShowNewGrievance(false);
+    setError("");
+    if (view !== "notifications" && view !== activeDashboard) {
+      setCaseResults({ role: null, cases: [] });
+      setSummary(null);
+      setLoading(true);
+      setActiveDashboard(view);
+    }
+    setCurrentView(view);
+  }
+
   useEffect(() => {
     if (currentView === "notifications") return;
-    const timer = window.setInterval(() => setRevision((value) => value + 1), 15000);
+    const timer = window.setInterval(
+      () => setRevision((value) => value + 1),
+      15000,
+    );
     return () => window.clearInterval(timer);
   }, [currentView]);
 
@@ -235,14 +270,16 @@ function Workspace({
     setLoading(true);
     setError("");
     const scope =
-      currentView === "citizen-overview"
+      activeRole === "CITIZEN"
         ? "&mine=true"
-        : currentView === "field-officer"
+        : activeRole === "OFFICER"
           ? "&owned=true"
           : "";
-    api<{ cases: Case[] }>(token, `/cases?limit=100${scope}`)
+    api<{ cases: Case[] }>(token, `/cases?limit=100${scope}`, {
+      role: activeRole,
+    })
       .then((res) => {
-        if (live) setCases(res.cases);
+        if (live) setCaseResults({ role: activeRole, cases: res.cases });
       })
       .catch((err) => {
         if (live) {
@@ -256,14 +293,18 @@ function Workspace({
     return () => {
       live = false;
     };
-  }, [token, revision, currentView]);
+  }, [token, revision, activeRole]);
 
   // Load policy & summary
   useEffect(() => {
     let live = true;
     Promise.all([
-      api<{ policy: Policy }>(token, "/intake-options"),
-      api<typeof summary>(token, "/operations/summary"),
+      api<{ policy: Policy }>(token, "/intake-options", { role: activeRole }),
+      api<typeof summary>(
+        token,
+        `/operations/summary?mine=${activeRole === "CITIZEN"}&owned=${activeRole === "OFFICER"}`,
+        { role: activeRole },
+      ),
     ])
       .then(([opts, totals]) => {
         if (live) {
@@ -277,11 +318,13 @@ function Workspace({
     return () => {
       live = false;
     };
-  }, [token, revision]);
+  }, [token, revision, activeRole]);
 
   useEffect(() => {
     let live = true;
-    api<{ notifications: { id: string }[] }>(token, "/notifications?limit=1")
+    api<{ notifications: { id: string }[] }>(token, "/notifications?limit=1", {
+      role: activeRole,
+    })
       .then((result) => {
         if (live) setNotificationCount(result.notifications.length);
       })
@@ -291,7 +334,7 @@ function Workspace({
     return () => {
       live = false;
     };
-  }, [token, revision, currentView]);
+  }, [token, revision, activeRole]);
 
   // Action helpers
   async function handleValidate(item: Case) {
@@ -309,6 +352,7 @@ function Workspace({
           jurisdiction: policy.municipality,
         },
         crypto.randomUUID(),
+        activeRole,
       );
       setRevision((r) => r + 1);
       if (selectedCase?.id === item.id) setSelectedCase(result.case);
@@ -332,6 +376,7 @@ function Workspace({
         "reject",
         { reason_code: reasonCode, explanation },
         crypto.randomUUID(),
+        activeRole,
       );
       setRevision((r) => r + 1);
       if (selectedCase?.id === item.id) setSelectedCase(result.case);
@@ -359,6 +404,7 @@ function Workspace({
           reason: reasonText,
         },
         crypto.randomUUID(),
+        activeRole,
       );
       setRevision((r) => r + 1);
       if (selectedCase?.id === item.id) setSelectedCase(result.case);
@@ -378,6 +424,7 @@ function Workspace({
         "accept-assignment",
         { confirmation: true },
         crypto.randomUUID(),
+        activeRole,
       );
       setRevision((r) => r + 1);
       if (selectedCase?.id === item.id) setSelectedCase(result.case);
@@ -406,6 +453,7 @@ function Workspace({
         "submit",
         data,
         crypto.randomUUID(),
+        activeRole,
       );
       setShowNewGrievance(false);
       setRevision((r) => r + 1);
@@ -418,9 +466,12 @@ function Workspace({
   }
 
   async function openCaseById(caseId: string) {
+    const generation = viewGeneration.current;
     try {
-      const res = await api<{ case: Case }>(token, `/cases/${caseId}`);
-      setSelectedCase(res.case);
+      const res = await api<{ case: Case }>(token, `/cases/${caseId}`, {
+        role: activeRole,
+      });
+      if (generation === viewGeneration.current) setSelectedCase(res.case);
     } catch (err) {
       alert((err as Error).message);
     }
@@ -434,18 +485,24 @@ function Workspace({
         logout={logout}
         busy={busy}
         notificationCount={notificationCount}
-        onOpenNotifications={() => setCurrentView("notifications")}
+        onOpenNotifications={() => selectView("notifications")}
+        activeRole={activeRole}
       />
 
       {/* Left Navigation Sidebar with Role Switch Sandbox */}
       <Sidebar
         currentView={currentView}
-        onSelectView={setCurrentView}
+        onSelectView={selectView}
+        busy={busy}
         user={user}
       />
 
       {/* Main Dashboard Workspace */}
-      <main id="main-content" tabIndex={-1} className="md:pl-72 md:pt-24 min-h-dvh bg-[#f8f9ff] px-4 py-6 pb-16 min-w-0">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="md:pl-72 md:pt-24 min-h-dvh bg-[#f8f9ff] px-4 py-6 pb-16 min-w-0"
+      >
         <div className="max-w-7xl mx-auto">
           {error && (
             <div className="mb-4">
@@ -453,97 +510,112 @@ function Workspace({
             </div>
           )}
 
-          {/* Active View Dispatcher */}
-          {currentView === "citizen-overview" && (
-            <CitizenDashboard
-              cases={cases}
-              policy={policy}
-              user={user}
-              token={token}
-              onOpenCase={(item) => setSelectedCase(item)}
-              onNewGrievance={() => setShowNewGrievance(true)}
-              onRefresh={() => setRevision((r) => r + 1)}
-            />
-          )}
+          {loading &&
+          caseResults.role !== activeRole &&
+          currentView !== "notifications" ? (
+            <p role="status" className="py-10 text-sm text-[#434655]">
+              Loading your dashboard…
+            </p>
+          ) : (
+            <>
+              {/* Active View Dispatcher */}
+              {currentView === "citizen-overview" && (
+                <CitizenDashboard
+                  cases={cases}
+                  policy={policy}
+                  user={user}
+                  token={token}
+                  onOpenCase={(item) => setSelectedCase(item)}
+                  onNewGrievance={() => setShowNewGrievance(true)}
+                  onRefresh={() => setRevision((r) => r + 1)}
+                />
+              )}
 
-          {currentView === "intake-queue" && (
-            <IntakeDashboard
-              cases={cases}
-              policy={policy}
-              user={user}
-              onOpenCase={(item) => setSelectedCase(item)}
-              onValidate={handleValidate}
-              onReject={handleReject}
-              onRefresh={() => setRevision((r) => r + 1)}
-              busy={busy}
-            />
-          )}
+              {currentView === "intake-queue" && (
+                <IntakeDashboard
+                  cases={cases}
+                  policy={policy}
+                  user={user}
+                  onOpenCase={(item) => setSelectedCase(item)}
+                  onValidate={handleValidate}
+                  onReject={handleReject}
+                  onRefresh={() => setRevision((r) => r + 1)}
+                  busy={busy}
+                />
+              )}
 
-          {currentView === "dispatcher" && (
-            <DispatcherDashboard
-              cases={cases}
-              policy={policy}
-              user={user}
-              token={token}
-              onOpenCase={(item) => setSelectedCase(item)}
-              onAssign={handleAssign}
-              onRefresh={() => setRevision((r) => r + 1)}
-              busy={busy}
-            />
-          )}
+              {currentView === "dispatcher" && (
+                <DispatcherDashboard
+                  cases={cases}
+                  policy={policy}
+                  user={user}
+                  token={token}
+                  onOpenCase={(item) => setSelectedCase(item)}
+                  onAssign={handleAssign}
+                  onRefresh={() => setRevision((r) => r + 1)}
+                  busy={busy}
+                />
+              )}
 
-          {currentView === "field-officer" && (
-            <FieldOfficerDashboard
-              cases={cases}
-              policy={policy}
-              user={user}
-              onOpenCase={(item) => setSelectedCase(item)}
-              onAcceptAssignment={handleAcceptAssignment}
-              onRefresh={() => setRevision((r) => r + 1)}
-              busy={busy}
-            />
-          )}
+              {currentView === "field-officer" && (
+                <FieldOfficerDashboard
+                  cases={cases}
+                  policy={policy}
+                  user={user}
+                  onOpenCase={(item) => setSelectedCase(item)}
+                  onAcceptAssignment={handleAcceptAssignment}
+                  onRefresh={() => setRevision((r) => r + 1)}
+                  busy={busy}
+                />
+              )}
 
-          {currentView === "supervisor-queue" && (
-            <SupervisorDashboard
-              cases={cases}
-              policy={policy}
-              user={user}
-              onOpenCase={(item) => setSelectedCase(item)}
-              onRefresh={() => setRevision((r) => r + 1)}
-              busy={busy}
-            />
-          )}
+              {currentView === "supervisor-queue" && (
+                <SupervisorDashboard
+                  cases={cases}
+                  policy={policy}
+                  user={user}
+                  onOpenCase={(item) => setSelectedCase(item)}
+                  onRefresh={() => setRevision((r) => r + 1)}
+                  busy={busy}
+                />
+              )}
 
-          {currentView === "ward-head-oversight" && (
-            <GovernanceDashboard
-              token={token}
-              expired={expired}
-              cases={cases}
-              policy={policy}
-              user={user}
-              summary={summary}
-              onOpenCase={(item) => setSelectedCase(item)}
-              onRefresh={() => setRevision((r) => r + 1)}
-            />
-          )}
+              {currentView === "ward-head-oversight" && (
+                <GovernanceDashboard
+                  token={token}
+                  expired={expired}
+                  cases={cases}
+                  policy={policy}
+                  user={user}
+                  summary={summary}
+                  onOpenCase={(item) => setSelectedCase(item)}
+                  onRefresh={() => setRevision((r) => r + 1)}
+                />
+              )}
 
-          {currentView === "auditor-portal" && (
-            <GovernanceDashboard
-              token={token}
-              expired={expired}
-              auditor
-              cases={cases}
-              policy={policy}
-              user={user}
-              summary={summary}
-              onOpenCase={(item) => setSelectedCase(item)}
-              onRefresh={() => setRevision((r) => r + 1)}
-            />
-          )}
+              {currentView === "auditor-portal" && (
+                <GovernanceDashboard
+                  token={token}
+                  expired={expired}
+                  auditor
+                  cases={cases}
+                  policy={policy}
+                  user={user}
+                  summary={summary}
+                  onOpenCase={(item) => setSelectedCase(item)}
+                  onRefresh={() => setRevision((r) => r + 1)}
+                />
+              )}
 
-          {currentView === "notifications" && (
-            <NotificationsView token={token} onOpenCase={openCaseById} />
+              {currentView === "notifications" && (
+                <NotificationsView
+                  key={activeRole}
+                  token={token}
+                  role={activeRole}
+                  onOpenCase={openCaseById}
+                />
+              )}
+            </>
           )}
         </div>
       </main>
@@ -551,6 +623,8 @@ function Workspace({
       {/* Case Detail Inspection Modal */}
       {selectedCase && (
         <CaseDetailModal
+          key={`${activeRole}-${selectedCase.id}`}
+          role={activeRole}
           token={token}
           item={selectedCase}
           user={user}
@@ -560,7 +634,6 @@ function Workspace({
             setRevision((r) => r + 1);
           }}
           expired={expired}
-          readOnly={currentView === "auditor-portal"}
         />
       )}
 

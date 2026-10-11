@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import type { Case } from "../api";
+import type { DashboardRole } from "../api";
 import { api, date, human } from "../api";
 import { ErrorText } from "../ui";
 
@@ -17,9 +17,11 @@ type Notice = {
 
 export function NotificationsView({
   token,
+  role,
   onOpenCase,
 }: {
   token: string;
+  role: DashboardRole;
   onOpenCase: (id: string) => void;
 }) {
   const [items, setItems] = useState<Notice[]>([]);
@@ -29,7 +31,10 @@ export function NotificationsView({
   const [revision, setRevision] = useState(0);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setRevision((value) => value + 1), 15000);
+    const timer = window.setInterval(
+      () => setRevision((value) => value + 1),
+      15000,
+    );
     return () => window.clearInterval(timer);
   }, []);
 
@@ -37,7 +42,9 @@ export function NotificationsView({
     let live = true;
     if (revision === 0) setLoading(true);
     setError("");
-    api<{ notifications: Notice[] }>(token, `/notifications?offset=${offset}`)
+    api<{ notifications: Notice[] }>(token, `/notifications?offset=${offset}`, {
+      role,
+    })
       .then((res) => {
         if (live) setItems(res.notifications);
       })
@@ -50,17 +57,21 @@ export function NotificationsView({
     return () => {
       live = false;
     };
-  }, [token, offset, revision]);
+  }, [token, role, offset, revision]);
 
   return (
     <div className="flex flex-col w-full gap-6">
       <div className="flex items-center justify-between pb-2 border-b border-[#d9cdba]/50">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-[#0b1c30]">
-            Workflow Notifications & SLA Alerts
+            {role === "CITIZEN"
+              ? "My report notifications"
+              : "Workflow Notifications & SLA Alerts"}
           </h1>
           <p className="text-xs text-[#434655]">
-            Intake handoffs, deadline alerts, and other case notifications.
+            {role === "CITIZEN"
+              ? "Updates and resolution requests for your reports."
+              : "Intake handoffs, deadline alerts, and other case notifications."}
           </p>
         </div>
         <span className="font-mono text-xs bg-[#eff4ff] px-2.5 py-1 rounded border border-[#d9cdba]">
@@ -87,7 +98,9 @@ export function NotificationsView({
               No notifications recorded
             </p>
             <p className="text-xs text-[#434655] mt-0.5">
-              Workflow handoffs and SLA notices will appear here.
+              {role === "CITIZEN"
+                ? "Updates to your reports will appear here."
+                : "Workflow handoffs and SLA notices will appear here."}
             </p>
           </div>
         ) : (
@@ -127,7 +140,9 @@ export function NotificationsView({
                     )}
                     {notice.kind === "INTAKE_VALIDATED" && (
                       <p className="text-xs text-[#434655] mt-0.5">
-                        {notice.intake_officer || "Intake officer"} validated this grievance and sent it to dispatch for officer assignment.
+                        {notice.intake_officer || "Intake officer"} validated
+                        this grievance and sent it to dispatch for officer
+                        assignment.
                       </p>
                     )}
                     <span className="font-mono text-[10px] text-[#565e74] mt-1 block">

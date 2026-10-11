@@ -257,11 +257,17 @@ def main():
     parser.add_argument("--apply", action="store_true", help="Write the synthetic demo dataset")
     parser.add_argument("--credentials", type=Path, default=DEFAULT_CREDENTIALS)
     parser.add_argument("--citizen", help="Attribute demo cases to an existing verified citizen")
+    parser.add_argument("--scenario", help="Import only this scenario key, such as case-35")
     args = parser.parse_args()
     dataset = json.loads(SCENARIOS.read_text())
     policy = json.loads(POLICY.read_text())
     assert dataset["policy_version"] == policy["version"] and dataset["synthetic"]
-    print(f"Synthetic demo: {len(policy['categories'])} categories, {len(dataset['cases'])} cases")
+    scenarios = dataset["cases"]
+    if args.scenario:
+        scenarios = [scenario for scenario in scenarios if scenario["key"] == args.scenario]
+        if not scenarios:
+            parser.error(f"Unknown scenario key: {args.scenario}")
+    print(f"Synthetic demo: {len(policy['categories'])} categories, {len(scenarios)} cases")
     if not args.apply:
         print(
             "Dry run. Use --apply with an explicitly configured GOVFIX_DATABASE_URL to write data."
@@ -289,7 +295,7 @@ def main():
         identities, tokens = prepare_accounts(admin_sessions, policy, passwords, args.citizen)
         token_hashes = [token_hash(value) for value in tokens.values()]
         with TestClient(create_app(settings)) as client:
-            for scenario in dataset["cases"]:
+            for scenario in scenarios:
                 # Only this standalone demo importer simulates historical workflow time.
                 # The API still computes deadlines and writes every transition/audit event.
                 seeded_at = utcnow() - timedelta(hours=scenario.get("submitted_hours_ago", 0))

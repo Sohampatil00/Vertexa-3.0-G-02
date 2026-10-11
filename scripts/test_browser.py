@@ -239,10 +239,27 @@ def run_browser(url, password, photo, worker):
 
         def open_case(description="Pothole near demo bus stop"):
             page.get_by_role("button", name=f"View case {description}", exact=True).click()
-            expect(page.get_by_text(re.compile(r"Audit Timeline \(\d+\)"))).to_be_visible()
+            expect(
+                page.get_by_text(re.compile(r"(?:Audit Timeline|Report progress) \(\d+\)"))
+            ).to_be_visible()
 
         login("citizen")
         check_accessibility(page, "citizen dashboard")
+        expect(page.get_by_role("button", name="Voice Grievance", exact=False)).not_to_be_visible()
+        expect(page.get_by_label("Switch dashboard")).not_to_be_visible()
+        expect(page.get_by_text("Ward A & B • Operations", exact=True)).not_to_be_visible()
+        expect(page.get_by_text("Node Active", exact=True)).not_to_be_visible()
+        sign_out()
+
+        def configured_voice(route):
+            response = route.fetch()
+            user = response.json()
+            user["voice_languages"] = ["en", "hi", "mr"]
+            route.fulfill(response=response, json=user)
+
+        # Voice UI is tested with advertised capabilities and a simulated provider.
+        page.route("**/v1/me", configured_voice)
+        login("citizen")
         page.get_by_role("button", name="Voice Grievance", exact=False).click()
         expect(page.get_by_role("heading", name="Voice assistance")).to_be_visible()
         expect(page.get_by_role("button", name="Start voice", exact=True)).to_be_disabled()
@@ -278,6 +295,7 @@ def run_browser(url, password, photo, worker):
         test_voice_recovery(page, created)
         test_voice_sdk(page, created, handlers)
         expect(page.get_by_role("heading", name="Pothole near demo bus stop").last).to_be_visible()
+        page.unroute("**/v1/me", configured_voice)
         sign_out()
         login("intake")
         open_case()
@@ -287,11 +305,11 @@ def run_browser(url, password, photo, worker):
         sign_out()
         assert worker.dispatch()["DELIVERED"] == 1
         login("dispatcher")
-        page.get_by_title("Notifications & SLA Alerts").click()
+        page.get_by_role("button", name="Open notifications", exact=True).click()
         expect(
             page.get_by_text("Demo intake validated this grievance", exact=False)
         ).to_be_visible()
-        page.get_by_label("Switch dashboard").select_option("dispatcher")
+        page.get_by_role("button", name="Dispatcher", exact=True).click()
         open_case()
         page.get_by_role("button", name="assign", exact=True).click()
         page.get_by_label("Assign to Officer").select_option(label="Demo officer")
@@ -421,17 +439,17 @@ def run_browser(url, password, photo, worker):
         page.screenshot(path=str(ROOT / "artifacts/operations-mobile.png"), full_page=True)
         sign_out()
         login("citizen")
-        page.get_by_role("button", name="Notifications", exact=True).click()
+        page.get_by_role("button", name="Open notifications", exact=True).click()
         expect(page.get_by_text("deadline extended", exact=True)).to_be_visible()
         expect(page.get_by_text("Additional repair observation period", exact=True)).to_be_visible()
         page.get_by_role("button", name="Open deadline extended notification", exact=True).click()
         expect(page.get_by_role("heading", name="Pothole near demo bus stop").last).to_be_visible()
         expect(page.get_by_role("button", name="Download", exact=True)).to_be_visible()
         expect(page.get_by_text("Officer Assignment Log", exact=True)).not_to_be_visible()
-        page.get_by_role("button", name="verification", exact=True).click()
+        page.get_by_role("button", name="Review resolution", exact=True).click()
         page.get_by_label("Dispute Resolution", exact=True).check()
         page.get_by_label("What Still Needs To Be Fixed?").fill("The surface is still uneven")
-        page.get_by_role("button", name="Confirm verification", exact=True).click()
+        page.get_by_role("button", name="Submit resolution response", exact=True).click()
         expect(page.get_by_text("The surface is still uneven")).to_be_visible()
         sign_out()
         login("supervisor")
@@ -455,8 +473,8 @@ def run_browser(url, password, photo, worker):
         sign_out()
         login("citizen")
         open_case()
-        page.get_by_role("button", name="verification", exact=True).click()
-        page.get_by_role("button", name="Confirm verification", exact=True).click()
+        page.get_by_role("button", name="Review resolution", exact=True).click()
+        page.get_by_role("button", name="Submit resolution response", exact=True).click()
         expect(page.get_by_role("alertdialog")).to_be_visible()
         page.get_by_role("button", name="Accept and close case", exact=True).click()
         expect(page.get_by_text("Resolved & Closed", exact=True).first).to_be_visible()
@@ -503,6 +521,60 @@ def run_browser(url, password, photo, worker):
         page.get_by_role("button", name="Confirm reject", exact=True).click()
         page.get_by_role("button", name="Confirm rejection", exact=True).click()
         expect(page.get_by_role("button", name="reject", exact=True)).not_to_be_visible()
+        sign_out()
+        login("citizen")
+        page.get_by_role("button", name=re.compile(r"^Rejected reports")).click()
+        expect(
+            page.get_by_role("button", name="View case Duplicate demo pothole report", exact=True)
+        ).to_be_visible()
+        expect(
+            page.get_by_role("button", name="View case Pothole near demo bus stop", exact=True)
+        ).not_to_be_visible()
+        page.get_by_role("button", name=re.compile(r"^Resolved reports")).click()
+        expect(
+            page.get_by_role("button", name="View case Pothole near demo bus stop", exact=True)
+        ).to_be_visible()
+        expect(
+            page.get_by_role("button", name="View case Duplicate demo pothole report", exact=True)
+        ).not_to_be_visible()
+        sign_out()
+        login("mixed")
+        page.get_by_label("Switch dashboard").select_option("citizen-overview")
+        expect(page.get_by_role("heading", name="No grievances registered")).to_be_visible()
+        page.get_by_role("button", name="Report New Grievance", exact=True).click()
+        page.get_by_label("Detailed Description").fill("Personal report from multi-role citizen")
+        page.get_by_label("Location Details").fill("Demo community road")
+        page.get_by_label(
+            "I confirm that these details accurately describe my grievance", exact=False
+        ).check()
+        page.get_by_role("button", name="Submit & Generate Case ID").click()
+        expect(page.get_by_text(re.compile(r"Report progress \(\d+\)"))).to_be_visible()
+        for label in ("deadline extension", "review", "assign", "resolution", "Upload Evidence"):
+            expect(page.get_by_role("button", name=label, exact=True)).not_to_be_visible()
+        for label in (
+            "Authorized Next Actions",
+            "SLA and escalation",
+            "Officer Assignment Log",
+            "Audit Timeline",
+        ):
+            expect(page.get_by_text(label, exact=False)).not_to_be_visible()
+        check_accessibility(page, "multi-role citizen report details")
+        close_case()
+        expect(
+            page.get_by_role("button", name="View case Pothole near demo bus stop", exact=True)
+        ).not_to_be_visible()
+        page.get_by_role("button", name="Open notifications", exact=True).click()
+        expect(page.get_by_role("heading", name="My report notifications")).to_be_visible()
+        page.get_by_label("Switch dashboard").select_option("supervisor-queue")
+        page.get_by_role("button", name=re.compile(r"All Ward Cases")).click()
+        open_case("Personal report from multi-role citizen")
+        expect(page.get_by_role("button", name="deadline extension", exact=True)).to_be_visible()
+        close_case()
+        page.get_by_label("Switch dashboard").select_option("citizen-overview")
+        open_case("Personal report from multi-role citizen")
+        expect(
+            page.get_by_role("button", name="deadline extension", exact=True)
+        ).not_to_be_visible()
         page.route(
             "**/v1/auth/logout",
             lambda route: route.fulfill(
@@ -520,7 +592,7 @@ def run_browser(url, password, photo, worker):
             "citizen → intake → dispatcher → officer → supervisor; "
             "SLA escalation, verification wait, dispute, rework, acceptance, "
             "delivery retry, extension, citizen inbox, "
-            "Stitch dashboards, multi-role switching, read-only auditor, "
+            "citizen report filters, role-scoped details, multi-role switching, read-only auditor, "
             "mobile layout and private download verified."
         )
 

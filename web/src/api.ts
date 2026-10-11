@@ -28,8 +28,22 @@ export type Resolution = {
 export type User = {
   id: string;
   display_name: string;
+  identity_verified: boolean;
   roles: { role: string; ward: string | null; department: string | null }[];
+  voice_languages: string[];
 };
+export type DashboardRole =
+  | "CITIZEN"
+  | "INTAKE_OFFICER"
+  | "DISPATCHER"
+  | "OFFICER"
+  | "SUPERVISOR"
+  | "WARD_HEAD"
+  | "AUDITOR";
+
+export function roleHeaders(role: DashboardRole) {
+  return { "X-GovFix-Role": role };
+}
 export type Policy = {
   version: string;
   checksum?: string;
@@ -88,12 +102,14 @@ export class ApiError extends Error {
 export async function api<T>(
   token: string,
   path: string,
-  init: RequestInit = {},
+  init: RequestInit & { role?: DashboardRole } = {},
 ): Promise<T> {
+  const { role, ...request } = init;
   const response = await fetch("/v1" + path, {
-    ...init,
+    ...request,
     headers: {
       Authorization: `Bearer ${token}`,
+      ...(role ? roleHeaders(role) : {}),
       ...(init.body && typeof init.body === "string"
         ? { "Content-Type": "application/json" }
         : {}),
@@ -117,11 +133,13 @@ export function command(
   operation: string,
   body: unknown,
   key: string,
+  role?: DashboardRole,
 ) {
   return api<{ case: Case }>(
     token,
     item ? `/cases/${item.id}/${operation}` : "/cases",
     {
+      role,
       method: "POST",
       body: JSON.stringify(body),
       headers: {

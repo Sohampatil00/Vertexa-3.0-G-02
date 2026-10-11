@@ -7,12 +7,35 @@ import type {
   Evidence,
   Resolution,
   User,
+  DashboardRole,
 } from "../api";
-import { api, ApiError, command, date, human } from "../api";
+import { api, ApiError, command, date, human, roleHeaders } from "../api";
 import { SlaPanel } from "../sla";
 import { Dictation, ReadAloud } from "../speech";
 import { StatusBadge, ErrorText, Field, Modal } from "../ui";
 import { CaseMap } from "../components/CaseMap";
+
+const ROLE_ACTIONS: Record<DashboardRole, string[]> = {
+  CITIZEN: ["verification"],
+  INTAKE_OFFICER: ["validate", "reject"],
+  DISPATCHER: ["assign"],
+  OFFICER: ["accept-assignment", "resolution"],
+  SUPERVISOR: ["review", "deadline-extension", "notification-retry"],
+  WARD_HEAD: [],
+  AUDITOR: [],
+};
+
+const REPORT_UPDATES: Record<string, string> = {
+  submit: "Report submitted",
+  validate: "Report validated",
+  reject: "Report rejected",
+  assign: "Officer assigned",
+  "accept-assignment": "Work started",
+  resolution: "Resolution submitted",
+  verification: "Resolution response recorded",
+  review: "Further work requested",
+  "deadline-extension": "Target resolution date updated",
+};
 
 export function CaseDetailModal({
   token,
@@ -21,7 +44,7 @@ export function CaseDetailModal({
   onClose,
   onSaved,
   expired,
-  readOnly = false,
+  role,
 }: {
   token: string;
   item: Case;
@@ -29,8 +52,10 @@ export function CaseDetailModal({
   onClose: () => void;
   onSaved: (item: Case) => void;
   expired: () => void;
-  readOnly?: boolean;
+  role: DashboardRole;
 }) {
+  const citizen = role === "CITIZEN";
+  const oversight = ["SUPERVISOR", "WARD_HEAD", "AUDITOR"].includes(role);
   const [current, setCurrent] = useState(item);
   const [ops, setOps] = useState<Operations | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
@@ -49,6 +74,13 @@ export function CaseDetailModal({
   const attempt = useRef<{ digest: string; key: string } | null>(null);
 
   async function runCommand(operation: string, body: unknown) {
+    if (
+      !ROLE_ACTIONS[role].includes(operation) ||
+      !actions.includes(operation)
+    ) {
+      setCmdError("This action is not available in this dashboard.");
+      return;
+    }
     setBusy(true);
     setCmdError("");
     const digest = JSON.stringify([
@@ -67,6 +99,7 @@ export function CaseDetailModal({
         operation,
         body,
         attempt.current.key,
+        role,
       );
       attempt.current = null;
       setCurrent(result.case);
@@ -85,17 +118,21 @@ export function CaseDetailModal({
     setLoading(true);
     setError("");
     Promise.all([
-      api<{ case: Case }>(token, `/cases/${item.id}`),
-      api<Operations>(token, `/cases/${item.id}/operations`),
-      api<{ events: Event[] }>(token, `/cases/${item.id}/timeline`),
-      api<{ evidence: Evidence[] }>(token, `/cases/${item.id}/evidence`),
+      api<{ case: Case }>(token, `/cases/${item.id}`, { role }),
+      api<Operations>(token, `/cases/${item.id}/operations`, { role }),
+      api<{ events: Event[] }>(token, `/cases/${item.id}/timeline`, { role }),
+      api<{ evidence: Evidence[] }>(token, `/cases/${item.id}/evidence`, {
+        role,
+      }),
       api<{ resolution: Resolution | null; dispute_statement: string | null }>(
         token,
         `/cases/${item.id}/resolution`,
+        { role },
       ),
       api<{ actions: { operation: string }[] }>(
         token,
         `/cases/${item.id}/allowed-actions`,
+        { role },
       ),
     ])
       .then(([result, operations, timeline, files, submitted, allowed]) => {
@@ -121,20 +158,19 @@ export function CaseDetailModal({
     return () => {
       live = false;
     };
-  }, [token, item.id, item.version, revision]);
+  }, [token, role, item.id, item.version, revision]);
 
-  const available = (readOnly ? [] : actions).filter((a) =>
-    [
-      "validate",
-      "reject",
-      "assign",
-      "accept-assignment",
-      "resolution",
-      "verification",
-      "review",
-      "deadline-extension",
-    ].includes(a),
+  const available = actions.filter(
+    (operation) =>
+      operation !== "notification-retry" &&
+      ROLE_ACTIONS[role].includes(operation),
   );
+  const timeline = citizen
+    ? events.filter(
+        (event) =>
+          event.result === "ACCEPTED" && REPORT_UPDATES[event.operation],
+      )
+    : events;
   const reportCategory = ops?.policy.categories.find(
     (category) => category.code === current.category,
   );
@@ -142,7 +178,11 @@ export function CaseDetailModal({
   return (
     <Modal
       title={`Case ${current.id}`}
-      description="Review case details, evidence, permitted actions and its audit timeline."
+      description={
+        citizen
+          ? "Track your report and review the resolution and photos."
+          : "Review case details, evidence, permitted actions and its audit timeline."
+      }
       onClose={onClose}
       busy={busy}
       className="max-w-4xl"
@@ -154,7 +194,9 @@ export function CaseDetailModal({
             Case {current.id}
           </span>
           <StatusBadge state={current.workflow_state} />
-          <span className="text-xs text-[#434655]">v{current.version}</span>
+          {!citizen && (
+            <span className="text-xs text-[#434655]">v{current.version}</span>
+          )}
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -189,7 +231,7 @@ export function CaseDetailModal({
             <span className="material-symbols-outlined text-3xl animate-spin text-[#f77f00] mb-2">
               sync
             </span>
-            <p>Loading case telemetry and operations…</p>
+            <p>{citizen ? "Loading your report…" : "Loading case details…"}</p>
           </div>
         ) : (
           ops && (
@@ -205,7 +247,7 @@ export function CaseDetailModal({
                     Location: {current.location}
                   </p>
                   <CaseMap item={current} />
-                  {reportCategory?.image && (
+                  {!citizen && reportCategory?.image && (
                     <figure className="mt-3">
                       <img
                         src={`/app${reportCategory.image}`}
@@ -222,10 +264,10 @@ export function CaseDetailModal({
                   <dl className="grid grid-cols-2 gap-3 mt-4 text-xs pt-3 border-t border-[#d9cdba]/40">
                     <div>
                       <dt className="text-[10px] text-[#434655] uppercase font-bold">
-                        Ward Jurisdiction
+                        {citizen ? "Ward" : "Ward Jurisdiction"}
                       </dt>
                       <dd className="font-semibold text-[#0b1c30] mt-0.5">
-                        Ward {current.ward}
+                        {current.ward}
                       </dd>
                     </div>
                     <div>
@@ -246,7 +288,9 @@ export function CaseDetailModal({
                     </div>
                     <div>
                       <dt className="text-[10px] text-[#434655] uppercase font-bold">
-                        Current SLA Deadline
+                        {citizen
+                          ? "Target resolution date"
+                          : "Current SLA Deadline"}
                       </dt>
                       <dd
                         className={`font-mono font-bold mt-0.5 ${current.sla_status === "OVERDUE" ? "text-[#ba1a1a]" : "text-[#0037b0]"}`}
@@ -264,7 +308,11 @@ export function CaseDetailModal({
                       <span className="material-symbols-outlined text-[16px]">
                         check_circle
                       </span>
-                      <span>Field Resolution Submitted</span>
+                      <span>
+                        {citizen
+                          ? "Resolution submitted"
+                          : "Field Resolution Submitted"}
+                      </span>
                     </div>
                     <p className="text-xs text-emerald-800 leading-relaxed whitespace-pre-wrap">
                       {resolution.note}
@@ -303,7 +351,9 @@ export function CaseDetailModal({
                     </span>
                     <div>
                       <p className="font-semibold">
-                        Case awaiting citizen verification sign-off.
+                        {citizen
+                          ? "Please review the resolution and photos."
+                          : "Case awaiting citizen verification sign-off."}
                       </p>
                       {current.verification_alerted_at && (
                         <p>A supervisor has been alerted to the wait.</p>
@@ -315,6 +365,13 @@ export function CaseDetailModal({
                           if unconfirmed.
                         </p>
                       )}
+                      {citizen && !user.identity_verified && (
+                        <p className="mt-2">
+                          Your account needs identity verification from the
+                          municipality before you can accept or dispute a
+                          resolution.
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -323,7 +380,9 @@ export function CaseDetailModal({
                 {available.length > 0 && (
                   <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
                     <span className="text-xs font-bold text-[#0b1c30] uppercase tracking-wider block mb-2.5">
-                      Authorized Next Actions
+                      {citizen
+                        ? "Your resolution response"
+                        : "Authorized Next Actions"}
                     </span>
                     <div className="flex flex-wrap gap-2">
                       {available.map((a) => (
@@ -336,7 +395,9 @@ export function CaseDetailModal({
                               : "bg-[#eff4ff] text-[#0b1c30] hover:bg-[#dce9ff] border border-[#d9cdba]/50"
                           }`}
                         >
-                          {human(a)}
+                          {citizen && a === "verification"
+                            ? "Review resolution"
+                            : human(a)}
                         </button>
                       ))}
                     </div>
@@ -358,28 +419,29 @@ export function CaseDetailModal({
                 )}
 
                 {/* SLA Tracker & Delivery Alerts */}
-                <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
-                  <SlaPanel
-                    token={token}
-                    item={current}
-                    revision={revision}
-                    canRetry={
-                      !readOnly && actions.includes("notification-retry")
-                    }
-                    retry={(body) => runCommand("notification-retry", body)}
-                    busy={busy}
-                    commandError={cmdError}
-                  />
-                </div>
+                {oversight && (
+                  <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
+                    <SlaPanel
+                      token={token}
+                      role={role}
+                      item={current}
+                      revision={revision}
+                      canRetry={
+                        role === "SUPERVISOR" &&
+                        actions.includes("notification-retry")
+                      }
+                      retry={(body) => runCommand("notification-retry", body)}
+                      busy={busy}
+                      commandError={cmdError}
+                    />
+                  </div>
+                )}
 
                 {/* Evidence Uploads */}
                 <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-bold text-[#0b1c30] uppercase tracking-wider">
-                      Cryptographic Evidence Files
-                    </span>
-                    <span className="text-[10px] text-[#434655]">
-                      Private Supabase Storage
+                      {citizen ? "Resolution photos" : "Evidence Files"}
                     </span>
                   </div>
 
@@ -401,12 +463,15 @@ export function CaseDetailModal({
                             <span className="text-[#434655] ml-2 font-mono text-[11px]">
                               {(file.size_bytes / 1024).toFixed(1)} KB
                             </span>
-                            <div className="font-mono text-[10px] text-[#434655] truncate max-w-xs mt-0.5">
-                              SHA-256: {file.sha256}
-                            </div>
+                            {!citizen && (
+                              <div className="font-mono text-[10px] text-[#434655] truncate max-w-xs mt-0.5">
+                                SHA-256: {file.sha256}
+                              </div>
+                            )}
                           </div>
                           <DownloadEvidence
                             token={token}
+                            role={role}
                             caseId={current.id}
                             file={file}
                           />
@@ -415,12 +480,13 @@ export function CaseDetailModal({
                     </ul>
                   )}
 
-                  {!readOnly &&
+                  {role === "OFFICER" &&
                     current.owner_id === user.id &&
                     current.workflow_state === "IN_PROGRESS" && (
                       <div className="mt-4 pt-3 border-t border-[#eff4ff]">
                         <UploadEvidence
                           token={token}
+                          role={role}
                           item={current}
                           ops={ops}
                           done={() => setRevision((r) => r + 1)}
@@ -436,37 +502,44 @@ export function CaseDetailModal({
                 <div className="p-4 rounded-lg bg-[#eff4ff] border border-[#d9cdba]/50">
                   <ReadAloud
                     label="Read case timeline aloud"
-                    text={`Case ${current.id}. Current status: ${current.workflow_state === "SUBMITTED" ? "Submitted, awaiting authority review" : human(current.workflow_state)}. ${events.map((event) => `${human(event.operation)}: ${event.result === "ACCEPTED" ? "Recorded" : human(event.result)}, ${date(event.occurred_at, current.timezone)}.`).join(" ")}`}
+                    text={`Case ${current.id}. Current status: ${current.workflow_state === "SUBMITTED" ? "Submitted, awaiting authority review" : human(current.workflow_state)}. ${timeline.map((event) => `${citizen ? REPORT_UPDATES[event.operation] : human(event.operation)}, ${date(event.occurred_at, current.timezone)}.`).join(" ")}`}
                   />
                   <span className="text-xs font-bold text-[#0b1c30] uppercase tracking-wider block mb-3">
-                    Audit Timeline ({events.length})
+                    {citizen ? "Report progress" : "Audit Timeline"} (
+                    {timeline.length})
                   </span>
                   <ol className="space-y-3 relative border-l border-[#d9cdba] ml-2">
-                    {events.map((e) => (
+                    {timeline.map((e) => (
                       <li key={e.id} className="ml-3 text-xs">
                         <div className="flex items-center gap-1.5 font-semibold text-[#0b1c30]">
-                          <span>{human(e.operation)}</span>
-                          <span
-                            className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
-                              e.result === "REFUSED"
-                                ? "bg-[#ffdad6] text-[#ba1a1a]"
-                                : "bg-emerald-100 text-emerald-800"
-                            }`}
-                          >
-                            {e.result === "ACCEPTED"
-                              ? "Recorded"
-                              : human(e.result)}
+                          <span>
+                            {citizen
+                              ? REPORT_UPDATES[e.operation]
+                              : human(e.operation)}
                           </span>
+                          {!citizen && (
+                            <span
+                              className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
+                                e.result === "REFUSED"
+                                  ? "bg-[#ffdad6] text-[#ba1a1a]"
+                                  : "bg-emerald-100 text-emerald-800"
+                              }`}
+                            >
+                              {e.result === "ACCEPTED"
+                                ? "Recorded"
+                                : human(e.result)}
+                            </span>
+                          )}
                         </div>
                         <span className="font-mono text-[10px] text-[#434655] block mt-0.5">
                           {date(e.occurred_at, current.timezone)}
                         </span>
-                        {e.actor_role && (
+                        {!citizen && e.actor_role && (
                           <span className="text-[10px] text-[#565e74] capitalize block">
                             Actor: {human(e.actor_role)}
                           </span>
                         )}
-                        {e.reason_code && (
+                        {!citizen && e.reason_code && (
                           <span className="text-[10px] text-[#ba1a1a] block font-semibold">
                             Reason: {human(e.reason_code)}
                           </span>
@@ -477,7 +550,7 @@ export function CaseDetailModal({
                 </div>
 
                 {/* Assignment History */}
-                {ops.assignments.length > 0 && (
+                {oversight && ops.assignments.length > 0 && (
                   <div className="p-4 rounded-lg bg-white border border-[#d9cdba] shadow-sm">
                     <span className="text-xs font-bold text-[#0b1c30] uppercase tracking-wider block mb-2.5">
                       Officer Assignment Log
@@ -836,7 +909,11 @@ function ActionExecutor({
           disabled={busy || dictating}
           className="w-full py-2 bg-[#f77f00] hover:bg-[#d96e00] text-white font-semibold text-xs rounded shadow-sm transition-all"
         >
-          {busy ? "Executing State Transition…" : `Confirm ${human(action)}`}
+          {busy
+            ? "Saving…"
+            : action === "verification"
+              ? "Submit resolution response"
+              : `Confirm ${human(action)}`}
         </button>
       </form>
       <AlertDialog.Root
@@ -849,7 +926,9 @@ function ActionExecutor({
           <AlertDialog.Overlay className="fixed inset-0 z-[60] bg-black/40" />
           <AlertDialog.Content className="fixed inset-x-5 top-1/3 z-[70] mx-auto max-w-md rounded-xl bg-white p-6 shadow-xl">
             <AlertDialog.Title className="text-lg font-semibold">
-              Confirm {human(action)}
+              {action === "verification"
+                ? "Accept this resolution?"
+                : `Confirm ${human(action)}`}
             </AlertDialog.Title>
             <AlertDialog.Description className="mt-2 text-sm text-slate-600">
               {action === "reject"
@@ -885,11 +964,13 @@ function ActionExecutor({
 
 function UploadEvidence({
   token,
+  role,
   item,
   ops,
   done,
 }: {
   token: string;
+  role: DashboardRole;
   item: Case;
   ops: Operations;
   done: () => void;
@@ -923,6 +1004,7 @@ function UploadEvidence({
         token,
         `/cases/${item.id}/evidence?kind=${encodeURIComponent(kind)}`,
         {
+          role,
           method: "POST",
           body: file,
           headers: {
@@ -980,10 +1062,12 @@ function UploadEvidence({
 
 function DownloadEvidence({
   token,
+  role,
   caseId,
   file,
 }: {
   token: string;
+  role: DashboardRole;
   caseId: string;
   file: Evidence;
 }) {
@@ -993,7 +1077,7 @@ function DownloadEvidence({
     setBusy(true);
     try {
       const response = await fetch(`/v1/cases/${caseId}/evidence/${file.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}`, ...roleHeaders(role) },
       });
       if (!response.ok) throw new Error("Download failed");
       const url = URL.createObjectURL(await response.blob());
@@ -1011,7 +1095,7 @@ function DownloadEvidence({
 
   return (
     <div className="flex flex-col items-end gap-2">
-      <EvidencePreview token={token} caseId={caseId} file={file} />
+      <EvidencePreview token={token} role={role} caseId={caseId} file={file} />
       <button
         onClick={download}
         disabled={busy}
@@ -1025,10 +1109,12 @@ function DownloadEvidence({
 
 function EvidencePreview({
   token,
+  role,
   caseId,
   file,
 }: {
   token: string;
+  role: DashboardRole;
   caseId: string;
   file: Evidence;
 }) {
@@ -1042,7 +1128,7 @@ function EvidencePreview({
     setError(false);
     if (file.content_type?.startsWith("image/")) {
       fetch(`/v1/cases/${caseId}/evidence/${file.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}`, ...roleHeaders(role) },
         signal: controller.signal,
       })
         .then(async (response) => {
@@ -1062,7 +1148,7 @@ function EvidencePreview({
       controller.abort();
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [token, caseId, file.id, file.content_type]);
+  }, [token, role, caseId, file.id, file.content_type]);
   return preview ? (
     <a
       href={preview}

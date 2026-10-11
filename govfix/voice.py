@@ -141,7 +141,7 @@ def register_voice(app, sessions, settings, workflow, require_actor, read_case):
             }
 
     def owned(session, actor, session_id, *, allow_completed=False):
-        actor = load_actor(session, actor.id, lock=True)
+        actor = load_actor(session, actor.id, lock=True, active_role=actor.active_role)
         verified(actor)
         voice = session.scalar(
             select(VoiceSession)
@@ -164,7 +164,7 @@ def register_voice(app, sessions, settings, workflow, require_actor, read_case):
                 raise Refusal("VOICE_SESSION_ACTIVE", "End your current voice session first.", 409)
         provider = app.state.voice_signer(body.language)
         with write_transaction(sessions) as session:
-            fresh = load_actor(session, actor.id, lock=True)
+            fresh = load_actor(session, actor.id, lock=True, active_role=actor.active_role)
             verified(fresh)
             active = active_session(session, actor)
             if active:

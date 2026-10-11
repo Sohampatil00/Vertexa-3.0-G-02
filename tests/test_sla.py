@@ -1,5 +1,6 @@
 import copy
 import json
+import secrets
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
 from datetime import datetime, timedelta
@@ -8,10 +9,12 @@ import pytest
 from sqlalchemy import event, func, select, update
 from sqlalchemy.exc import DBAPIError, OperationalError
 
+from govfix.auth import token_hash
 from govfix.cli import import_policy
 from govfix.database import as_utc, utcnow, write_transaction
 from govfix.models import (
     AuditEvent,
+    AuthSession,
     Case,
     Notification,
     OutboxMessage,
@@ -65,7 +68,59 @@ def ward_head(backend):
         session.add(user)
         session.flush()
         session.add(RoleGrant(user_id=user.id, role="WARD_HEAD", ward="WARD-A", department=None))
+        token = secrets.token_urlsafe(32)
+        session.add(
+            AuthSession(
+                token_hash=token_hash(token),
+                user_id=user.id,
+                expires_at=utcnow() + timedelta(hours=1),
+            )
+        )
+        backend.tokens["ward-head"] = token
         return user.id
+
+
+def test_ward_head_sees_pending_schedule_then_recorded_escalation(backend):
+    case = backend.in_progress()
+    ward_head(backend)
+    headers = {**backend.headers("ward-head"), "X-GovFix-Role": "WARD_HEAD"}
+    path = f"/v1/cases/{case['id']}/sla"
+    initial = backend.client.get(path, headers=headers)
+    assert initial.status_code == 200
+    initial = initial.json()
+    assert initial["escalation_level"] == 0
+    assert [threshold["key"] for threshold in initial["pending_thresholds"]] == [
+        "WARNING",
+        "SUPERVISOR_ESCALATION",
+        "WARD_HEAD_ESCALATION",
+    ]
+    assert [threshold["percent_of_sla"] for threshold in initial["pending_thresholds"]] == [
+        80,
+        100,
+        150,
+    ]
+    assert initial["next_sla_check"] == initial["pending_thresholds"][0]["threshold_at"]
+    submitted = datetime.fromisoformat(case["submitted_at"])
+    assert datetime.fromisoformat(initial["pending_thresholds"][2]["threshold_at"]) == (
+        submitted + timedelta(hours=108)
+    )
+    assert all(not threshold["due"] for threshold in initial["pending_thresholds"])
+    outside = backend.submit(ward="WARD-B").json()["case"]
+    assert backend.client.get(f"/v1/cases/{outside['id']}/sla", headers=headers).status_code == 404
+
+    worker, clock = setup_worker(backend, case)
+    clock.value += timedelta(hours=109)
+    assert worker.run_once()["sla"]["thresholds_recorded"] == 6
+    recorded = backend.client.get(path, headers=headers).json()
+    assert recorded["escalation_level"] == 2
+    assert recorded["pending_thresholds"] == []
+    assert recorded["next_sla_check"] is None
+    assert [threshold["key"] for threshold in recorded["thresholds"]] == [
+        "WARNING",
+        "SUPERVISOR_ESCALATION",
+        "WARD_HEAD_ESCALATION",
+    ]
+    assert any(message["status"] == "DELIVERED" for message in recorded["deliveries"])
 
 
 def test_threshold_boundaries_and_retry_once(backend):

@@ -3,11 +3,12 @@
 from typing import Annotated
 
 from fastapi import Depends, Query, Request
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 
 from govfix.auth import Actor
-from govfix.database import as_utc
+from govfix.database import as_utc, utcnow
 from govfix.models import AuditEvent, Case, Notification, OutboxMessage, PolicyVersion, SlaThreshold
+from govfix.sla import threshold_time
 
 
 def register_notifications(app, sessions, require_actor, read_case, scope_filter):
@@ -19,11 +20,36 @@ def register_notifications(app, sessions, require_actor, read_case, scope_filter
         offset: Annotated[int, Query(ge=0)] = 0,
     ):
         with sessions() as session:
+            filters = [Notification.recipient_id == actor.id, scope_filter(actor)]
+            if actor.active_role:
+                # A multi-role user's inbox follows the selected dashboard, including
+                # when a staff alert concerns a report they personally submitted.
+                recipient_roles = {
+                    "CITIZEN_VERIFICATION_REQUEST": "CITIZEN",
+                    "DEADLINE_EXTENDED": "CITIZEN",
+                    "SUPERVISOR_REVIEW_REQUEST": "SUPERVISOR",
+                    "VERIFICATION_WAIT_REVIEW": "SUPERVISOR",
+                    "INTAKE_VALIDATED": "DISPATCHER",
+                }
+                filters.append(
+                    or_(
+                        OutboxMessage.kind.in_(
+                            kind
+                            for kind, role in recipient_roles.items()
+                            if role == actor.active_role
+                        ),
+                        and_(
+                            OutboxMessage.kind == "SLA_THRESHOLD",
+                            OutboxMessage.payload["recipient_role"].as_string()
+                            == actor.active_role,
+                        ),
+                    )
+                )
             rows = session.execute(
                 select(Notification, Case, OutboxMessage)
                 .join(Case, Notification.case_id == Case.id)
                 .join(OutboxMessage, Notification.message_id == OutboxMessage.id)
-                .where(Notification.recipient_id == actor.id, scope_filter(actor))
+                .where(*filters)
                 .order_by(Notification.created_at.desc(), Notification.id)
                 .offset(offset)
                 .limit(limit)
@@ -71,6 +97,22 @@ def register_notifications(app, sessions, require_actor, read_case, scope_filter
                 .where(SlaThreshold.case_id == case.id)
                 .order_by(SlaThreshold.threshold_at, SlaThreshold.id)
             ).all()
+            recorded = {item.threshold_key for item in thresholds}
+            now = utcnow()
+            policy = session.get(PolicyVersion, case.policy_version).definition
+            pending = []
+            if case.terminal_at is None:
+                pending = [
+                    {
+                        "key": threshold["key"],
+                        "percent_of_sla": threshold["percent_of_sla"],
+                        "threshold_at": threshold_time(case, threshold).isoformat(),
+                        "due": threshold_time(case, threshold) <= now,
+                    }
+                    for threshold in policy["thresholds"]
+                    if threshold["key"] not in recorded
+                ]
+                pending.sort(key=lambda item: item["threshold_at"])
             privileged = any(
                 actor.has_role(role, case) for role in {"SUPERVISOR", "WARD_HEAD", "AUDITOR"}
             )
@@ -103,6 +145,10 @@ def register_notifications(app, sessions, require_actor, read_case, scope_filter
                 "original_deadline": as_utc(case.original_deadline).isoformat(),
                 "current_deadline": as_utc(case.current_deadline).isoformat(),
                 "escalation_level": case.escalation_level,
+                "next_sla_check": as_utc(case.next_sla_check).isoformat()
+                if case.next_sla_check
+                else None,
+                "pending_thresholds": pending,
                 "thresholds": [
                     {
                         "key": item.threshold_key,

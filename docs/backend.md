@@ -26,6 +26,19 @@ Open the [operations interface](http://127.0.0.1:8000/app/) and sign in with a p
 
 Open [API documentation](http://127.0.0.1:8000/docs). Call `POST /v1/auth/login` with a username and password, then use **Authorize** to supply the returned bearer token. Sessions expire after 60 minutes by default and `POST /v1/auth/logout` revokes them. Passwords use Argon2; only a SHA-256 hash of each random session token is stored. Roles are read from the database on each request.
 
+The web interface sends `X-GovFix-Role` with the selected dashboard role on case reads,
+commands, evidence requests, summaries, and notifications. This restricts a multi-role
+account to that role's existing grants for the request, including transaction-time
+authorization. An unassigned or revoked role returns 403. API clients that omit this
+optional header retain the account's complete set of grants. Notifications keep the
+role of the dashboard from which the inbox was opened.
+
+Citizen views show personal reports, progress, resolution photos, and permitted
+accept/dispute responses. Staff assignment, audit diagnostics, escalation, and
+delivery retry controls stay in their respective dashboards. `/v1/me` advertises
+`voice_languages` only for a verified citizen with a configured voice provider and
+language agent; the citizen page hides unavailable voice controls.
+
 ## First case path
 
 1. As the citizen, `POST /v1/cases` with description, location, `POTHOLE`, `WARD-A`, and `confirmation: true`. Set a new `Idempotency-Key`.

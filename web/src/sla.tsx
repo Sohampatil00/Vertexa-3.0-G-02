@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api, date, human, type Case } from "./api";
+import { api, date, human, type Case, type DashboardRole } from "./api";
 import { cn, secondary, button, Field, ErrorText } from "./ui";
 
 type Notice = {
@@ -23,6 +23,13 @@ type Delivery = {
 type Sla = {
   original_deadline: string;
   escalation_level: number;
+  next_sla_check: string | null;
+  pending_thresholds: {
+    key: string;
+    percent_of_sla: number;
+    threshold_at: string;
+    due: boolean;
+  }[];
   thresholds: {
     key: string;
     threshold_at: string;
@@ -147,6 +154,7 @@ export function Inbox({
 }
 export function SlaPanel({
   token,
+  role,
   item,
   revision,
   canRetry,
@@ -155,6 +163,7 @@ export function SlaPanel({
   commandError,
 }: {
   token: string;
+  role: DashboardRole;
   item: Case;
   revision: number;
   canRetry: boolean;
@@ -170,7 +179,8 @@ export function SlaPanel({
     let live = true;
     setLoading(true);
     setError("");
-    api<Sla>(token, `/cases/${item.id}/sla?offset=${offset}`)
+    setData(null);
+    api<Sla>(token, `/cases/${item.id}/sla?offset=${offset}`, { role })
       .then((result) => {
         if (live) setData(result);
       })
@@ -183,7 +193,7 @@ export function SlaPanel({
     return () => {
       live = false;
     };
-  }, [token, item.id, item.version, revision, offset]);
+  }, [token, role, item.id, item.version, revision, offset]);
   return (
     <section className="space-y-4 border-t border-slate-200 pt-5">
       <h3 className="font-semibold">SLA and escalation</h3>
@@ -214,6 +224,32 @@ export function SlaPanel({
               Original deadline: {date(data.original_deadline, item.timezone)} (
               {item.timezone})
             </p>
+            {data.next_sla_check && (
+              <p className="text-xs text-slate-600 tabular-nums">
+                Next scheduled SLA check: {date(data.next_sla_check, item.timezone)}
+              </p>
+            )}
+            {data.pending_thresholds.length > 0 && (
+              <div>
+                <h4 className="mb-2 text-sm font-semibold">Pending thresholds</h4>
+                <ol className="space-y-2">
+                  {data.pending_thresholds.map((threshold) => (
+                    <li key={threshold.key} className="rounded-md border border-slate-200 p-3">
+                      <p className="text-sm font-medium capitalize">
+                        {human(threshold.key)} · {threshold.percent_of_sla}% of SLA
+                      </p>
+                      <p className="mt-1 text-xs text-slate-600 tabular-nums">
+                        {date(threshold.threshold_at, item.timezone)} ·{" "}
+                        {threshold.due ? "Due; awaiting worker" : "Scheduled"}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+            {data.thresholds.length > 0 && (
+              <h4 className="text-sm font-semibold">Recorded thresholds</h4>
+            )}
             <ol className="space-y-2">
               {data.thresholds.map((threshold) => (
                 <li key={threshold.key} className="rounded-md bg-slate-50 p-3">

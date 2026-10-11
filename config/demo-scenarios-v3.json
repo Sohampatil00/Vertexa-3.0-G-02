@@ -292,6 +292,15 @@
       "location": "Ward B, Sample Bus Stop Footpath",
       "target_state": "IN_PROGRESS",
       "submitted_hours_ago": 40
+    },
+    {
+      "key": "case-35",
+      "category": "OPEN_MANHOLE",
+      "ward": "WARD-A",
+      "description": "An open manhole near the school crossing needs an urgent safety repair.",
+      "location": "Ward A, Fictional School Crossing",
+      "target_state": "IN_PROGRESS",
+      "submitted_hours_ago": 20
     }
   ]
 }

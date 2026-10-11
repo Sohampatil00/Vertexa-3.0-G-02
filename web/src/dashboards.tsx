@@ -291,7 +291,7 @@ export function SystemReadiness({
     let live = true;
     setLoading(true);
     setError("");
-    api<Status>(token, "/operations/status")
+    api<Status>(token, "/operations/status", { role: "AUDITOR" })
       .then((value) => {
         if (live) setResult(value);
       })

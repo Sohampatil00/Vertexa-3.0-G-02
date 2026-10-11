@@ -130,10 +130,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         response.headers["Cache-Control"] = "no-store"
         return response
 
-    def require_actor(credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)]):
+    def require_actor(
+        credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
+        dashboard_role: Annotated[str | None, Header(alias="X-GovFix-Role")] = None,
+    ):
         with sessions() as session:
             token = credentials.credentials if credentials else None
-            return authenticate(session, token)
+            return authenticate(session, token).for_role(dashboard_role)
 
     def transport_audit(request: Request, reason: str, actor: Actor | None = None, channel="TEXT"):
         voice_request = request.url.path.startswith("/v1/voice/")
@@ -202,7 +205,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 if len(authorization) == 2 and authorization[0].lower() == "bearer"
                 else None
             )
-            return authenticate(session, token)
+            return authenticate(session, token).for_role(request.headers.get("X-GovFix-Role"))
 
     @app.exception_handler(Refusal)
     async def refusal_handler(request: Request, exc: Refusal):
@@ -309,6 +312,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "id": actor.id,
             "username": actor.username,
             "display_name": actor.display_name,
+            "identity_verified": actor.identity_verified,
+            "voice_languages": [
+                language
+                for language in ("en", "hi", "mr")
+                if actor.has_role("CITIZEN")
+                and actor.identity_verified
+                and settings.elevenlabs_api_key
+                and getattr(settings, f"elevenlabs_agent_{language}")
+            ],
             "roles": [
                 {"role": grant.role, "ward": grant.ward, "department": grant.department}
                 for grant in actor.grants
@@ -331,6 +343,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             None,
             None,
             request.state.request_id,
+            active_role=actor.active_role,
         )
         return JSONResponse(response, status_code=status)
 
@@ -351,6 +364,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 if_match,
                 case_id,
                 request.state.request_id,
+                active_role=actor.active_role,
             )
             return JSONResponse(response, status_code=status)
 

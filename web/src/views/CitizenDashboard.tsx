@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import type { Case, Policy, User } from "../api";
 import { date, human } from "../api";
 import { StatusBadge } from "../ui";
 import { VoiceAccess } from "../voice";
+
+type ReportFilter = "all" | "review" | "open" | "closed" | "rejected";
 
 export function CitizenDashboard({
   cases,
@@ -22,388 +24,241 @@ export function CitizenDashboard({
   onRefresh: () => void;
 }) {
   const [showVoice, setShowVoice] = useState(false);
-
-  const awaitingVerification = cases.filter(
+  const [filter, setFilter] = useState<ReportFilter>("all");
+  const awaitingReview = cases.filter(
     (c) => c.workflow_state === "CITIZEN_VERIFICATION",
   );
-  const inProgressCases = cases.filter(
+  const open = cases.filter(
     (c) =>
-      c.workflow_state !== "CLOSED" &&
-      c.workflow_state !== "REJECTED" &&
-      c.workflow_state !== "CITIZEN_VERIFICATION",
+      !["CLOSED", "REJECTED", "CITIZEN_VERIFICATION"].includes(
+        c.workflow_state,
+      ),
   );
-  const closedCases = cases.filter(
-    (c) => c.workflow_state === "CLOSED" || c.workflow_state === "REJECTED",
-  );
-
-  const urgentCase = awaitingVerification[0] || null;
+  const closed = cases.filter((c) => c.workflow_state === "CLOSED");
+  const rejected = cases.filter((c) => c.workflow_state === "REJECTED");
+  const groups = { all: cases, review: awaitingReview, open, closed, rejected };
+  const filters: {
+    id: ReportFilter;
+    label: string;
+    detail: string;
+    count: number;
+  }[] = [
+    {
+      id: "review",
+      label: "Awaiting your review",
+      detail: "Check the resolution and photos",
+      count: awaitingReview.length,
+    },
+    {
+      id: "open",
+      label: "Open reports",
+      detail: "Awaiting review or being worked on",
+      count: open.length,
+    },
+    {
+      id: "closed",
+      label: "Resolved reports",
+      detail: "Resolutions you accepted",
+      count: closed.length,
+    },
+    {
+      id: "rejected",
+      label: "Rejected reports",
+      detail: "Reports declined during intake",
+      count: rejected.length,
+    },
+  ];
+  const voiceLanguages = user.voice_languages || [];
 
   return (
-    <div className="flex flex-col w-full gap-6">
-      {/* Top Banner & Quick Action Hub */}
-      <section className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="px-2.5 py-0.5 rounded bg-[#dce9ff] text-[#0037b0] text-[11px] font-semibold uppercase tracking-wider">
-              Demo policy active • {cases.length} grievances visible
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-[#434655] text-xs">
-              <span className="w-2 h-2 rounded-full bg-[#f77f00] animate-pulse"></span>
-              Civic SLA Node: Ward Operations
-            </span>
-          </div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-[#0b1c30] tracking-tight mt-1">
+    <div className="flex w-full flex-col gap-6">
+      <section className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#0b1c30] lg:text-3xl">
             Welcome back, {user.display_name}
           </h1>
-          <p className="text-xs md:text-sm text-[#434655]">
-            Registered Citizen Profile • Municipal Grievance Tracking &
-            Verification Portal
+          <p className="mt-1 text-sm text-[#434655]">
+            Report a local issue, track your reports, and review completed work.
           </p>
         </div>
-
-        <div className="flex items-center gap-3 self-start lg:self-center flex-wrap">
-          <button
-            onClick={() => setShowVoice(!showVoice)}
-            className="px-4 py-2.5 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0037b0] font-semibold text-xs rounded border border-[#d9cdba] transition-all flex items-center gap-2 cursor-pointer"
-          >
-            <span className="material-symbols-outlined text-[18px]">mic</span>
-            <span>
+        <div className="flex flex-wrap items-center gap-3">
+          {voiceLanguages.length > 0 && policy && (
+            <button
+              onClick={() => setShowVoice(!showVoice)}
+              aria-expanded={showVoice}
+              className="rounded border border-[#d9cdba] bg-[#e5eeff] px-4 py-2.5 text-xs font-semibold text-[#0037b0] hover:bg-[#dce9ff]"
+            >
               {showVoice ? "Hide Voice Assistant" : "Voice Grievance"}
-            </span>
-          </button>
+            </button>
+          )}
           <button
             onClick={onNewGrievance}
-            className="px-5 py-2.5 bg-[#f77f00] hover:bg-[#d96e00] text-white font-semibold text-xs rounded shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer"
+            disabled={!policy}
+            className="rounded bg-[#f77f00] px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#d96e00] disabled:opacity-50"
           >
-            <span className="material-symbols-outlined text-[18px]">
-              add_circle
-            </span>
-            <span>Report New Grievance</span>
+            Report New Grievance
           </button>
           <button
             onClick={onRefresh}
-            className="p-2.5 bg-white hover:bg-[#eff4ff] text-[#434655] rounded border border-[#d9cdba] transition-colors"
-            title="Refresh cases"
+            aria-label="Refresh my reports"
+            className="rounded border border-[#d9cdba] bg-white p-2.5 text-[#434655] hover:bg-[#eff4ff]"
           >
-            <span className="material-symbols-outlined text-[18px]">
+            <span
+              className="material-symbols-outlined text-[18px]"
+              aria-hidden="true"
+            >
               refresh
             </span>
           </button>
         </div>
       </section>
 
-      {/* Voice Assistant Collapsible Bar */}
-      {showVoice && policy && (
-        <div className="rounded-xl border border-[#d9cdba] bg-white p-4 shadow-sm">
-          <VoiceAccess token={token} policy={policy} saved={onOpenCase} />
-        </div>
+      {showVoice && policy && voiceLanguages.length > 0 && (
+        <VoiceAccess
+          token={token}
+          policy={policy}
+          languages={voiceLanguages}
+          saved={onOpenCase}
+        />
       )}
 
-      {/* Metric Summary Bento Grid */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Card 1: Urgent Citizen Action */}
-        <div className="relative bg-white p-5 rounded-xl border border-[#d9cdba] shadow-sm flex flex-col justify-between overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-[#ba1a1a]"></div>
-          <div>
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <span className="text-[11px] text-[#ba1a1a] uppercase font-bold tracking-wider flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-[#ba1a1a] animate-ping"></span>
-                  Action Required
-                </span>
-                <span className="text-sm font-semibold text-[#0b1c30] block mt-0.5">
-                  Awaiting Your Verification
-                </span>
-              </div>
-              <div className="w-10 h-10 rounded-lg bg-[#ffdad6] text-[#ba1a1a] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">
-                  assignment_turned_in
-                </span>
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2 mb-3">
-              <span className="text-3xl font-bold text-[#0b1c30]">
-                {String(awaitingVerification.length).padStart(2, "0")}
-              </span>
-              <span className="text-xs text-[#434655]">
-                Case(s) awaiting your review
-              </span>
-            </div>
-          </div>
-          <div className="bg-[#ffdad6]/60 p-2.5 rounded flex items-center justify-between text-xs font-medium text-[#93000a]">
-            <span>Confirm or dispute resolution</span>
-            <span className="material-symbols-outlined text-[16px]">
-              arrow_forward
+      <section
+        aria-label="Filter my reports"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        {filters.map(({ id, label, detail, count }) => (
+          <button
+            key={id}
+            onClick={() => setFilter(filter === id ? "all" : id)}
+            aria-pressed={filter === id}
+            className={`rounded-xl border bg-white p-5 text-left shadow-sm hover:bg-[#f8f9ff] ${filter === id ? "border-[#0037b0] ring-1 ring-[#0037b0]" : "border-[#d9cdba]"}`}
+          >
+            <span className="block text-sm font-semibold text-[#0b1c30]">
+              {label}
             </span>
-          </div>
-        </div>
-
-        {/* Card 2: Active Dispatch */}
-        <div className="relative bg-white p-5 rounded-xl border border-[#d9cdba] shadow-sm flex flex-col justify-between overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-[#f77f00]"></div>
-          <div>
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <span className="text-[11px] text-[#434655] uppercase font-bold tracking-wider">
-                  Open Reports
-                </span>
-                <span className="text-sm font-semibold text-[#0b1c30] block mt-0.5">
-                  Awaiting Review or In Progress
-                </span>
-              </div>
-              <div className="w-10 h-10 rounded-lg bg-[#ffdcc6] text-[#954a00] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">
-                  hourglass_top
-                </span>
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2 mb-3">
-              <span className="text-3xl font-bold text-[#0b1c30]">
-                {String(inProgressCases.length).padStart(2, "0")}
-              </span>
-              <span className="text-xs text-[#434655]">
-                Reports still moving through the workflow
-              </span>
-            </div>
-          </div>
-          <div className="bg-[#eff4ff] p-2.5 rounded flex items-center justify-between text-xs text-[#434655]">
-            <div className="flex items-center gap-1 font-mono text-[11px]">
-              <span className="material-symbols-outlined text-[14px] text-[#f77f00]">
-                schedule
-              </span>
-              <span>Under municipal SLA</span>
-            </div>
-            <span className="font-semibold text-[#0037b0]">Open</span>
-          </div>
-        </div>
-
-        {/* Card 3: Closed Cases */}
-        <div className="relative bg-white p-5 rounded-xl border border-[#d9cdba] shadow-sm flex flex-col justify-between overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1 bg-[#dce9ff]"></div>
-          <div>
-            <div className="flex items-start justify-between mb-3">
-              <div>
-                <span className="text-[11px] text-[#434655] uppercase font-bold tracking-wider">
-                  Historical Archive
-                </span>
-                <span className="text-sm font-semibold text-[#0b1c30] block mt-0.5">
-                  Completed & Closed
-                </span>
-              </div>
-              <div className="w-10 h-10 rounded-lg bg-[#e5eeff] text-[#434655] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">
-                  verified
-                </span>
-              </div>
-            </div>
-            <div className="flex items-baseline gap-2 mb-3">
-              <span className="text-3xl font-bold text-[#0b1c30]">
-                {String(closedCases.length).padStart(2, "0")}
-              </span>
-              <span className="text-xs text-[#434655]">
-                Resolved grievances
-              </span>
-            </div>
-          </div>
-          <div className="bg-[#eff4ff] p-2.5 rounded flex items-center justify-between text-xs text-[#434655]">
-            <span>Closed after your acceptance</span>
-            <span className="font-mono text-[11px]">ARCHIVED</span>
-          </div>
-        </div>
+            <span className="my-2 block text-3xl font-bold text-[#0b1c30]">
+              {count}
+            </span>
+            <span className="block text-xs text-[#434655]">{detail}</span>
+          </button>
+        ))}
       </section>
 
-      {/* Immediate Action Required Highlight Card */}
-      {urgentCase && (
-        <section className="bg-white rounded-xl border border-[#d9cdba] shadow-sm p-6 overflow-hidden">
-          <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#d9cdba]/50">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#ba1a1a] animate-pulse"></span>
-              <h2 className="text-base font-bold text-[#0b1c30]">
-                Immediate Action Required
-              </h2>
-              <span className="px-2 py-0.5 rounded bg-[#ffdad6] text-[#ba1a1a] text-[10px] font-bold uppercase">
-                1 Case Awaiting Citizen Verification
-              </span>
-            </div>
-            <span className="text-xs text-[#434655] font-mono">
-              Supervisor review after the response window if unanswered
-            </span>
-          </div>
-
-          <div className="flex flex-col lg:flex-row gap-6 items-start">
-            <div className="w-full lg:w-64 bg-[#eff4ff] p-4 rounded-lg border border-[#d9cdba]/60 flex flex-col items-center justify-center text-center shrink-0">
-              <div className="w-12 h-12 rounded-full bg-[#ffdad6] text-[#ba1a1a] flex items-center justify-center mb-2">
-                <span className="material-symbols-outlined text-[24px]">
-                  task_alt
-                </span>
-              </div>
-              <span className="font-semibold text-xs text-[#0b1c30]">
-                Resolution Submitted
-              </span>
-              <p className="text-[11px] text-[#434655] mt-1">
-                Field team marked this work complete and supplied resolution
-                evidence.
-              </p>
-              <button
-                onClick={() => onOpenCase(urgentCase)}
-                className="mt-3 w-full py-1.5 bg-white hover:bg-[#dce9ff] text-xs font-semibold rounded border border-[#d9cdba] transition-colors"
+      {awaitingReview.length > 0 && (
+        <section className="rounded-xl border border-[#d9cdba] bg-white p-5 shadow-sm">
+          <h2 className="text-base font-bold text-[#0b1c30]">
+            Review completed work
+          </h2>
+          <p className="mt-1 text-xs text-[#434655]">
+            Review the resolution and photos. Accept if the issue is fixed, or
+            dispute it if more work is needed.
+          </p>
+          <ul className="mt-4 divide-y divide-[#d9cdba]/50">
+            {awaitingReview.map((item) => (
+              <li
+                key={item.id}
+                className="flex flex-col justify-between gap-3 py-3 sm:flex-row sm:items-center"
               >
-                Inspect Full Evidence
-              </button>
-            </div>
-
-            <div className="flex-1 flex flex-col justify-between w-full">
-              <div>
-                <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                  <span className="font-mono text-xs font-semibold bg-[#e5eeff] text-[#0037b0] px-2 py-0.5 rounded">
-                    Case {urgentCase.id.slice(0, 8)}…
-                  </span>
-                  <span className="px-2 py-0.5 rounded bg-[#e5eeff] text-[#0b1c30] text-xs font-medium">
-                    {human(urgentCase.category)}
-                  </span>
-                  <StatusBadge state={urgentCase.workflow_state} />
+                <div>
+                  <h3 className="text-sm font-semibold text-[#0b1c30]">
+                    {item.description}
+                  </h3>
+                  <p className="mt-1 text-xs text-[#434655]">{item.location}</p>
+                  {item.verification_due_at && (
+                    <p className="mt-1 text-xs text-[#434655]">
+                      Please respond by{" "}
+                      {date(item.verification_due_at, item.timezone)}.
+                    </p>
+                  )}
                 </div>
-                <h3 className="text-lg font-bold text-[#0b1c30] tracking-tight mt-1">
-                  {urgentCase.description}
-                </h3>
-                <p className="text-xs text-[#434655] mt-1">
-                  Location: {urgentCase.location} • Ward {urgentCase.ward}
-                </p>
-
-                <div className="bg-[#eff4ff] p-3.5 rounded-lg mt-3 border border-[#d9cdba]/50">
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-[#0b1c30] mb-1">
-                    <span className="material-symbols-outlined text-[16px] text-[#f77f00]">
-                      verified_user
-                    </span>
-                    <span>Field Resolution Ready For Review</span>
-                  </div>
-                  <p className="text-xs text-[#434655] leading-relaxed">
-                    Please inspect the work performed at this site. You have the
-                    right to either accept the resolution and close the case or
-                    dispute it to dispatch a supervised rework.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3 pt-4 mt-2">
                 <button
-                  onClick={() => onOpenCase(urgentCase)}
-                  className="px-5 py-2.5 bg-[#f77f00] hover:bg-[#d96e00] text-white font-semibold text-xs rounded flex items-center gap-2 cursor-pointer shadow-sm transition-all"
+                  aria-label={`Review resolution for ${item.description}`}
+                  onClick={() => onOpenCase(item)}
+                  className="shrink-0 self-start rounded bg-[#f77f00] px-4 py-2 text-xs font-semibold text-white hover:bg-[#d96e00]"
                 >
-                  <span className="material-symbols-outlined text-[18px]">
-                    thumb_up
-                  </span>
-                  <span>Review & Verify Resolution</span>
+                  Review resolution
                 </button>
-                <button
-                  onClick={() => onOpenCase(urgentCase)}
-                  className="px-5 py-2.5 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0b1c30] font-semibold text-xs rounded flex items-center gap-2 cursor-pointer border border-[#d9cdba] transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[18px]">
-                    report_problem
-                  </span>
-                  <span>Dispute / Report Incomplete</span>
-                </button>
-                <span className="text-xs text-[#434655] ml-auto hidden md:inline">
-                  Your feedback audits municipal performance
-                </span>
-              </div>
-            </div>
-          </div>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 
-      {/* Active Grievances Table & Queue */}
-      <section className="bg-white rounded-xl border border-[#d9cdba] shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-[#d9cdba]/50 flex items-center justify-between flex-wrap gap-2">
+      <section className="overflow-hidden rounded-xl border border-[#d9cdba] bg-white shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#d9cdba]/50 p-5">
           <div>
             <h2 className="text-base font-bold text-[#0b1c30]">
               My Registered Grievances
             </h2>
-            <p className="text-xs text-[#434655]">
-              Live civic dispatch tracker under GovFix Service Level Agreement
+            <p className="mt-1 text-xs text-[#434655]">
+              {filter === "all"
+                ? "All your reports"
+                : filters.find((entry) => entry.id === filter)?.label}{" "}
+              · {groups[filter].length} reports
             </p>
           </div>
-          <span className="text-xs font-semibold text-[#434655] bg-[#eff4ff] px-2.5 py-1 rounded border border-[#d9cdba]/60">
-            {cases.length} Total
-          </span>
-        </div>
-
-        {cases.length === 0 ? (
-          <div className="p-12 text-center">
-            <span className="material-symbols-outlined text-4xl text-[#565e74] mb-2">
-              assignment_add
-            </span>
-            <h3 className="font-semibold text-sm text-[#0b1c30]">
-              No grievances registered
-            </h3>
-            <p className="text-xs text-[#434655] mt-1 max-w-sm mx-auto">
-              You haven't reported any municipal grievances yet. Click below to
-              submit your first case.
-            </p>
+          {filter !== "all" && (
             <button
-              onClick={onNewGrievance}
-              className="mt-4 px-4 py-2 bg-[#f77f00] text-white text-xs font-semibold rounded hover:bg-[#d96e00]"
+              onClick={() => setFilter("all")}
+              className="rounded border border-[#d9cdba] px-3 py-2 text-xs font-semibold text-[#0037b0]"
             >
-              Report New Grievance
+              Show all reports
             </button>
+          )}
+        </div>
+        {groups[filter].length === 0 ? (
+          <div className="p-10 text-center">
+            <h3 className="text-sm font-semibold text-[#0b1c30]">
+              {cases.length === 0
+                ? "No grievances registered"
+                : "No reports in this category"}
+            </h3>
+            <p className="mt-2 text-xs text-[#434655]">
+              {cases.length === 0
+                ? "Use Report New Grievance to submit your first issue."
+                : "Choose another category to see your reports."}
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-[#eff4ff]">
-            {cases.map((item) => (
+            {groups[filter].map((item) => (
               <div
                 key={item.id}
-                className="p-5 hover:bg-[#f8f9ff] transition-colors flex flex-col lg:flex-row lg:items-center justify-between gap-4"
+                className="flex flex-col justify-between gap-4 p-5 hover:bg-[#f8f9ff] lg:flex-row lg:items-center"
               >
-                <div className="flex items-start gap-3 flex-1">
-                  <div className="w-10 h-10 rounded-lg bg-[#e5eeff] flex items-center justify-center text-[#0037b0] shrink-0 mt-0.5">
-                    <span className="material-symbols-outlined text-[20px]">
-                      {item.category.includes("WATER")
-                        ? "water_drop"
-                        : item.category.includes("WASTE") ||
-                            item.category.includes("SAN")
-                          ? "delete_sweep"
-                          : "engineering"}
+                <div className="min-w-0">
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs text-[#0037b0]">
+                      {item.id}
                     </span>
+                    <StatusBadge state={item.workflow_state} />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="font-mono text-xs font-semibold text-[#0037b0] bg-[#e5eeff] px-2 py-0.5 rounded">
-                        {item.id.slice(0, 8)}…
-                      </span>
-                      <span className="px-2 py-0.5 rounded bg-[#eff4ff] text-[#0b1c30] text-[11px] font-medium">
-                        {human(item.department)}
-                      </span>
-                      <StatusBadge state={item.workflow_state} />
-                    </div>
-                    <h4 className="text-sm font-semibold text-[#0b1c30]">
-                      {item.description}
-                    </h4>
-                    <p className="text-xs text-[#434655] mt-0.5">
-                      Location: {item.location} • Ward {item.ward}
-                    </p>
-                  </div>
+                  <h3 className="text-sm font-semibold text-[#0b1c30]">
+                    {item.description}
+                  </h3>
+                  <p className="mt-1 text-xs text-[#434655]">
+                    {item.location} · {human(item.department)}
+                  </p>
                 </div>
-
-                <div className="flex items-center gap-4 self-start lg:self-center shrink-0">
-                  <div className="text-right">
-                    <div className="text-[11px] text-[#434655]">
-                      Target Deadline
+                <div className="flex shrink-0 items-center gap-4">
+                  {!["CLOSED", "REJECTED"].includes(item.workflow_state) && (
+                    <div className="text-xs text-[#434655]">
+                      <span className="block">Target resolution date</span>
+                      <span
+                        className={
+                          item.sla_status === "OVERDUE"
+                            ? "font-semibold text-[#ba1a1a]"
+                            : "font-semibold text-[#0037b0]"
+                        }
+                      >
+                        {date(item.current_deadline, item.timezone)}
+                      </span>
                     </div>
-                    <div
-                      className={`font-mono text-xs font-semibold ${
-                        item.sla_status === "OVERDUE"
-                          ? "text-[#ba1a1a]"
-                          : "text-[#0037b0]"
-                      }`}
-                    >
-                      {date(item.current_deadline, item.timezone)}
-                    </div>
-                  </div>
+                  )}
                   <button
                     aria-label={`View case ${item.description}`}
                     onClick={() => onOpenCase(item)}
-                    className="px-4 py-2 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0b1c30] text-xs font-semibold rounded border border-[#d9cdba] transition-colors cursor-pointer"
+                    className="rounded border border-[#d9cdba] bg-[#e5eeff] px-4 py-2 text-xs font-semibold text-[#0b1c30] hover:bg-[#dce9ff]"
                   >
                     View case
                   </button>
@@ -412,35 +267,6 @@ export function CitizenDashboard({
             ))}
           </div>
         )}
-      </section>
-
-      {/* Citizen SLA Guarantee Footer Notice */}
-      <section className="bg-[#eff4ff] rounded-xl p-5 border border-[#d9cdba]/70">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#dce9ff] text-[#0037b0] flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[22px]">
-                policy
-              </span>
-            </div>
-            <div>
-              <span className="text-xs text-[#0037b0] uppercase font-bold tracking-wider">
-                GovFix Citizen SLA Guarantee & Oversight Charter
-              </span>
-              <p className="text-xs text-[#0b1c30] mt-0.5 max-w-2xl leading-relaxed">
-                Every grievance has an assigned municipal department, a
-                deterministic SLA deadline in Asia/Kolkata timezone, and a
-                verifiable resolution audit trail. You hold the final sign-off.
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-xs font-mono text-[#434655] bg-white px-3 py-1.5 rounded border border-[#d9cdba]">
-            <span className="material-symbols-outlined text-[16px] text-[#f77f00]">
-              verified
-            </span>
-            <span>PUBLIC GUARANTEE ACTIVE</span>
-          </div>
-        </div>
       </section>
     </div>
   );

@@ -1,5 +1,5 @@
 import type React from "react";
-import type { User } from "../api";
+import type { DashboardRole, User } from "../api";
 import { human } from "../api";
 import { AccessibilityControls } from "../accessibility";
 
@@ -9,16 +9,20 @@ export function Header({
   busy,
   notificationCount = 0,
   onOpenNotifications,
+  activeRole,
 }: {
   user: User | null;
   logout: () => void;
   busy: boolean;
   notificationCount?: number;
   onOpenNotifications?: () => void;
+  activeRole?: DashboardRole;
 }) {
-  const roleDisplay = user
-    ? [...new Set(user.roles.map((r) => human(r.role)))].join(" · ")
-    : "Citizen";
+  const roleDisplay = activeRole
+    ? human(activeRole)
+    : user
+      ? [...new Set(user.roles.map((r) => human(r.role)))].join(" · ")
+      : "Citizen";
 
   return (
     <header className="fixed top-0 left-0 right-0 min-h-16 z-50 bg-[#f8f9ff]/90 backdrop-blur-xl border-b border-[#d9cdba] shadow-[0_1px_8px_rgba(0,0,0,0.04)] flex items-center justify-between gap-2 px-3 py-2 sm:px-6">
@@ -38,25 +42,22 @@ export function Header({
             </span>
           </div>
           <span className="hidden sm:inline text-[11px] text-[#434655]">
-            GovFix Central Grievance Dispatch & Public SLA Engine
+            GovFix Municipal Grievance Portal
           </span>
         </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="hidden xl:flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#dce9ff] text-[#0b1c30] text-xs font-medium">
-          <span className="w-2 h-2 rounded-full bg-[#f77f00] animate-pulse"></span>
-          <span>Ward A & B • Operations</span>
-        </div>
-
         <AccessibilityControls />
 
         {user && (
           <>
             <button
+              disabled={busy}
               onClick={onOpenNotifications}
               className="relative p-2 text-[#434655] hover:text-[#0b1c30] hover:bg-[#e5eeff] rounded-lg transition-colors cursor-pointer"
-              title="Notifications & SLA Alerts"
+              title="Notifications"
+              aria-label="Open notifications"
             >
               <span className="material-symbols-outlined text-[20px]">
                 notifications

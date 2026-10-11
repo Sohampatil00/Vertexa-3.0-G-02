@@ -172,10 +172,12 @@ class Workflow:
         expected_version: str | None,
         case_id: str | None,
         request_id: str,
+        *,
+        active_role: str | None = None,
     ):
         with write_transaction(self.sessions) as session:
             # Actor locks serialize idempotency keys, including concurrent case creation.
-            actor = load_actor(session, actor_id, lock=True)
+            actor = load_actor(session, actor_id, lock=True, active_role=active_role)
             case = (
                 session.scalar(select(Case).where(Case.public_id == case_id).with_for_update())
                 if case_id
@@ -185,7 +187,12 @@ class Workflow:
             may_see = case is not None and visible(actor, case)
             digest = hashlib.sha256(
                 json.dumps(
-                    {"case_id": case_id, "body": body, "expected_version": expected_version},
+                    {
+                        "case_id": case_id,
+                        "body": body,
+                        "expected_version": expected_version,
+                        **({"active_role": active_role} if active_role else {}),
+                    },
                     sort_keys=True,
                     separators=(",", ":"),
                     allow_nan=False,

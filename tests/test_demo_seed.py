@@ -11,6 +11,7 @@ from govfix.database import make_engine, make_sessions, write_transaction
 from govfix.models import AuditEvent, AuthSession, Case, Evidence, PolicyVersion, User
 from govfix.policy import load_policy
 from govfix.settings import Settings
+from scripts import seed_demo
 from scripts.seed_demo import POLICY, ROOT, SCENARIOS, main
 
 
@@ -34,6 +35,10 @@ def test_demo_import_preserves_policy_and_is_repeatable(tmp_path, monkeypatch):
         import_policy(session, old_policy)
     expected = json.loads(SCENARIOS.read_text())["cases"]
     policy, _ = load_policy(POLICY)
+    previous_dataset = tmp_path / "previous-demo-scenarios.json"
+    previous_dataset.write_text(
+        json.dumps({"policy_version": policy["version"], "synthetic": True, "cases": expected[:-1]})
+    )
 
     def snapshot():
         with sessions() as session:
@@ -42,6 +47,16 @@ def test_demo_import_preserves_policy_and_is_repeatable(tmp_path, monkeypatch):
                 for model in (Case, Evidence, AuditEvent, User)
             ]
 
+    # Existing demo databases have the first 34 cases. Import the new ward-head
+    # scenario by key without replaying or rewriting those cases.
+    monkeypatch.setattr(seed_demo, "SCENARIOS", previous_dataset)
+    main()
+    assert snapshot()[0] == len(expected) - 1
+    monkeypatch.setattr(seed_demo, "SCENARIOS", SCENARIOS)
+    monkeypatch.setattr(
+        "sys.argv",
+        ["seed_demo", "--apply", "--credentials", str(credentials), "--scenario", "case-35"],
+    )
     main()
     first = snapshot()
     main()
@@ -55,6 +70,9 @@ def test_demo_import_preserves_policy_and_is_repeatable(tmp_path, monkeypatch):
             c["target_state"] for c in expected
         )
         assert any(c.escalation_level > 0 for c in cases)
+        assert any(
+            c.ward == "WARD-A" and c.escalation_level >= 2 and c.terminal_at is None for c in cases
+        )
         assert session.get(PolicyVersion, "demo-pilot-v2").checksum == load_policy(old_policy)[1]
         assert session.scalar(select(func.count()).select_from(AuthSession)) == 0
         photo = session.scalars(select(Evidence)).first()
