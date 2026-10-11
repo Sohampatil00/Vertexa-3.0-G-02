@@ -57,7 +57,8 @@ export function CitizenDashboard({
             Welcome back, {user.display_name}
           </h1>
           <p className="text-xs md:text-sm text-[#434655]">
-            Registered Citizen Profile • Municipal Grievance Tracking & Verification Portal
+            Registered Citizen Profile • Municipal Grievance Tracking &
+            Verification Portal
           </p>
         </div>
 
@@ -67,13 +68,17 @@ export function CitizenDashboard({
             className="px-4 py-2.5 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0037b0] font-semibold text-xs rounded border border-[#d9cdba] transition-all flex items-center gap-2 cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">mic</span>
-            <span>{showVoice ? "Hide Voice Assistant" : "Voice Grievance"}</span>
+            <span>
+              {showVoice ? "Hide Voice Assistant" : "Voice Grievance"}
+            </span>
           </button>
           <button
             onClick={onNewGrievance}
             className="px-5 py-2.5 bg-[#f77f00] hover:bg-[#d96e00] text-white font-semibold text-xs rounded shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer"
           >
-            <span className="material-symbols-outlined text-[18px]">add_circle</span>
+            <span className="material-symbols-outlined text-[18px]">
+              add_circle
+            </span>
             <span>Report New Grievance</span>
           </button>
           <button
@@ -81,7 +86,9 @@ export function CitizenDashboard({
             className="p-2.5 bg-white hover:bg-[#eff4ff] text-[#434655] rounded border border-[#d9cdba] transition-colors"
             title="Refresh cases"
           >
-            <span className="material-symbols-outlined text-[18px]">refresh</span>
+            <span className="material-symbols-outlined text-[18px]">
+              refresh
+            </span>
           </button>
         </div>
       </section>
@@ -110,19 +117,25 @@ export function CitizenDashboard({
                 </span>
               </div>
               <div className="w-10 h-10 rounded-lg bg-[#ffdad6] text-[#ba1a1a] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">assignment_turned_in</span>
+                <span className="material-symbols-outlined text-[20px]">
+                  assignment_turned_in
+                </span>
               </div>
             </div>
             <div className="flex items-baseline gap-2 mb-3">
               <span className="text-3xl font-bold text-[#0b1c30]">
                 {String(awaitingVerification.length).padStart(2, "0")}
               </span>
-              <span className="text-xs text-[#434655]">Case(s) awaiting your review</span>
+              <span className="text-xs text-[#434655]">
+                Case(s) awaiting your review
+              </span>
             </div>
           </div>
           <div className="bg-[#ffdad6]/60 p-2.5 rounded flex items-center justify-between text-xs font-medium text-[#93000a]">
             <span>Confirm or dispute resolution</span>
-            <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+            <span className="material-symbols-outlined text-[16px]">
+              arrow_forward
+            </span>
           </div>
         </div>
 
@@ -140,19 +153,25 @@ export function CitizenDashboard({
                 </span>
               </div>
               <div className="w-10 h-10 rounded-lg bg-[#ffdcc6] text-[#954a00] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">hourglass_top</span>
+                <span className="material-symbols-outlined text-[20px]">
+                  hourglass_top
+                </span>
               </div>
             </div>
             <div className="flex items-baseline gap-2 mb-3">
               <span className="text-3xl font-bold text-[#0b1c30]">
                 {String(inProgressCases.length).padStart(2, "0")}
               </span>
-              <span className="text-xs text-[#434655]">Active municipal work orders</span>
+              <span className="text-xs text-[#434655]">
+                Active municipal work orders
+              </span>
             </div>
           </div>
           <div className="bg-[#eff4ff] p-2.5 rounded flex items-center justify-between text-xs text-[#434655]">
             <div className="flex items-center gap-1 font-mono text-[11px]">
-              <span className="material-symbols-outlined text-[14px] text-[#f77f00]">schedule</span>
+              <span className="material-symbols-outlined text-[14px] text-[#f77f00]">
+                schedule
+              </span>
               <span>Under municipal SLA</span>
             </div>
             <span className="font-semibold text-[#0037b0]">Active</span>
@@ -173,14 +192,18 @@ export function CitizenDashboard({
                 </span>
               </div>
               <div className="w-10 h-10 rounded-lg bg-[#e5eeff] text-[#434655] flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[20px]">verified</span>
+                <span className="material-symbols-outlined text-[20px]">
+                  verified
+                </span>
               </div>
             </div>
             <div className="flex items-baseline gap-2 mb-3">
               <span className="text-3xl font-bold text-[#0b1c30]">
                 {String(closedCases.length).padStart(2, "0")}
               </span>
-              <span className="text-xs text-[#434655]">Resolved grievances</span>
+              <span className="text-xs text-[#434655]">
+                Resolved grievances
+              </span>
             </div>
           </div>
           <div className="bg-[#eff4ff] p-2.5 rounded flex items-center justify-between text-xs text-[#434655]">
@@ -196,24 +219,31 @@ export function CitizenDashboard({
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#d9cdba]/50">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-[#ba1a1a] animate-pulse"></span>
-              <h2 className="text-base font-bold text-[#0b1c30]">Immediate Action Required</h2>
+              <h2 className="text-base font-bold text-[#0b1c30]">
+                Immediate Action Required
+              </h2>
               <span className="px-2 py-0.5 rounded bg-[#ffdad6] text-[#ba1a1a] text-[10px] font-bold uppercase">
                 1 Case Awaiting Citizen Verification
               </span>
             </div>
             <span className="text-xs text-[#434655] font-mono">
-              Auto-closes after review window if unanswered
+              Supervisor review after the response window if unanswered
             </span>
           </div>
 
           <div className="flex flex-col lg:flex-row gap-6 items-start">
             <div className="w-full lg:w-64 bg-[#eff4ff] p-4 rounded-lg border border-[#d9cdba]/60 flex flex-col items-center justify-center text-center shrink-0">
               <div className="w-12 h-12 rounded-full bg-[#ffdad6] text-[#ba1a1a] flex items-center justify-center mb-2">
-                <span className="material-symbols-outlined text-[24px]">task_alt</span>
+                <span className="material-symbols-outlined text-[24px]">
+                  task_alt
+                </span>
               </div>
-              <span className="font-semibold text-xs text-[#0b1c30]">Resolution Submitted</span>
+              <span className="font-semibold text-xs text-[#0b1c30]">
+                Resolution Submitted
+              </span>
               <p className="text-[11px] text-[#434655] mt-1">
-                Field team marked this work complete and supplied resolution evidence.
+                Field team marked this work complete and supplied resolution
+                evidence.
               </p>
               <button
                 onClick={() => onOpenCase(urgentCase)}
@@ -249,7 +279,9 @@ export function CitizenDashboard({
                     <span>Field Resolution Ready For Review</span>
                   </div>
                   <p className="text-xs text-[#434655] leading-relaxed">
-                    Please inspect the work performed at this site. You have the right to either accept the resolution and close the case or dispute it to dispatch a supervised rework.
+                    Please inspect the work performed at this site. You have the
+                    right to either accept the resolution and close the case or
+                    dispute it to dispatch a supervised rework.
                   </p>
                 </div>
               </div>
@@ -259,14 +291,18 @@ export function CitizenDashboard({
                   onClick={() => onOpenCase(urgentCase)}
                   className="px-5 py-2.5 bg-[#f77f00] hover:bg-[#d96e00] text-white font-semibold text-xs rounded flex items-center gap-2 cursor-pointer shadow-sm transition-all"
                 >
-                  <span className="material-symbols-outlined text-[18px]">thumb_up</span>
+                  <span className="material-symbols-outlined text-[18px]">
+                    thumb_up
+                  </span>
                   <span>Review & Verify Resolution</span>
                 </button>
                 <button
                   onClick={() => onOpenCase(urgentCase)}
                   className="px-5 py-2.5 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0b1c30] font-semibold text-xs rounded flex items-center gap-2 cursor-pointer border border-[#d9cdba] transition-colors"
                 >
-                  <span className="material-symbols-outlined text-[18px]">report_problem</span>
+                  <span className="material-symbols-outlined text-[18px]">
+                    report_problem
+                  </span>
                   <span>Dispute / Report Incomplete</span>
                 </button>
                 <span className="text-xs text-[#434655] ml-auto hidden md:inline">
@@ -282,7 +318,9 @@ export function CitizenDashboard({
       <section className="bg-white rounded-xl border border-[#d9cdba] shadow-sm overflow-hidden">
         <div className="p-5 border-b border-[#d9cdba]/50 flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h2 className="text-base font-bold text-[#0b1c30]">My Registered Grievances</h2>
+            <h2 className="text-base font-bold text-[#0b1c30]">
+              My Registered Grievances
+            </h2>
             <p className="text-xs text-[#434655]">
               Live civic dispatch tracker under GovFix Service Level Agreement
             </p>
@@ -294,10 +332,15 @@ export function CitizenDashboard({
 
         {cases.length === 0 ? (
           <div className="p-12 text-center">
-            <span className="material-symbols-outlined text-4xl text-[#565e74] mb-2">assignment_add</span>
-            <h3 className="font-semibold text-sm text-[#0b1c30]">No grievances registered</h3>
+            <span className="material-symbols-outlined text-4xl text-[#565e74] mb-2">
+              assignment_add
+            </span>
+            <h3 className="font-semibold text-sm text-[#0b1c30]">
+              No grievances registered
+            </h3>
             <p className="text-xs text-[#434655] mt-1 max-w-sm mx-auto">
-              You haven't reported any municipal grievances yet. Click below to submit your first case.
+              You haven't reported any municipal grievances yet. Click below to
+              submit your first case.
             </p>
             <button
               onClick={onNewGrievance}
@@ -318,7 +361,8 @@ export function CitizenDashboard({
                     <span className="material-symbols-outlined text-[20px]">
                       {item.category.includes("WATER")
                         ? "water_drop"
-                        : item.category.includes("WASTE") || item.category.includes("SAN")
+                        : item.category.includes("WASTE") ||
+                            item.category.includes("SAN")
                           ? "delete_sweep"
                           : "engineering"}
                     </span>
@@ -344,16 +388,21 @@ export function CitizenDashboard({
 
                 <div className="flex items-center gap-4 self-start lg:self-center shrink-0">
                   <div className="text-right">
-                    <div className="text-[11px] text-[#434655]">Target Deadline</div>
+                    <div className="text-[11px] text-[#434655]">
+                      Target Deadline
+                    </div>
                     <div
                       className={`font-mono text-xs font-semibold ${
-                        item.sla_status === "OVERDUE" ? "text-[#ba1a1a]" : "text-[#0037b0]"
+                        item.sla_status === "OVERDUE"
+                          ? "text-[#ba1a1a]"
+                          : "text-[#0037b0]"
                       }`}
                     >
                       {date(item.current_deadline, item.timezone)}
                     </div>
                   </div>
                   <button
+                    aria-label={`View case ${item.description}`}
                     onClick={() => onOpenCase(item)}
                     className="px-4 py-2 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0b1c30] text-xs font-semibold rounded border border-[#d9cdba] transition-colors cursor-pointer"
                   >
@@ -371,19 +420,25 @@ export function CitizenDashboard({
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-lg bg-[#dce9ff] text-[#0037b0] flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-[22px]">policy</span>
+              <span className="material-symbols-outlined text-[22px]">
+                policy
+              </span>
             </div>
             <div>
               <span className="text-xs text-[#0037b0] uppercase font-bold tracking-wider">
                 GovFix Citizen SLA Guarantee & Oversight Charter
               </span>
               <p className="text-xs text-[#0b1c30] mt-0.5 max-w-2xl leading-relaxed">
-                Every grievance has an assigned municipal department, a deterministic SLA deadline in Asia/Kolkata timezone, and a verifiable resolution audit trail. You hold the final sign-off.
+                Every grievance has an assigned municipal department, a
+                deterministic SLA deadline in Asia/Kolkata timezone, and a
+                verifiable resolution audit trail. You hold the final sign-off.
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-xs font-mono text-[#434655] bg-white px-3 py-1.5 rounded border border-[#d9cdba]">
-            <span className="material-symbols-outlined text-[16px] text-[#f77f00]">verified</span>
+            <span className="material-symbols-outlined text-[16px] text-[#f77f00]">
+              verified
+            </span>
             <span>PUBLIC GUARANTEE ACTIVE</span>
           </div>
         </div>

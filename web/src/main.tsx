@@ -79,7 +79,9 @@ function App() {
           {/* Institutional Header Banner */}
           <div className="mb-8 text-center max-w-md">
             <div className="w-14 h-14 rounded-2xl bg-[#f77f00] flex items-center justify-center text-white shadow-md mx-auto mb-3">
-              <span className="material-symbols-outlined text-[32px]">account_balance</span>
+              <span className="material-symbols-outlined text-[32px]">
+                account_balance
+              </span>
             </div>
             <div className="flex items-center justify-center gap-2 mb-1">
               <h1 className="text-xl font-bold tracking-tight text-[#0b1c30]">
@@ -104,7 +106,8 @@ function App() {
                   Sign in to GovFix
                 </h2>
                 <p className="text-xs text-[#434655] mt-1">
-                  Authenticate using pilot citizen, officer, or auditor credentials.
+                  Authenticate using pilot citizen, officer, or auditor
+                  credentials.
                 </p>
               </div>
 
@@ -140,16 +143,30 @@ function App() {
                 </button>
 
                 <div className="pt-3 border-t border-[#eff4ff] text-[11px] text-[#565e74] space-y-1">
-                  <p>• <strong>Citizen:</strong> submit grievances, track SLA, verify resolution</p>
-                  <p>• <strong>Officer / Supervisor:</strong> triage, dispatch, execute, rework</p>
-                  <p>• <strong>Auditor:</strong> inspect immutable governance ledger</p>
+                  <p>
+                    • <strong>Citizen:</strong> submit grievances, track SLA,
+                    verify resolution
+                  </p>
+                  <p>
+                    • <strong>Officer / Supervisor:</strong> triage, dispatch,
+                    execute, rework
+                  </p>
+                  <p>
+                    • <strong>Auditor:</strong> inspect immutable governance
+                    ledger
+                  </p>
                 </div>
               </form>
             </div>
           </main>
         </div>
       ) : (
-        <Workspace token={token} user={user} logout={logout} expired={expired} />
+        <Workspace
+          token={token}
+          user={user}
+          logout={logout}
+          expired={expired}
+        />
       )}
     </div>
   );
@@ -169,9 +186,14 @@ function Workspace({
   // Determine default view based on user roles
   const defaultView: DashboardView = (() => {
     if (user.roles.some((r) => r.role === "AUDITOR")) return "auditor-portal";
-    if (user.roles.some((r) => r.role === "WARD_HEAD")) return "ward-head-oversight";
-    if (user.roles.some((r) => r.role === "SUPERVISOR")) return "supervisor-queue";
+    if (user.roles.some((r) => r.role === "WARD_HEAD"))
+      return "ward-head-oversight";
+    if (user.roles.some((r) => r.role === "SUPERVISOR"))
+      return "supervisor-queue";
     if (user.roles.some((r) => r.role === "OFFICER")) return "field-officer";
+    if (user.roles.some((r) => r.role === "DISPATCHER")) return "dispatcher";
+    if (user.roles.some((r) => r.role === "INTAKE_OFFICER"))
+      return "intake-queue";
     return "citizen-overview";
   })();
 
@@ -200,7 +222,13 @@ function Workspace({
     let live = true;
     setLoading(true);
     setError("");
-    api<{ cases: Case[] }>(token, "/cases?limit=100")
+    const scope =
+      currentView === "citizen-overview"
+        ? "&mine=true"
+        : currentView === "field-officer"
+          ? "&owned=true"
+          : "";
+    api<{ cases: Case[] }>(token, `/cases?limit=100${scope}`)
       .then((res) => {
         if (live) setCases(res.cases);
       })
@@ -216,7 +244,7 @@ function Workspace({
     return () => {
       live = false;
     };
-  }, [token, revision]);
+  }, [token, revision, currentView]);
 
   // Load policy & summary
   useEffect(() => {
@@ -265,7 +293,11 @@ function Workspace({
     }
   }
 
-  async function handleReject(item: Case, reasonCode: string, explanation: string) {
+  async function handleReject(
+    item: Case,
+    reasonCode: string,
+    explanation: string,
+  ) {
     setBusy(true);
     try {
       const result = await command(
@@ -284,7 +316,11 @@ function Workspace({
     }
   }
 
-  async function handleAssign(item: Case, officerId: string, reasonText: string) {
+  async function handleAssign(
+    item: Case,
+    officerId: string,
+    reasonText: string,
+  ) {
     setBusy(true);
     try {
       const result = await command(
@@ -382,7 +418,7 @@ function Workspace({
       />
 
       {/* Main Dashboard Workspace */}
-      <main className="pl-64 pt-16 min-h-screen bg-[#f8f9ff] px-6 py-6 pb-16">
+      <main className="md:pl-72 md:pt-24 min-h-screen bg-[#f8f9ff] px-4 py-6 pb-16 min-w-0">
         <div className="max-w-7xl mx-auto">
           {error && (
             <div className="mb-4">
@@ -454,6 +490,8 @@ function Workspace({
 
           {currentView === "ward-head-oversight" && (
             <GovernanceDashboard
+              token={token}
+              expired={expired}
               cases={cases}
               policy={policy}
               user={user}
@@ -465,6 +503,9 @@ function Workspace({
 
           {currentView === "auditor-portal" && (
             <GovernanceDashboard
+              token={token}
+              expired={expired}
+              auditor
               cases={cases}
               policy={policy}
               user={user}
@@ -475,10 +516,7 @@ function Workspace({
           )}
 
           {currentView === "notifications" && (
-            <NotificationsView
-              token={token}
-              onOpenCase={openCaseById}
-            />
+            <NotificationsView token={token} onOpenCase={openCaseById} />
           )}
         </div>
       </main>
@@ -495,6 +533,7 @@ function Workspace({
             setRevision((r) => r + 1);
           }}
           expired={expired}
+          readOnly={currentView === "auditor-portal"}
         />
       )}
 

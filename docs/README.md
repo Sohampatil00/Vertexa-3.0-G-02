@@ -31,3 +31,6 @@ Blueprint, Supabase secrets and deployment verification.
 
 [Four role dashboards](./dashboards.md) covers navigation, queue scopes, read-only
 auditing, demo accounts and deployment of the dashboard update.
+
+[Demo accounts and handoff flow](./demo-account-flow.md) explains the seven human
+roles and the citizen-to-staff-to-verification demonstration sequence.

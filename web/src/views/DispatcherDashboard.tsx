@@ -26,7 +26,9 @@ export function DispatcherDashboard({
   const [activeCase, setActiveCase] = useState<Case | null>(null);
   const [officers, setOfficers] = useState<{ id: string; name: string }[]>([]);
   const [selectedOfficer, setSelectedOfficer] = useState<string>("");
-  const [reason, setReason] = useState<string>("Standard municipal triage assignment to on-duty sector crew.");
+  const [reason, setReason] = useState<string>(
+    "Standard municipal triage assignment to on-duty sector crew.",
+  );
   const [loadingOps, setLoadingOps] = useState<boolean>(false);
 
   const selectedCase = activeCase || validatedCases[0] || null;
@@ -77,7 +79,9 @@ export function DispatcherDashboard({
 
         <div className="flex items-center gap-3">
           <div className="bg-white px-3 py-2 rounded-lg border border-[#d9cdba] shadow-sm flex items-center gap-2 text-xs">
-            <span className="material-symbols-outlined text-[18px] text-[#f77f00]">sync</span>
+            <span className="material-symbols-outlined text-[18px] text-[#f77f00]">
+              sync
+            </span>
             <span className="font-mono text-[11px] font-bold text-[#0b1c30] uppercase">
               Roster Sync: Active
             </span>
@@ -87,7 +91,9 @@ export function DispatcherDashboard({
             className="p-2 bg-white rounded-lg border border-[#d9cdba] text-[#434655] hover:text-[#0b1c30] transition-colors"
             title="Refresh queue"
           >
-            <span className="material-symbols-outlined text-[20px]">refresh</span>
+            <span className="material-symbols-outlined text-[20px]">
+              refresh
+            </span>
           </button>
         </div>
       </div>
@@ -107,7 +113,9 @@ export function DispatcherDashboard({
             </span>
           </div>
           <div className="w-12 h-12 rounded-lg bg-[#ffdcc6] flex items-center justify-center text-[#954a00]">
-            <span className="material-symbols-outlined text-[28px]">pending_actions</span>
+            <span className="material-symbols-outlined text-[28px]">
+              pending_actions
+            </span>
           </div>
         </div>
 
@@ -124,7 +132,9 @@ export function DispatcherDashboard({
             </span>
           </div>
           <div className="w-12 h-12 rounded-lg bg-[#dce9ff] flex items-center justify-center text-[#0037b0]">
-            <span className="material-symbols-outlined text-[28px]">groups</span>
+            <span className="material-symbols-outlined text-[28px]">
+              groups
+            </span>
           </div>
         </div>
 
@@ -133,13 +143,17 @@ export function DispatcherDashboard({
             <span className="text-[10px] text-[#434655] uppercase font-bold tracking-wider block">
               SLA Unassigned Breaches
             </span>
-            <span className="text-3xl font-bold text-[#0b1c30] mt-1 block">0</span>
+            <span className="text-3xl font-bold text-[#0b1c30] mt-1 block">
+              0
+            </span>
             <span className="font-mono text-[11px] text-emerald-700 font-semibold">
               100% SLA Compliant
             </span>
           </div>
           <div className="w-12 h-12 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-800">
-            <span className="material-symbols-outlined text-[28px]">check_circle</span>
+            <span className="material-symbols-outlined text-[28px]">
+              check_circle
+            </span>
           </div>
         </div>
       </div>
@@ -151,8 +165,11 @@ export function DispatcherDashboard({
         </div>
         <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
           <p>
-            <strong className="text-[#f77f00] uppercase tracking-wider mr-1">Scope Rules:</strong>
-            Assign validated cases to eligible department officers in designated ward. Reassignment or SLA extension requires Supervisor privileges.
+            <strong className="text-[#f77f00] uppercase tracking-wider mr-1">
+              Scope Rules:
+            </strong>
+            Assign validated cases to eligible department officers in designated
+            ward. Reassignment or SLA extension requires Supervisor privileges.
           </p>
           <span className="font-mono text-[10px] text-[#434655] bg-white px-2 py-0.5 rounded border border-[#d9cdba]/50 whitespace-nowrap self-start sm:self-auto font-bold">
             AUTH LEVEL: LVL-II
@@ -166,8 +183,12 @@ export function DispatcherDashboard({
         <div className="lg:col-span-7 flex flex-col gap-4">
           <div className="bg-white p-4 rounded-xl border border-[#d9cdba] shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[20px] text-[#f77f00]">low_priority</span>
-              <span className="text-sm font-bold text-[#0b1c30]">Queue Stage: Validated / Ready</span>
+              <span className="material-symbols-outlined text-[20px] text-[#f77f00]">
+                low_priority
+              </span>
+              <span className="text-sm font-bold text-[#0b1c30]">
+                Queue Stage: Validated / Ready
+              </span>
               <span className="bg-[#eff4ff] px-2 py-0.5 rounded-full font-mono text-xs font-semibold text-[#0037b0]">
                 {validatedCases.length} Pending
               </span>
@@ -176,10 +197,15 @@ export function DispatcherDashboard({
 
           {validatedCases.length === 0 ? (
             <div className="bg-white rounded-xl border border-[#d9cdba] p-12 text-center shadow-sm">
-              <span className="material-symbols-outlined text-4xl text-[#565e74] mb-2">assignment_turned_in</span>
-              <p className="text-sm font-semibold text-[#0b1c30]">No validated cases awaiting assignment</p>
+              <span className="material-symbols-outlined text-4xl text-[#565e74] mb-2">
+                assignment_turned_in
+              </span>
+              <p className="text-sm font-semibold text-[#0b1c30]">
+                No validated cases awaiting assignment
+              </p>
               <p className="text-xs text-[#434655] mt-1">
-                All validated cases have been assigned to field officers or await intake validation.
+                All validated cases have been assigned to field officers or
+                await intake validation.
               </p>
             </div>
           ) : (
@@ -220,12 +246,19 @@ export function DispatcherDashboard({
 
                     <div className="mt-3 pt-3 border-t border-[#eff4ff] flex items-center justify-between text-xs">
                       <div className="flex items-center gap-1 font-mono text-[11px] text-[#434655]">
-                        <span className="material-symbols-outlined text-[14px] text-[#f77f00]">schedule</span>
-                        <span>SLA Target: {date(item.current_deadline, item.timezone)}</span>
+                        <span className="material-symbols-outlined text-[14px] text-[#f77f00]">
+                          schedule
+                        </span>
+                        <span>
+                          SLA Target:{" "}
+                          {date(item.current_deadline, item.timezone)}
+                        </span>
                       </div>
                       <span className="text-[#f77f00] font-semibold flex items-center gap-1">
                         <span>Select to assign</span>
-                        <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                        <span className="material-symbols-outlined text-[14px]">
+                          arrow_forward
+                        </span>
                       </span>
                     </div>
                   </div>
@@ -249,11 +282,14 @@ export function DispatcherDashboard({
                   </span>
                 </div>
                 <button
+                  aria-label={`View case ${selectedCase.description}`}
                   onClick={() => onOpenCase(selectedCase)}
                   className="text-xs text-[#0037b0] hover:underline font-semibold flex items-center gap-1"
                 >
                   <span>Details</span>
-                  <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                  <span className="material-symbols-outlined text-[14px]">
+                    open_in_new
+                  </span>
                 </button>
               </div>
 
@@ -295,7 +331,8 @@ export function DispatcherDashboard({
                     </select>
                   ) : (
                     <div className="p-2.5 text-xs text-amber-800 bg-amber-50 rounded border border-amber-200">
-                      No provisioned officer for this ward/department yet. An administrator provisions officers via CLI.
+                      No provisioned officer for this ward/department yet. An
+                      administrator provisions officers via CLI.
                     </div>
                   )}
                 </div>
@@ -328,15 +365,21 @@ export function DispatcherDashboard({
                   disabled={busy || officers.length === 0}
                   className="w-full py-2.5 bg-[#f77f00] hover:bg-[#d96e00] text-white font-semibold text-xs rounded shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50"
                 >
-                  <span className="material-symbols-outlined text-[18px]">send</span>
+                  <span className="material-symbols-outlined text-[18px]">
+                    send
+                  </span>
                   <span>Dispatch & Bind Assignment</span>
                 </button>
               </div>
             </div>
           ) : (
             <div className="bg-white rounded-xl border border-[#d9cdba] shadow-sm p-8 text-center text-[#434655]">
-              <span className="material-symbols-outlined text-3xl mb-1">touch_app</span>
-              <p className="text-xs font-semibold">Select a validated case to assign</p>
+              <span className="material-symbols-outlined text-3xl mb-1">
+                touch_app
+              </span>
+              <p className="text-xs font-semibold">
+                Select a validated case to assign
+              </p>
             </div>
           )}
         </div>

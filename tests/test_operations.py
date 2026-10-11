@@ -303,7 +303,9 @@ def test_conflicting_upload_key(backend):
 def test_web_served_without_exposing_private_files(backend):
     assert backend.client.get("/").history[0].status_code == 307
     assert backend.client.get("/app/").status_code == 200
-    assert "Municipal operations" in backend.client.get("/app/").text
+    html = backend.client.get("/app/").text
+    assert '<div id="root"></div>' in html
+    assert '<script type="module"' in html
     assert backend.client.get("/app/../var/evidence/test").status_code == 404
 
 

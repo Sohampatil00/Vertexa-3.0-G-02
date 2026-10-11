@@ -29,13 +29,16 @@ export function IntakeDashboard({
 
   // Rejection modal/form state
   const [rejecting, setRejecting] = useState(false);
-  const [reasonCode, setReasonCode] = useState(policy?.rejection_reason_codes[0] || "OUT_OF_JURISDICTION");
+  const [reasonCode, setReasonCode] = useState(
+    policy?.rejection_reason_codes[0] || "OUT_OF_JURISDICTION",
+  );
   const [explanation, setExplanation] = useState("");
 
   const submittedCases = cases.filter((c) => c.workflow_state === "SUBMITTED");
   const filteredCases = submittedCases.filter((item) => {
     if (selectedWard !== "ALL" && item.ward !== selectedWard) return false;
-    if (selectedCategory !== "ALL" && item.category !== selectedCategory) return false;
+    if (selectedCategory !== "ALL" && item.category !== selectedCategory)
+      return false;
     if (search.trim()) {
       const q = search.toLowerCase();
       return (
@@ -55,11 +58,15 @@ export function IntakeDashboard({
       <section className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-5 rounded-xl bg-[#e5eeff] border border-[#d9cdba] shadow-sm">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-lg bg-[#f77f00] flex items-center justify-center shrink-0 text-white shadow-sm">
-            <span className="material-symbols-outlined text-[26px]">how_to_reg</span>
+            <span className="material-symbols-outlined text-[26px]">
+              how_to_reg
+            </span>
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-bold text-[#0b1c30]">Municipal Intake Queue</h1>
+              <h1 className="text-xl font-bold text-[#0b1c30]">
+                Municipal Intake Queue
+              </h1>
               <span className="px-2 py-0.5 rounded-full bg-[#dae2fd] text-[#131b2e] font-mono text-[10px] uppercase font-semibold">
                 Desk 04B
               </span>
@@ -68,7 +75,9 @@ export function IntakeDashboard({
               </span>
             </div>
             <p className="text-xs text-[#434655] mt-1">
-              Officer: <strong className="text-[#0b1c30]">{user.display_name}</strong> • Intake & Triage Desk • Scope: Ward A & B
+              Officer:{" "}
+              <strong className="text-[#0b1c30]">{user.display_name}</strong> •
+              Intake & Triage Desk • Scope: Ward A & B
             </p>
           </div>
         </div>
@@ -78,7 +87,9 @@ export function IntakeDashboard({
           <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg bg-white border border-[#d9cdba]/50 shadow-sm shrink-0">
             <div className="w-2.5 h-2.5 rounded-full bg-[#0037b0]"></div>
             <div>
-              <span className="text-[10px] text-[#434655] uppercase block">Visible Queue</span>
+              <span className="text-[10px] text-[#434655] uppercase block">
+                Visible Queue
+              </span>
               <span className="text-base font-bold text-[#0b1c30] leading-none">
                 {String(submittedCases.length).padStart(2, "0")}
               </span>
@@ -87,7 +98,9 @@ export function IntakeDashboard({
           <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-lg bg-white border border-[#d9cdba]/50 shadow-sm shrink-0">
             <div className="w-2.5 h-2.5 rounded-full bg-[#ba1a1a] animate-pulse"></div>
             <div>
-              <span className="text-[10px] text-[#ba1a1a] uppercase font-bold block">Pending Validation</span>
+              <span className="text-[10px] text-[#ba1a1a] uppercase font-bold block">
+                Pending Validation
+              </span>
               <span className="text-base font-bold text-[#ba1a1a] leading-none">
                 {String(submittedCases.length).padStart(2, "0")}
               </span>
@@ -98,7 +111,9 @@ export function IntakeDashboard({
             className="p-2 bg-white rounded-lg border border-[#d9cdba] text-[#434655] hover:text-[#0b1c30] transition-colors"
             title="Refresh queue"
           >
-            <span className="material-symbols-outlined text-[20px]">refresh</span>
+            <span className="material-symbols-outlined text-[20px]">
+              refresh
+            </span>
           </button>
         </div>
       </section>
@@ -140,7 +155,9 @@ export function IntakeDashboard({
 
             {/* Ward Filter Chips */}
             <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-[#eff4ff]">
-              <span className="text-[11px] text-[#434655] mr-1 font-semibold uppercase">Ward:</span>
+              <span className="text-[11px] text-[#434655] mr-1 font-semibold uppercase">
+                Ward:
+              </span>
               <button
                 onClick={() => setSelectedWard("ALL")}
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
@@ -183,8 +200,12 @@ export function IntakeDashboard({
 
             {filteredCases.length === 0 ? (
               <div className="p-10 text-center">
-                <span className="material-symbols-outlined text-4xl text-[#565e74] mb-2">done_all</span>
-                <p className="text-xs font-semibold text-[#0b1c30]">Intake queue is clear</p>
+                <span className="material-symbols-outlined text-4xl text-[#565e74] mb-2">
+                  done_all
+                </span>
+                <p className="text-xs font-semibold text-[#0b1c30]">
+                  Intake queue is clear
+                </p>
                 <p className="text-[11px] text-[#434655] mt-0.5">
                   No submitted cases awaiting validation under current filter.
                 </p>
@@ -198,7 +219,9 @@ export function IntakeDashboard({
                       key={item.id}
                       onClick={() => setActiveItem(item)}
                       className={`p-4 transition-colors cursor-pointer flex flex-col gap-2 ${
-                        isSelected ? "bg-[#e5eeff] border-l-4 border-l-[#f77f00]" : "hover:bg-[#f8f9ff]"
+                        isSelected
+                          ? "bg-[#e5eeff] border-l-4 border-l-[#f77f00]"
+                          : "hover:bg-[#f8f9ff]"
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -221,7 +244,9 @@ export function IntakeDashboard({
                       </h3>
 
                       <div className="flex items-center justify-between text-xs text-[#434655]">
-                        <span className="truncate max-w-[280px]">Location: {item.location}</span>
+                        <span className="truncate max-w-[280px]">
+                          Location: {item.location}
+                        </span>
                         <span className="font-mono text-[11px] text-[#0037b0]">
                           Due: {date(item.current_deadline, item.timezone)}
                         </span>
@@ -248,11 +273,14 @@ export function IntakeDashboard({
                   </span>
                 </div>
                 <button
+                  aria-label={`View case ${selectedCase.description}`}
                   onClick={() => onOpenCase(selectedCase)}
                   className="text-xs text-[#0037b0] hover:underline font-semibold flex items-center gap-1"
                 >
                   <span>Full Record</span>
-                  <span className="material-symbols-outlined text-[14px]">open_in_new</span>
+                  <span className="material-symbols-outlined text-[14px]">
+                    open_in_new
+                  </span>
                 </button>
               </div>
 
@@ -267,16 +295,28 @@ export function IntakeDashboard({
 
               <div className="grid grid-cols-2 gap-3 text-xs">
                 <div className="p-2.5 rounded bg-[#eff4ff]">
-                  <span className="text-[10px] text-[#434655] uppercase block">Ward & Sector</span>
-                  <span className="font-semibold text-[#0b1c30]">Ward {selectedCase.ward}</span>
+                  <span className="text-[10px] text-[#434655] uppercase block">
+                    Ward & Sector
+                  </span>
+                  <span className="font-semibold text-[#0b1c30]">
+                    Ward {selectedCase.ward}
+                  </span>
                 </div>
                 <div className="p-2.5 rounded bg-[#eff4ff]">
-                  <span className="text-[10px] text-[#434655] uppercase block">Assigned Dept</span>
-                  <span className="font-semibold text-[#0b1c30]">{human(selectedCase.department)}</span>
+                  <span className="text-[10px] text-[#434655] uppercase block">
+                    Assigned Dept
+                  </span>
+                  <span className="font-semibold text-[#0b1c30]">
+                    {human(selectedCase.department)}
+                  </span>
                 </div>
                 <div className="col-span-2 p-2.5 rounded bg-[#eff4ff]">
-                  <span className="text-[10px] text-[#434655] uppercase block">Location Recorded</span>
-                  <span className="font-semibold text-[#0b1c30]">{selectedCase.location}</span>
+                  <span className="text-[10px] text-[#434655] uppercase block">
+                    Location Recorded
+                  </span>
+                  <span className="font-semibold text-[#0b1c30]">
+                    {selectedCase.location}
+                  </span>
                 </div>
               </div>
 
@@ -289,7 +329,9 @@ export function IntakeDashboard({
                       disabled={busy}
                       className="w-full py-2.5 bg-[#f77f00] hover:bg-[#d96e00] text-white font-semibold text-xs rounded shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[18px]">verified</span>
+                      <span className="material-symbols-outlined text-[18px]">
+                        verified
+                      </span>
                       <span>Validate & Advance to Dispatch</span>
                     </button>
                     <button
@@ -297,7 +339,9 @@ export function IntakeDashboard({
                       disabled={busy}
                       className="w-full py-2 bg-white hover:bg-[#ffdad6] text-[#ba1a1a] font-semibold text-xs rounded border border-[#ba1a1a]/40 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[18px]">block</span>
+                      <span className="material-symbols-outlined text-[18px]">
+                        block
+                      </span>
                       <span>Reject with Coded Reason</span>
                     </button>
                   </>
@@ -362,8 +406,12 @@ export function IntakeDashboard({
             </div>
           ) : (
             <div className="bg-white rounded-xl border border-[#d9cdba] shadow-sm p-8 text-center text-[#434655]">
-              <span className="material-symbols-outlined text-3xl mb-1">touch_app</span>
-              <p className="text-xs font-semibold">Select a case from queue to validate</p>
+              <span className="material-symbols-outlined text-3xl mb-1">
+                touch_app
+              </span>
+              <p className="text-xs font-semibold">
+                Select a case from queue to validate
+              </p>
             </div>
           )}
         </div>

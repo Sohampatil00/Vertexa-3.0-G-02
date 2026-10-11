@@ -51,7 +51,8 @@ export function NotificationsView({
             SLA Notifications & Operational Broadcasts
           </h1>
           <p className="text-xs text-[#434655]">
-            Immutable log of statutory threshold notices, deadline alerts, and citizen escalations.
+            Immutable log of statutory threshold notices, deadline alerts, and
+            citizen escalations.
           </p>
         </div>
         <span className="font-mono text-xs bg-[#eff4ff] px-2.5 py-1 rounded border border-[#d9cdba]">
@@ -62,13 +63,19 @@ export function NotificationsView({
       <div className="bg-white rounded-xl border border-[#d9cdba] shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-xs text-[#434655]">
-            <span className="material-symbols-outlined text-3xl animate-spin text-[#f77f00] mb-2">sync</span>
+            <span className="material-symbols-outlined text-3xl animate-spin text-[#f77f00] mb-2">
+              sync
+            </span>
             <p>Loading notification events…</p>
           </div>
         ) : items.length === 0 ? (
           <div className="p-12 text-center text-[#434655]">
-            <span className="material-symbols-outlined text-4xl mb-2 text-emerald-600">notifications_none</span>
-            <p className="text-sm font-semibold text-[#0b1c30]">No notifications recorded</p>
+            <span className="material-symbols-outlined text-4xl mb-2 text-emerald-600">
+              notifications_none
+            </span>
+            <p className="text-sm font-semibold text-[#0b1c30]">
+              No notifications recorded
+            </p>
             <p className="text-xs text-[#434655] mt-0.5">
               Statutory notices will appear here as cases cross SLA thresholds.
             </p>
@@ -97,11 +104,16 @@ export function NotificationsView({
                     </div>
                     {notice.threshold && (
                       <p className="text-xs text-[#434655]">
-                        SLA Threshold Alert: <strong className="text-[#0b1c30]">{human(notice.threshold)}</strong>
+                        SLA Threshold Alert:{" "}
+                        <strong className="text-[#0b1c30]">
+                          {human(notice.threshold)}
+                        </strong>
                       </p>
                     )}
                     {notice.reason && (
-                      <p className="text-xs text-[#434655] mt-0.5">{notice.reason}</p>
+                      <p className="text-xs text-[#434655] mt-0.5">
+                        {notice.reason}
+                      </p>
                     )}
                     <span className="font-mono text-[10px] text-[#565e74] mt-1 block">
                       Dispatched: {date(notice.created_at, notice.timezone)}
@@ -110,6 +122,7 @@ export function NotificationsView({
                 </div>
 
                 <button
+                  aria-label={`Open ${human(notice.kind)} notification`}
                   onClick={() => onOpenCase(notice.case_id)}
                   className="px-3.5 py-1.5 bg-[#eff4ff] hover:bg-[#dce9ff] text-[#0b1c30] text-xs font-semibold rounded border border-[#d9cdba] shrink-0 self-start md:self-auto cursor-pointer"
                 >

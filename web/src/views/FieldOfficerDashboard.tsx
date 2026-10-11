@@ -20,14 +20,12 @@ export function FieldOfficerDashboard({
   onRefresh: () => void;
   busy: boolean;
 }) {
-  const [filterState, setFilterState] = useState<"ALL" | "ASSIGNED" | "IN_PROGRESS">("ALL");
+  const [filterState, setFilterState] = useState<
+    "ALL" | "ASSIGNED" | "IN_PROGRESS"
+  >("ALL");
 
-  const myAssigned = cases.filter(
-    (c) => c.workflow_state === "ASSIGNED",
-  );
-  const myInProgress = cases.filter(
-    (c) => c.workflow_state === "IN_PROGRESS",
-  );
+  const myAssigned = cases.filter((c) => c.workflow_state === "ASSIGNED");
+  const myInProgress = cases.filter((c) => c.workflow_state === "IN_PROGRESS");
   const myCompleted = cases.filter(
     (c) =>
       c.workflow_state === "RESOLUTION_SUBMITTED" ||
@@ -37,7 +35,8 @@ export function FieldOfficerDashboard({
 
   const displayedCases = cases.filter((c) => {
     if (filterState === "ASSIGNED") return c.workflow_state === "ASSIGNED";
-    if (filterState === "IN_PROGRESS") return c.workflow_state === "IN_PROGRESS";
+    if (filterState === "IN_PROGRESS")
+      return c.workflow_state === "IN_PROGRESS";
     return (
       c.workflow_state === "ASSIGNED" ||
       c.workflow_state === "IN_PROGRESS" ||
@@ -52,7 +51,9 @@ export function FieldOfficerDashboard({
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="flex items-start sm:items-center gap-4">
             <div className="w-14 h-14 rounded-xl bg-[#f77f00] flex items-center justify-center text-white shadow-md shrink-0">
-              <span className="material-symbols-outlined text-[30px]">engineering</span>
+              <span className="material-symbols-outlined text-[30px]">
+                engineering
+              </span>
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -67,11 +68,15 @@ export function FieldOfficerDashboard({
                 </span>
               </div>
               <div className="flex items-center gap-2 text-xs text-[#434655]">
-                <span className="font-semibold text-[#0b1c30]">{user.display_name}</span>
+                <span className="font-semibold text-[#0b1c30]">
+                  {user.display_name}
+                </span>
                 <span>•</span>
                 <span>Field Service & Ground Execution</span>
                 <span>•</span>
-                <span className="font-mono text-[11px]">Asia/Kolkata (IST)</span>
+                <span className="font-mono text-[11px]">
+                  Asia/Kolkata (IST)
+                </span>
               </div>
             </div>
           </div>
@@ -84,10 +89,14 @@ export function FieldOfficerDashboard({
               <div className="text-xs">
                 <div className="font-semibold text-[#0b1c30] flex items-center justify-between">
                   <span>Ground Execution Protocol Strict</span>
-                  <span className="font-mono text-[10px] text-[#f77f00] font-bold">DISPATCH SYNCED</span>
+                  <span className="font-mono text-[10px] text-[#f77f00] font-bold">
+                    DISPATCH SYNCED
+                  </span>
                 </div>
                 <p className="text-[11px] text-[#434655] mt-0.5">
-                  Assigned cases require explicit field acceptance, photo upload evidence of work, and resolution notes before citizen inspection.
+                  Assigned cases require explicit field acceptance, photo upload
+                  evidence of work, and resolution notes before citizen
+                  inspection.
                 </p>
               </div>
             </div>
@@ -102,11 +111,17 @@ export function FieldOfficerDashboard({
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-[#ffdcc6] flex items-center justify-center text-[#954a00]">
-                <span className="material-symbols-outlined text-[22px]">inbox</span>
+                <span className="material-symbols-outlined text-[22px]">
+                  inbox
+                </span>
               </div>
               <div>
-                <div className="text-xl font-bold text-[#0b1c30]">{myAssigned.length}</div>
-                <div className="text-[11px] text-[#434655]">Pending Acceptance</div>
+                <div className="text-xl font-bold text-[#0b1c30]">
+                  {myAssigned.length}
+                </div>
+                <div className="text-[11px] text-[#434655]">
+                  Pending Acceptance
+                </div>
               </div>
             </div>
             {myAssigned.length > 0 && (
@@ -122,14 +137,22 @@ export function FieldOfficerDashboard({
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-[#dae2fd] flex items-center justify-center text-[#1d4ed8]">
-                <span className="material-symbols-outlined text-[22px]">construction</span>
+                <span className="material-symbols-outlined text-[22px]">
+                  construction
+                </span>
               </div>
               <div>
-                <div className="text-xl font-bold text-[#0b1c30]">{myInProgress.length}</div>
-                <div className="text-[11px] text-[#434655]">In Active Execution</div>
+                <div className="text-xl font-bold text-[#0b1c30]">
+                  {myInProgress.length}
+                </div>
+                <div className="text-[11px] text-[#434655]">
+                  In Active Execution
+                </div>
               </div>
             </div>
-            <span className="font-mono text-[10px] text-[#0037b0] font-semibold">ON SITE</span>
+            <span className="font-mono text-[10px] text-[#0037b0] font-semibold">
+              ON SITE
+            </span>
           </div>
 
           <div
@@ -138,14 +161,22 @@ export function FieldOfficerDashboard({
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-800">
-                <span className="material-symbols-outlined text-[22px]">check_circle</span>
+                <span className="material-symbols-outlined text-[22px]">
+                  check_circle
+                </span>
               </div>
               <div>
-                <div className="text-xl font-bold text-[#0b1c30]">{myCompleted.length}</div>
-                <div className="text-[11px] text-[#434655]">Rectifications Done</div>
+                <div className="text-xl font-bold text-[#0b1c30]">
+                  {myCompleted.length}
+                </div>
+                <div className="text-[11px] text-[#434655]">
+                  Rectifications Done
+                </div>
               </div>
             </div>
-            <span className="font-mono text-[10px] text-emerald-700 font-semibold">AUDITED</span>
+            <span className="font-mono text-[10px] text-emerald-700 font-semibold">
+              AUDITED
+            </span>
           </div>
         </div>
       </div>
@@ -154,7 +185,9 @@ export function FieldOfficerDashboard({
       <section className="bg-white rounded-xl border border-[#d9cdba] shadow-sm overflow-hidden">
         <div className="p-4 border-b border-[#eff4ff] flex items-center justify-between flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-[#0b1c30]">Field Work Orders</span>
+            <span className="text-sm font-bold text-[#0b1c30]">
+              Field Work Orders
+            </span>
             <span className="px-2 py-0.5 rounded-full bg-[#eff4ff] text-[#434655] font-mono text-xs font-semibold">
               {displayedCases.length} Visible
             </span>
@@ -163,7 +196,9 @@ export function FieldOfficerDashboard({
             <button
               onClick={() => setFilterState("ALL")}
               className={`px-3 py-1 rounded text-xs font-semibold ${
-                filterState === "ALL" ? "bg-[#f77f00] text-white" : "bg-[#eff4ff] text-[#434655]"
+                filterState === "ALL"
+                  ? "bg-[#f77f00] text-white"
+                  : "bg-[#eff4ff] text-[#434655]"
               }`}
             >
               All ({cases.length})
@@ -171,7 +206,9 @@ export function FieldOfficerDashboard({
             <button
               onClick={() => setFilterState("ASSIGNED")}
               className={`px-3 py-1 rounded text-xs font-semibold ${
-                filterState === "ASSIGNED" ? "bg-[#f77f00] text-white" : "bg-[#eff4ff] text-[#434655]"
+                filterState === "ASSIGNED"
+                  ? "bg-[#f77f00] text-white"
+                  : "bg-[#eff4ff] text-[#434655]"
               }`}
             >
               Needs Acceptance ({myAssigned.length})
@@ -179,7 +216,9 @@ export function FieldOfficerDashboard({
             <button
               onClick={() => setFilterState("IN_PROGRESS")}
               className={`px-3 py-1 rounded text-xs font-semibold ${
-                filterState === "IN_PROGRESS" ? "bg-[#f77f00] text-white" : "bg-[#eff4ff] text-[#434655]"
+                filterState === "IN_PROGRESS"
+                  ? "bg-[#f77f00] text-white"
+                  : "bg-[#eff4ff] text-[#434655]"
               }`}
             >
               In Execution ({myInProgress.length})
@@ -189,17 +228,24 @@ export function FieldOfficerDashboard({
               className="p-1.5 bg-[#eff4ff] rounded text-[#434655] hover:text-[#0b1c30]"
               title="Refresh"
             >
-              <span className="material-symbols-outlined text-[18px]">refresh</span>
+              <span className="material-symbols-outlined text-[18px]">
+                refresh
+              </span>
             </button>
           </div>
         </div>
 
         {displayedCases.length === 0 ? (
           <div className="p-12 text-center">
-            <span className="material-symbols-outlined text-4xl text-[#565e74] mb-2">task</span>
-            <p className="text-sm font-semibold text-[#0b1c30]">No active work orders</p>
+            <span className="material-symbols-outlined text-4xl text-[#565e74] mb-2">
+              task
+            </span>
+            <p className="text-sm font-semibold text-[#0b1c30]">
+              No active work orders
+            </p>
             <p className="text-xs text-[#434655] mt-1">
-              There are no cases assigned to field execution under the current filter.
+              There are no cases assigned to field execution under the current
+              filter.
             </p>
           </div>
         ) : (
@@ -212,7 +258,9 @@ export function FieldOfficerDashboard({
                 <div className="flex items-start gap-3 flex-1">
                   <div className="w-10 h-10 rounded-lg bg-[#e5eeff] flex items-center justify-center text-[#f77f00] shrink-0 mt-0.5">
                     <span className="material-symbols-outlined text-[22px]">
-                      {item.workflow_state === "ASSIGNED" ? "assignment" : "build"}
+                      {item.workflow_state === "ASSIGNED"
+                        ? "assignment"
+                        : "build"}
                     </span>
                   </div>
                   <div>
@@ -253,16 +301,21 @@ export function FieldOfficerDashboard({
                       disabled={busy}
                       className="px-4 py-2 bg-[#f77f00] hover:bg-[#d96e00] text-white text-xs font-semibold rounded shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
+                      <span className="material-symbols-outlined text-[16px]">
+                        how_to_reg
+                      </span>
                       <span>Accept Assignment</span>
                     </button>
                   )}
 
                   <button
+                    aria-label={`View case ${item.description}`}
                     onClick={() => onOpenCase(item)}
                     className="px-4 py-2 bg-[#e5eeff] hover:bg-[#dce9ff] text-[#0b1c30] text-xs font-semibold rounded border border-[#d9cdba] transition-colors cursor-pointer"
                   >
-                    {item.workflow_state === "IN_PROGRESS" ? "Resolve & Upload Evidence" : "Inspect Case"}
+                    {item.workflow_state === "IN_PROGRESS"
+                      ? "Resolve & Upload Evidence"
+                      : "Inspect Case"}
                   </button>
                 </div>
               </div>

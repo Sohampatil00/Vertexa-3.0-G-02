@@ -39,22 +39,30 @@ export function SupervisorDashboard({
           </div>
           <span className="text-[#c4c5d7]">•</span>
           <div className="flex items-center gap-1.5 text-xs text-[#434655] font-mono">
-            <span className="material-symbols-outlined text-[16px] text-[#f77f00]">badge</span>
+            <span className="material-symbols-outlined text-[16px] text-[#f77f00]">
+              badge
+            </span>
             <span>ID: SUPV-OPS-01</span>
-            <span className="text-[#0b1c30] font-semibold">({user.display_name})</span>
+            <span className="text-[#0b1c30] font-semibold">
+              ({user.display_name})
+            </span>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 px-3 py-1 rounded bg-[#e5eeff] text-[#374559] font-mono text-xs">
-            <span className="material-symbols-outlined text-[15px]">schedule</span>
+            <span className="material-symbols-outlined text-[15px]">
+              schedule
+            </span>
             <span>WARD CLOCK: IST (Asia/Kolkata)</span>
           </div>
           <button
             onClick={onRefresh}
             className="flex items-center gap-1.5 px-3 py-1 rounded bg-[#dce9ff] hover:bg-[#d3e4fe] text-[#0037b0] font-semibold text-xs transition-colors shadow-sm"
           >
-            <span className="material-symbols-outlined text-[16px]">refresh</span>
+            <span className="material-symbols-outlined text-[16px]">
+              refresh
+            </span>
             <span>Sync Queue</span>
           </button>
         </div>
@@ -69,13 +77,16 @@ export function SupervisorDashboard({
                 Sector 01-A & B
               </span>
               <span className="text-[#c4c5d7]">/</span>
-              <span className="text-[#565e74] text-xs">Municipal Public SLAs</span>
+              <span className="text-[#565e74] text-xs">
+                Municipal Public SLAs
+              </span>
             </div>
             <h1 className="text-xl md:text-2xl font-bold text-[#0b1c30] tracking-tight mb-1">
               Ward Operations & Supervisor Oversight
             </h1>
             <p className="text-xs text-[#434655] leading-relaxed">
-              Real-time statutory queue arbitration, civic dispute mitigation, and SLA variance oversight under Municipal Citizen Charter 2024.
+              Real-time statutory queue arbitration, civic dispute mitigation,
+              and SLA variance oversight under Municipal Citizen Charter 2024.
             </p>
           </div>
 
@@ -103,24 +114,43 @@ export function SupervisorDashboard({
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-4 border-t border-[#eff4ff]">
           <div className="p-3 bg-[#eff4ff] rounded-lg">
-            <span className="text-[10px] text-[#434655] uppercase font-bold block">Supervisor Scope</span>
-            <span className="text-2xl font-bold text-[#0b1c30] mt-0.5 block">{cases.length}</span>
+            <span className="text-[10px] text-[#434655] uppercase font-bold block">
+              Supervisor Scope
+            </span>
+            <span className="text-2xl font-bold text-[#0b1c30] mt-0.5 block">
+              {cases.length}
+            </span>
             <span className="text-[10px] text-[#0037b0]">Ward A & B Total</span>
           </div>
           <div className="p-3 bg-[#ffdad6]/40 rounded-lg">
-            <span className="text-[10px] text-[#ba1a1a] uppercase font-bold block">Disputes / Reviews</span>
-            <span className="text-2xl font-bold text-[#ba1a1a] mt-0.5 block">{disputes.length}</span>
-            <span className="text-[10px] text-[#ba1a1a]">Immediate Arbitration</span>
+            <span className="text-[10px] text-[#ba1a1a] uppercase font-bold block">
+              Disputes / Reviews
+            </span>
+            <span className="text-2xl font-bold text-[#ba1a1a] mt-0.5 block">
+              {disputes.length}
+            </span>
+            <span className="text-[10px] text-[#ba1a1a]">
+              Immediate Arbitration
+            </span>
           </div>
           <div className="p-3 bg-[#eff4ff] rounded-lg">
-            <span className="text-[10px] text-[#434655] uppercase font-bold block">Verification Waits</span>
-            <span className="text-2xl font-bold text-[#f77f00] mt-0.5 block">
-              {cases.filter((c) => c.workflow_state === "CITIZEN_VERIFICATION").length}
+            <span className="text-[10px] text-[#434655] uppercase font-bold block">
+              Verification Waits
             </span>
-            <span className="text-[10px] text-[#f77f00]">Awaiting citizen sign-off</span>
+            <span className="text-2xl font-bold text-[#f77f00] mt-0.5 block">
+              {
+                cases.filter((c) => c.workflow_state === "CITIZEN_VERIFICATION")
+                  .length
+              }
+            </span>
+            <span className="text-[10px] text-[#f77f00]">
+              Awaiting citizen sign-off
+            </span>
           </div>
           <div className="p-3 bg-emerald-50 rounded-lg">
-            <span className="text-[10px] text-emerald-800 uppercase font-bold block">Resolved & Closed</span>
+            <span className="text-[10px] text-emerald-800 uppercase font-bold block">
+              Resolved & Closed
+            </span>
             <span className="text-2xl font-bold text-emerald-800 mt-0.5 block">
               {cases.filter((c) => c.workflow_state === "CLOSED").length}
             </span>
@@ -144,7 +174,9 @@ export function SupervisorDashboard({
             <button
               onClick={() => setActiveTab("DISPUTES")}
               className={`px-3 py-1 rounded text-xs font-semibold ${
-                activeTab === "DISPUTES" ? "bg-[#f77f00] text-white" : "bg-[#eff4ff] text-[#434655]"
+                activeTab === "DISPUTES"
+                  ? "bg-[#f77f00] text-white"
+                  : "bg-[#eff4ff] text-[#434655]"
               }`}
             >
               Disputes & Waits ({disputes.length})
@@ -152,7 +184,9 @@ export function SupervisorDashboard({
             <button
               onClick={() => setActiveTab("ALL")}
               className={`px-3 py-1 rounded text-xs font-semibold ${
-                activeTab === "ALL" ? "bg-[#f77f00] text-white" : "bg-[#eff4ff] text-[#434655]"
+                activeTab === "ALL"
+                  ? "bg-[#f77f00] text-white"
+                  : "bg-[#eff4ff] text-[#434655]"
               }`}
             >
               All Ward Cases ({cases.length})
@@ -162,10 +196,15 @@ export function SupervisorDashboard({
 
         {displayedCases.length === 0 ? (
           <div className="p-12 text-center">
-            <span className="material-symbols-outlined text-4xl text-emerald-600 mb-2">verified</span>
-            <p className="text-sm font-semibold text-[#0b1c30]">No active disputes in queue</p>
+            <span className="material-symbols-outlined text-4xl text-emerald-600 mb-2">
+              verified
+            </span>
+            <p className="text-sm font-semibold text-[#0b1c30]">
+              No active disputes in queue
+            </p>
             <p className="text-xs text-[#434655] mt-1">
-              All grievances are running on schedule with zero unhandled citizen disputes.
+              All grievances are running on schedule with zero unhandled citizen
+              disputes.
             </p>
           </div>
         ) : (
@@ -202,7 +241,10 @@ export function SupervisorDashboard({
                       {item.description}
                     </h3>
                     <p className="text-xs text-[#434655] mt-0.5">
-                      Ground Site: {item.location} • Owner: {item.owner_id ? `Officer ${item.owner_id.slice(0, 8)}` : "Unassigned"}
+                      Ground Site: {item.location} • Owner:{" "}
+                      {item.owner_id
+                        ? `Officer ${item.owner_id.slice(0, 8)}`
+                        : "Unassigned"}
                     </p>
                   </div>
                 </div>
@@ -214,17 +256,23 @@ export function SupervisorDashboard({
                     </div>
                     <div
                       className={`font-mono text-xs font-semibold ${
-                        item.sla_status === "OVERDUE" ? "text-[#ba1a1a]" : "text-[#0037b0]"
+                        item.sla_status === "OVERDUE"
+                          ? "text-[#ba1a1a]"
+                          : "text-[#0037b0]"
                       }`}
                     >
-                      {item.sla_status} • Due {date(item.current_deadline, item.timezone)}
+                      {item.sla_status} • Due{" "}
+                      {date(item.current_deadline, item.timezone)}
                     </div>
                   </div>
                   <button
+                    aria-label={`View case ${item.description}`}
                     onClick={() => onOpenCase(item)}
                     className="px-4 py-2 bg-[#f77f00] hover:bg-[#d96e00] text-white text-xs font-semibold rounded shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
                   >
-                    <span className="material-symbols-outlined text-[16px]">gavel</span>
+                    <span className="material-symbols-outlined text-[16px]">
+                      gavel
+                    </span>
                     <span>Arbitrate / Rework</span>
                   </button>
                 </div>
