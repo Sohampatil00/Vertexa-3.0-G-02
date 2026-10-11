@@ -135,7 +135,7 @@ def backend(tmp_path):
                     expires_at=utcnow() + timedelta(hours=1),
                 )
             )
-    app = create_app(Settings(database_url=url))
+    app = create_app(Settings(database_url=url, evidence_directory=str(tmp_path / "evidence")))
     with TestClient(app) as client:
         yield Backend(client, sessions, app, users, tokens, url)
     engine.dispose()

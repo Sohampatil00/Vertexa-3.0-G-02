@@ -1,12 +1,14 @@
 """Authenticated API for the Phase 1 backend foundation."""
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Annotated
 
 from fastapi import Body, Depends, FastAPI, Header, Query, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import and_, or_, select, text
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
@@ -15,6 +17,7 @@ from govfix.auth import Actor, authenticate, login, token_hash
 from govfix.database import as_utc, make_engine, make_sessions, write_transaction
 from govfix.errors import Refusal
 from govfix.models import AuditEvent, AuthSession, Case, PolicyVersion, new_id
+from govfix.operations import register_operations
 from govfix.schemas import COMMAND_SCHEMAS, Login
 from govfix.settings import Settings
 from govfix.workflow import STAFF_ROLES, Workflow, operation_for_edge, project_case, visible
@@ -49,7 +52,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             with sessions() as session:
                 revision = session.execute(text("SELECT version_num FROM alembic_version")).scalar()
                 if (
-                    revision != "0002"
+                    revision != "0003"
                     or session.get(PolicyVersion, settings.policy_version) is None
                 ):
                     raise RuntimeError("Run 'uv run govfix init-db' before starting the API")
@@ -85,7 +88,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         # The operation-specific routes place their names on the route, not in user input.
         if operation is None and request.url.path.startswith("/v1/cases/"):
             operation = request.url.path.rsplit("/", 1)[-1]
-        if request.method != "POST" or operation not in COMMAND_SCHEMAS:
+        if operation == "evidence":
+            operation = "evidence-upload"
+        if request.method != "POST" or operation not in {*COMMAND_SCHEMAS, "evidence-upload"}:
             return
         with write_transaction(sessions) as session:
             case = session.scalar(
@@ -136,12 +141,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.exception_handler(Refusal)
     async def refusal_handler(request: Request, exc: Refusal):
         channel = "TEXT"
-        if request.method == "POST" and request.url.path.startswith("/v1/cases"):
+        if (
+            request.method == "POST"
+            and request.url.path.startswith("/v1/cases")
+            and not request.url.path.endswith("/evidence")
+        ):
             try:
                 channel = channel_from_body(await request.json())
             except ValueError:
                 pass
-        return await audited_refusal(request, exc, channel=channel)
+        actor = None
+        try:
+            actor = await run_in_threadpool(actor_from_request, request)
+        except Refusal:
+            pass
+        except SQLAlchemyError:
+            return unavailable_response(request)
+        return await audited_refusal(request, exc, actor=actor, channel=channel)
 
     @app.exception_handler(RequestValidationError)
     async def invalid_input(request: Request, exc: RequestValidationError):
@@ -266,11 +282,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         actor: Annotated[Actor, Depends(require_actor)],
         limit: Annotated[int, Query(ge=1, le=100)] = 20,
         offset: Annotated[int, Query(ge=0)] = 0,
+        state: Annotated[str | None, Query(max_length=40)] = None,
+        owned: bool = False,
     ):
         with sessions() as session:
+            filters = [visibility_filter(actor)]
+            if state:
+                filters.append(Case.workflow_state == state)
+            if owned:
+                filters.append(Case.owner_id == actor.id)
             cases = session.scalars(
                 select(Case)
-                .where(visibility_filter(actor))
+                .where(*filters)
                 .order_by(
                     Case.submitted_at.desc(),
                     Case.id,
@@ -395,6 +418,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "checksum": policy.checksum,
                 "request_id": request.state.request_id,
             }
+
+    register_operations(
+        app, sessions, settings, workflow, require_actor, read_case, visibility_filter
+    )
+
+    @app.get("/", include_in_schema=False)
+    def home():
+        return RedirectResponse("/app/")
+
+    static = Path(__file__).parent / "static"
+    if static.is_dir():
+        app.mount("/app", StaticFiles(directory=static, html=True), name="operations-ui")
 
     return app
 

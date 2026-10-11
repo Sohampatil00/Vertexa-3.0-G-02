@@ -8,3 +8,7 @@ __pycache__/
 *.db-shm
 *.db-wal
 .DS_Store
+node_modules/
+govfix/static/
+var/
+*.tsbuildinfo

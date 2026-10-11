@@ -16,6 +16,13 @@ jobs:
         with:
           python-version: "3.12"
           enable-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --prefix web
+      - run: npm run build --prefix web
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run ruff format --check .
@@ -50,6 +57,13 @@ jobs:
         with:
           python-version: "3.12"
           enable-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --prefix web
+      - run: npm run build --prefix web
       - run: uv sync --locked
       - run: uv run pytest -q
       - run: uv run govfix init-db

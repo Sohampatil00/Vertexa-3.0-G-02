@@ -118,7 +118,7 @@ class Assignment(Base):
 
 
 class Evidence(Base):
-    """Only trusted upload completion may insert these; no public upload API yet."""
+    """Private images verified by the upload service; legacy trusted fixtures have null metadata."""
 
     __tablename__ = "evidence"
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
@@ -128,6 +128,9 @@ class Evidence(Base):
     object_key: Mapped[str] = mapped_column(Text)
     sha256: Mapped[str] = mapped_column(String(64))
     complete: Mapped[bool] = mapped_column(Boolean, default=False)
+    content_type: Mapped[str | None] = mapped_column(String(50))
+    size_bytes: Mapped[int | None] = mapped_column(Integer)
+    uploaded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class AuditEvent(Base):

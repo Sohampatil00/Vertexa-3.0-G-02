@@ -11,6 +11,7 @@ from sqlalchemy import select
 from govfix.auth import Actor, load_actor
 from govfix.database import as_utc, utcnow, write_transaction
 from govfix.errors import Refusal
+from govfix.evidence import EvidenceStore
 from govfix.models import (
     Assignment,
     AuditEvent,
@@ -483,6 +484,9 @@ class Workflow:
                 category["resolution_evidence"]
             ).issubset({item.kind for item in evidence}):
                 raise Refusal("EVIDENCE_REQUIRED", "Completed case evidence is required.", 422)
+            for item in evidence:
+                if item.content_type is not None:
+                    EvidenceStore(self.settings).read(item)
         elif operation == "verification":
             if not actor.identity_verified or not command.confirmation:
                 raise Refusal(
