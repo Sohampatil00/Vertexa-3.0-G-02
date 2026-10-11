@@ -32,7 +32,9 @@ export function NewGrievanceModal({
   const [confirmed, setConfirmed] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locationNotice, setLocationNotice] = useState("");
-  const selectedCategory = policy.categories.find((item) => item.code === category);
+  const selectedCategory = policy.categories.find(
+    (item) => item.code === category,
+  );
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -132,21 +134,26 @@ export function NewGrievanceModal({
           <figure className="overflow-hidden rounded-lg border border-[#d9cdba] bg-[#eff4ff] sm:flex">
             {selectedCategory.image && (
               <img
-                src={selectedCategory.image}
+                src={`/app${selectedCategory.image}`}
                 alt={`Illustrative example of ${selectedCategory.title || human(selectedCategory.code)}`}
                 className="h-36 w-full object-cover sm:h-auto sm:w-40"
               />
             )}
             <figcaption className="space-y-1.5 p-3 text-[#0b1c30]">
-              <strong className="block text-sm">{selectedCategory.title || human(selectedCategory.code)}</strong>
-              <span className="block text-xs">{selectedCategory.description}</span>
+              <strong className="block text-sm">
+                {selectedCategory.title || human(selectedCategory.code)}
+              </strong>
+              <span className="block text-xs">
+                {selectedCategory.description}
+              </span>
               {selectedCategory.example && (
                 <span className="block text-xs text-[#434655]">
-                  Example situation: {selectedCategory.example}
+                  <span>Example situation:</span> {selectedCategory.example}
                 </span>
               )}
               <span className="block text-[11px] text-[#434655]">
-                Demo target: {selectedCategory.sla_hours} hours · {human(selectedCategory.department)}
+                Demo target: {selectedCategory.sla_hours} hours ·{" "}
+                {human(selectedCategory.department)}
               </span>
               <span className="block text-[10px] text-[#565e74]">
                 Synthetic illustration only. Describe your own issue below.

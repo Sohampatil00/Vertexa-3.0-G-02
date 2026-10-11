@@ -49,6 +49,7 @@ An intake officer can reject a submitted case with a coded reason. `OVERDUE` is 
 | [Decisions](./docs/decisions.md) | Accepted product decisions and unresolved choices |
 | [Validation](./docs/validation.md) | Test scenarios and release gates |
 | [Demo pilot policy](./docs/pilot-policy.md) | Executable Phase 0 configuration and open approvals |
+| [Civic report demo dataset](./docs/demo-dataset.md) | 20 report types, 34 sample situations, images, and repeatable import |
 | [Backend setup](./docs/backend.md) | Run the API, provision accounts, and test case commands |
 | [Security and privacy](./docs/security-privacy.md) | Identity, access, voice data, and audit safeguards |
 

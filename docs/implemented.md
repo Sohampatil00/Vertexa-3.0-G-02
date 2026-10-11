@@ -124,3 +124,23 @@ Move an item to **Implemented** only when its code exists. Move it to **Verified
 
 Human language/accessibility validation and municipal approval remain external pilot gates.
 Optional outbound phone calls need connected telephony; no number is connected.
+
+## Hosted submission verification — 11 October 2026
+
+- Commits `e582e9e` and `a46d341` pushed to main; GitHub SQLite/PostgreSQL CI green.
+- Supabase schema `0010` applied through the authenticated administrator SQL editor;
+  exact release policy imported and checksum verified; restricted runtime audit 16/16 safe.
+- Render reports the storage-fix release Live. Public readiness passes every check.
+- All seven pilot logins, identities, queues and inboxes pass on the hosted service.
+- Hosted demo case `GF-ab227528-37e5-4fb9-b4e8-656959a3e926` completed validation,
+  assignment, JPEG upload to private Supabase Storage, resolution, citizen dispute,
+  supervisor rework, second resolution and explicit citizen acceptance to CLOSED.
+- Fixed resolution validation to use the configured remote evidence adapter rather
+  than local disk. A regression test and the actual hosted photo download pass.
+- Worker reports recent success, no dependency error and no operational alerts.
+- Local environment has restricted credentials only; future schema migrations require
+  the administrator SQL editor or a separately configured owner migration connection.
+
+- Final configuration redeploy confirmed `demo-pilot-v2` with 12 categories.
+  Transient notifications retried successfully: all 41 outbox messages delivered,
+  zero active retry/failure records, final readiness HTTP 200.

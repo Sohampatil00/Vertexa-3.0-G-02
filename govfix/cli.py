@@ -73,7 +73,7 @@ def main():
     parser = argparse.ArgumentParser(description="GovFix local administration")
     subparsers = parser.add_subparsers(dest="operation", required=True)
     init = subparsers.add_parser("init-db", help="Apply migrations and import the demo policy")
-    init.add_argument("--policy", type=Path, default=ROOT / "config/policies/demo-pilot-v2.json")
+    init.add_argument("--policy", type=Path, default=ROOT / "config/policies/demo-pilot-v3.json")
     policy = subparsers.add_parser(
         "import-policy", help="Import a new immutable demo policy version"
     )

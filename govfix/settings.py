@@ -100,7 +100,7 @@ class Settings:
             login_window_seconds=int(os.getenv("GOVFIX_LOGIN_WINDOW_SECONDS", "900")),
             login_rate_secret=os.getenv("GOVFIX_LOGIN_RATE_SECRET", "local-demo-login-budget"),
             auth_provider=os.getenv("GOVFIX_AUTH_PROVIDER", "local"),
-            policy_version=os.getenv("GOVFIX_POLICY_VERSION", "demo-pilot-v2"),
+            policy_version=os.getenv("GOVFIX_POLICY_VERSION", "demo-pilot-v3"),
             evidence_directory=os.getenv("GOVFIX_EVIDENCE_DIRECTORY", "./var/evidence"),
             evidence_max_bytes=int(os.getenv("GOVFIX_EVIDENCE_MAX_BYTES", str(5 * 1024 * 1024))),
             session_minutes=int(os.getenv("GOVFIX_SESSION_MINUTES", "60")),

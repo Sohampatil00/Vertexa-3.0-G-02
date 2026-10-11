@@ -135,6 +135,9 @@ export function CaseDetailModal({
       "deadline-extension",
     ].includes(a),
   );
+  const reportCategory = ops?.policy.categories.find(
+    (category) => category.code === current.category,
+  );
 
   return (
     <Modal
@@ -202,6 +205,19 @@ export function CaseDetailModal({
                     Location: {current.location}
                   </p>
                   <CaseMap item={current} />
+                  {reportCategory?.image && (
+                    <figure className="mt-3">
+                      <img
+                        src={`/app${reportCategory.image}`}
+                        alt={`Illustrative example of ${reportCategory.title || human(current.category)}`}
+                        className="h-44 w-full rounded-lg object-cover"
+                      />
+                      <figcaption className="mt-1 text-[10px] text-[#434655]">
+                        Illustrative category photo. Case evidence is shown
+                        separately below.
+                      </figcaption>
+                    </figure>
+                  )}
 
                   <dl className="grid grid-cols-2 gap-3 mt-4 text-xs pt-3 border-t border-[#d9cdba]/40">
                     <div>
@@ -376,7 +392,7 @@ export function CaseDetailModal({
                       {evidence.map((file) => (
                         <li
                           key={file.id}
-                          className="p-3 rounded-lg bg-[#eff4ff] border border-[#d9cdba]/50 flex items-center justify-between text-xs"
+                          className="p-3 rounded-lg bg-[#eff4ff] border border-[#d9cdba]/50 flex flex-wrap gap-3 items-center justify-between text-xs"
                         >
                           <div>
                             <span className="font-semibold text-[#0b1c30]">
@@ -437,7 +453,9 @@ export function CaseDetailModal({
                                 : "bg-emerald-100 text-emerald-800"
                             }`}
                           >
-                            {e.result === "ACCEPTED" ? "Recorded" : human(e.result)}
+                            {e.result === "ACCEPTED"
+                              ? "Recorded"
+                              : human(e.result)}
                           </span>
                         </div>
                         <span className="font-mono text-[10px] text-[#434655] block mt-0.5">
@@ -992,12 +1010,73 @@ function DownloadEvidence({
   }
 
   return (
-    <button
-      onClick={download}
-      disabled={busy}
-      className="px-2.5 py-1 rounded bg-white border border-[#d9cdba] hover:bg-[#dce9ff] text-[#0b1c30] font-semibold text-xs"
-    >
-      {busy ? "Downloading…" : "Download"}
-    </button>
+    <div className="flex flex-col items-end gap-2">
+      <EvidencePreview token={token} caseId={caseId} file={file} />
+      <button
+        onClick={download}
+        disabled={busy}
+        className="px-2.5 py-1 rounded bg-white border border-[#d9cdba] hover:bg-[#dce9ff] text-[#0b1c30] font-semibold text-xs"
+      >
+        {busy ? "Downloading…" : "Download"}
+      </button>
+    </div>
   );
+}
+
+function EvidencePreview({
+  token,
+  caseId,
+  file,
+}: {
+  token: string;
+  caseId: string;
+  file: Evidence;
+}) {
+  const [preview, setPreview] = useState("");
+  const [error, setError] = useState(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    let live = true;
+    let objectUrl = "";
+    setPreview("");
+    setError(false);
+    if (file.content_type?.startsWith("image/")) {
+      fetch(`/v1/cases/${caseId}/evidence/${file.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        signal: controller.signal,
+      })
+        .then(async (response) => {
+          if (!response.ok) throw new Error("Preview failed");
+          const blob = await response.blob();
+          if (live) {
+            objectUrl = URL.createObjectURL(blob);
+            setPreview(objectUrl);
+          }
+        })
+        .catch(() => {
+          if (live) setError(true);
+        });
+    }
+    return () => {
+      live = false;
+      controller.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [token, caseId, file.id, file.content_type]);
+  return preview ? (
+    <a
+      href={preview}
+      target="_blank"
+      rel="noreferrer"
+      aria-label="View evidence photo"
+    >
+      <img
+        src={preview}
+        alt="Resolution evidence photo"
+        className="max-h-40 w-48 max-w-full rounded object-contain"
+      />
+    </a>
+  ) : error ? (
+    <span role="status">Photo preview unavailable. Try Download.</span>
+  ) : null;
 }

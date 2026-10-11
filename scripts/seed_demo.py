@@ -1,4 +1,4 @@
-"""Seed synthetic GovFix v2 cases through the governed API. Dry run by default."""
+"""Seed synthetic GovFix v3 cases through the governed API. Dry run by default."""
 
 import argparse
 import hashlib
@@ -8,22 +8,24 @@ import secrets
 from dataclasses import replace
 from datetime import timedelta
 from pathlib import Path
+from unittest.mock import patch
 from urllib.parse import urlparse
 
 from fastapi.testclient import TestClient
 from sqlalchemy import select
+from sqlalchemy.exc import SQLAlchemyError
 
 from govfix.api import create_app
 from govfix.auth import token_hash
 from govfix.cli import import_policy, migrate, provision_user
 from govfix.database import make_engine, make_sessions, utcnow, write_transaction
-from govfix.models import AuthSession, User
+from govfix.models import AuthSession, RoleGrant, User
 from govfix.settings import Settings
 from govfix.worker import Worker
 
 ROOT = Path(__file__).resolve().parents[1]
-POLICY = ROOT / "config/policies/demo-pilot-v2.json"
-SCENARIOS = ROOT / "config/demo-scenarios-v2.json"
+POLICY = ROOT / "config/policies/demo-pilot-v3.json"
+SCENARIOS = ROOT / "config/demo-scenarios-v3.json"
 DEFAULT_CREDENTIALS = ROOT / "var/demo-credentials.json"
 
 
@@ -63,7 +65,7 @@ def credentials_for(path, names, sessions):
     return passwords
 
 
-def prepare_accounts(sessions, policy, passwords):
+def prepare_accounts(sessions, policy, passwords, citizen_username=None):
     identities = {}
     tokens = {}
     with write_transaction(sessions) as session:
@@ -91,6 +93,18 @@ def prepare_accounts(sessions, policy, passwords):
                 )
             )
             tokens[username] = token
+        if citizen_username:
+            user = session.scalar(select(User).where(User.username == citizen_username))
+            if user is None or not user.active or not user.identity_verified:
+                raise ValueError("Selected citizen must be active and identity verified")
+            roles = session.scalars(
+                select(RoleGrant.role).where(RoleGrant.user_id == user.id)
+            ).all()
+            if set(roles) != {"CITIZEN"}:
+                raise ValueError("Selected account must have only the CITIZEN role")
+            # Reuse the citizen's identity without changing their login credentials.
+            session.get(AuthSession, token_hash(tokens["sample-citizen"])).user_id = user.id
+            identities["sample-citizen"] = user.id
     return identities, tokens
 
 
@@ -110,7 +124,7 @@ def seed_case(client, scenario, policy, identities, tokens):
     def headers(name, operation, version=None):
         result = {
             "Authorization": f"Bearer {tokens[name]}",
-            "Idempotency-Key": f"govfix-demo-v2-{key}-{operation}",
+            "Idempotency-Key": f"govfix-demo-v3-{key}-{operation}",
         }
         if version is not None:
             result["If-Match"] = f'"{version}"'
@@ -242,6 +256,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--apply", action="store_true", help="Write the synthetic demo dataset")
     parser.add_argument("--credentials", type=Path, default=DEFAULT_CREDENTIALS)
+    parser.add_argument("--citizen", help="Attribute demo cases to an existing verified citizen")
     args = parser.parse_args()
     dataset = json.loads(SCENARIOS.read_text())
     policy = json.loads(POLICY.read_text())
@@ -258,6 +273,11 @@ def main():
     admin_url = settings.migration_database_url or settings.database_url
     parsed = urlparse(settings.database_url)
     print(f"Target: {parsed.scheme}://{parsed.hostname or parsed.path}")
+    if parsed.scheme.startswith("postgres") and not settings.migration_database_url:
+        raise ValueError(
+            "Set GOVFIX_MIGRATION_DATABASE_URL to a trusted PostgreSQL admin connection "
+            "for policy import and account provisioning. Keep the runtime connection restricted."
+        )
     migrate(admin_url)
     admin_engine = make_engine(admin_url)
     admin_sessions = make_sessions(admin_engine)
@@ -266,11 +286,18 @@ def main():
     token_hashes = []
     try:
         passwords = credentials_for(args.credentials, accounts(policy), admin_sessions)
-        identities, tokens = prepare_accounts(admin_sessions, policy, passwords)
+        identities, tokens = prepare_accounts(admin_sessions, policy, passwords, args.citizen)
         token_hashes = [token_hash(value) for value in tokens.values()]
         with TestClient(create_app(settings)) as client:
             for scenario in dataset["cases"]:
-                case_id = seed_case(client, scenario, policy, identities, tokens)
+                # Only this standalone demo importer simulates historical workflow time.
+                # The API still computes deadlines and writes every transition/audit event.
+                seeded_at = utcnow() - timedelta(hours=scenario.get("submitted_hours_ago", 0))
+                with (
+                    patch("govfix.workflow.utcnow", return_value=seeded_at),
+                    patch("govfix.operations.utcnow", return_value=seeded_at),
+                ):
+                    case_id = seed_case(client, scenario, policy, identities, tokens)
                 print(f"{scenario['key']}: {scenario['target_state']} {case_id}")
         result = Worker(runtime_sessions, settings).run_once()
         if result.get("error"):
@@ -288,4 +315,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except SQLAlchemyError as exc:
+        # Driver errors can contain credentials or SQL parameters. Never print them.
+        raise SystemExit(
+            f"Demo import failed ({type(exc).__name__}). "
+            "Check the runtime/admin connections and database privileges."
+        ) from None

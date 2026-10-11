@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { demoCopy } from "./demoCopy";
 
 export type PageLanguage = "en" | "hi" | "mr";
 
@@ -8,6 +9,7 @@ const contrastKey = "govfix-high-contrast";
 // Only application copy belongs here. Translation stays in the browser and uses
 // exact known UI phrases; it never sends case details to a translation service.
 const copy: Record<string, [string, string]> = {
+  ...demoCopy,
   "GovFix Municipal Operations": [
     "गोवफिक्स नगरपालिका संचालन",
     "गोवफिक्स नगरपालिका कामकाज",
