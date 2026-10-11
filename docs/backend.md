@@ -102,9 +102,13 @@ Supabase PostgreSQL is the selected project database. Supabase Auth and Storage 
 
 - **Database:** set `GOVFIX_DATABASE_URL` to the Supabase Postgres connection string. The
   application normalizes `postgresql://` and `postgres://` URLs to the installed psycopg driver.
-- **Authentication:** set `SUPABASE_URL` and `SUPABASE_ANON_KEY`. Bearer tokens are verified with
-  Supabase Auth. The matching Supabase user UUID must also exist in `users.id` and have the
-  required `user_roles` rows; roles remain application-controlled.
+- **Authentication:** `GOVFIX_AUTH_PROVIDER=local` (default) uses provisioned GovFix accounts,
+  including when PostgreSQL and Storage are hosted by Supabase. To use Supabase email/password
+  login, explicitly set `GOVFIX_AUTH_PROVIDER=supabase`, `SUPABASE_URL`, and `SUPABASE_ANON_KEY`.
+  The verified Supabase UUID must already exist in `users.id` with application-controlled
+  `user_roles`. Login exchanges that identity for an opaque GovFix session; logout revokes it.
+  Raw provider JWTs are not accepted as GovFix bearer tokens. Neither email confirmation nor
+  provider metadata grants municipal roles or verified citizen identity.
 - **Evidence:** set `SUPABASE_SERVICE_ROLE_KEY` and `SUPABASE_STORAGE_BUCKET` for the private
   evidence bucket. The service-role key is server-only and must never be sent to the browser.
   Evidence remains checksum-verified and its metadata is committed transactionally with the case
@@ -118,3 +122,36 @@ Export the Supabase PostgreSQL connection string as `GOVFIX_DATABASE_URL` in the
 For a local machine without IPv6 routing, copy **Connect → Direct → Session pooler → URI** from the Supabase dashboard. Keep its exact pooler hostname and `postgres.PROJECT_REF` username; the direct `db.PROJECT_REF.supabase.co` host may have only an IPv6 DNS record and fail local hostname resolution. Use port `5432`, URL-encode password characters, and append `?sslmode=require` (or `&sslmode=require` if parameters already exist).
 
 Keep exactly one `GOVFIX_DATABASE_URL` assignment in `.env`. A later assignment overrides an earlier one. Reload the environment before running migrations and restart both API and worker afterward. Adding SSL alone cannot fix an IPv6/DNS connection failure. See [Supabase connection options](https://supabase.com/docs/guides/database/connecting-to-postgres).
+
+
+## Supabase permission boundary and workflow verification
+
+Migration `0007` enables RLS on all 14 GovFix tables and revokes table privileges from
+`PUBLIC`, `anon`, `authenticated`, and `service_role`, plus execute access to the history
+trigger function. No Data API policies are installed: all governed reads and writes go
+through the backend's scoped authorization, transactions, idempotency and audit checks.
+Private Storage uses its own schema; its service-role integration still works.
+Default table privileges for the migration owner are revoked for future tables in `public`.
+Downgrading does not restore unsafe grants. The backend currently connects as `postgres`;
+a dedicated restricted backend database role remains a deployment hardening task.
+See [Supabase's grants and RLS guidance](https://supabase.com/docs/guides/api/securing-your-api).
+
+After loading `.env` (`set -a; source .env; set +a`):
+
+```sh
+uv run govfix init-db
+uv run python scripts/audit_supabase.py
+uv run python scripts/verify_login_case.py
+```
+
+The audit exits nonzero for missing tables, disabled RLS, policies or API-role grants.
+The live workflow check creates temporary accounts inside a transaction and exercises
+login → identity → intake options → case creation → list/detail/timeline/actions → logout.
+It verifies another citizen cannot see the case and a revoked session is denied. Nested
+savepoints exercise request commits; the outer rollback removes every verification record.
+Run it serially; it uses one database connection across requests. It currently checks the
+local account provider. Native Supabase Auth is covered by mocked identity-provider tests;
+real native login still needs a provisioned and linked Supabase Auth account.
+
+Never point `GOVFIX_TEST_DATABASE_URL` at Supabase: the main test fixture drops its schema.
+Use `scripts/test_postgres.py` for the disposable PostgreSQL suite.

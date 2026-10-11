@@ -42,3 +42,22 @@ Tests cover a submitted → validated → assigned → in-progress case, direct 
 ## Update rules
 
 Move an item to **Implemented** only when its code exists. Move it to **Verified** after recording a reproducible command, environment, date, and source/artifact link. Keep partial backend functionality distinct from a usable feature with its interface, integrations, and operational safeguards. The [roadmap](./roadmap.md) defines intended sequence.
+
+
+## Supabase permissions and login-to-case audit — 11 October 2026
+
+- Applied migration `0007` to the configured Supabase project: 14/14 tables have RLS,
+  no Data API policies, and no API-role table grants. History function execute grants: zero.
+- Fixed provider selection: Supabase database/storage credentials no longer switch token
+  validation. Local and native-provider login both issue revocable GovFix sessions.
+- Live Supabase API verification passed login, identity, intake, submission, list, detail,
+  timeline, actions, cross-citizen denial and logout. All verification rows were rolled back.
+- SQLite: 131 passed, 3 PostgreSQL tests skipped. Disposable PostgreSQL: 134 passed.
+- Full operations browser workflow and frontend production build passed.
+- Supabase plugin discovery confirmed installed/enabled; this chat exposed no callable
+  Supabase tool or plugin panel, so the audit/migration used the configured SQL connection.
+- Native Supabase Auth live login remains unverified: the project has no Auth users or
+  provisioned application accounts. Mocked provider contract tests passed.
+
+- Direct Supabase Data API user reads denied: anon HTTP 401; service_role HTTP 403.
+  The configured evidence bucket exists and is private. API and worker restarted successfully.

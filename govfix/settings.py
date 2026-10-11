@@ -11,6 +11,7 @@ class Settings:
     session_minutes: int = 60
     evidence_directory: str = "./var/evidence"
     evidence_max_bytes: int = 5 * 1024 * 1024
+    auth_provider: str = "local"
     supabase_url: str | None = None
     supabase_anon_key: str | None = None
     supabase_service_role_key: str | None = None
@@ -23,6 +24,10 @@ class Settings:
     elevenlabs_agent_mr: str | None = None
 
     def __post_init__(self):
+        if self.auth_provider not in ("local", "supabase"):
+            raise ValueError("auth_provider must be local or supabase")
+        if self.auth_provider == "supabase" and not (self.supabase_url and self.supabase_anon_key):
+            raise ValueError("Supabase Auth requires SUPABASE_URL and SUPABASE_ANON_KEY")
         if not 1 <= self.evidence_max_bytes <= 20 * 1024 * 1024:
             raise ValueError("evidence_max_bytes must be between 1 byte and 20 MiB")
         if not 1 <= self.session_minutes <= 1440:
@@ -45,6 +50,7 @@ class Settings:
             elevenlabs_agent_hi=os.getenv("GOVFIX_ELEVENLABS_AGENT_HI"),
             elevenlabs_agent_mr=os.getenv("GOVFIX_ELEVENLABS_AGENT_MR"),
             database_url=database_url,
+            auth_provider=os.getenv("GOVFIX_AUTH_PROVIDER", "local"),
             policy_version=os.getenv("GOVFIX_POLICY_VERSION", "demo-pilot-v1"),
             evidence_directory=os.getenv("GOVFIX_EVIDENCE_DIRECTORY", "./var/evidence"),
             evidence_max_bytes=int(os.getenv("GOVFIX_EVIDENCE_MAX_BYTES", str(5 * 1024 * 1024))),

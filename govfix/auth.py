@@ -81,19 +81,6 @@ def authenticate(session, token: str | None) -> Actor:
     return load_actor(session, auth_session.user_id)
 
 
-def authenticate_supabase(session, client, token: str | None) -> Actor:
-    if not token:
-        raise Refusal("UNAUTHENTICATED", "Authentication is required.", 401)
-    try:
-        response = client.auth.get_user(token)
-        user_id = response.user.id if response.user else None
-    except Exception as exc:
-        raise Refusal("UNAUTHENTICATED", "Authentication is required.", 401) from exc
-    if not user_id:
-        raise Refusal("UNAUTHENTICATED", "Authentication is required.", 401)
-    return load_actor(session, user_id)
-
-
 def login(sessions, username: str, password: str, duration_minutes: int) -> dict:
     with sessions() as session:
         user = session.scalar(select(User).where(User.username == username))
@@ -110,5 +97,45 @@ def login(sessions, username: str, password: str, duration_minutes: int) -> dict
         expires_at = utcnow() + timedelta(minutes=duration_minutes)
         session.add(
             AuthSession(token_hash=token_hash(token), user_id=user.id, expires_at=expires_at)
+        )
+    return {"access_token": token, "token_type": "bearer", "expires_at": expires_at.isoformat()}
+
+
+def login_supabase(sessions, settings, email: str, password: str) -> dict:
+    """Exchange a verified provider identity for a revocable GovFix session.
+
+    Provider metadata never creates roles or marks municipal identity as verified.
+    Each login has its own stateless provider client.
+    """
+    from supabase import ClientOptions, create_client
+    from supabase_auth.errors import AuthApiError
+
+    try:
+        client = create_client(
+            settings.supabase_url,
+            settings.supabase_anon_key,
+            options=ClientOptions(persist_session=False, auto_refresh_token=False),
+        )
+        response = client.auth.sign_in_with_password({"email": email, "password": password})
+        if not response.session:
+            raise Refusal("INVALID_CREDENTIALS", "Username or password is incorrect.", 401)
+        verified = client.auth.get_user(response.session.access_token)
+        user_id = verified.user.id if verified.user else None
+    except AuthApiError as exc:
+        if exc.status in (400, 401, 403, 422):
+            raise Refusal("INVALID_CREDENTIALS", "Username or password is incorrect.", 401) from exc
+        raise Refusal("AUTH_UNAVAILABLE", "Sign-in is temporarily unavailable.", 503) from exc
+    except Refusal:
+        raise
+    except Exception as exc:
+        raise Refusal("AUTH_UNAVAILABLE", "Sign-in is temporarily unavailable.", 503) from exc
+    with write_transaction(sessions) as session:
+        if not user_id:
+            raise Refusal("INVALID_CREDENTIALS", "Username or password is incorrect.", 401)
+        load_actor(session, user_id, lock=True)
+        token = secrets.token_urlsafe(32)
+        expires_at = utcnow() + timedelta(minutes=settings.session_minutes)
+        session.add(
+            AuthSession(token_hash=token_hash(token), user_id=user_id, expires_at=expires_at)
         )
     return {"access_token": token, "token_type": "bearer", "expires_at": expires_at.isoformat()}
