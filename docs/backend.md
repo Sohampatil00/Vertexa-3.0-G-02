@@ -111,3 +111,10 @@ Supabase PostgreSQL is the selected project database. Supabase Auth and Storage 
   audit event.
 
 Export the Supabase PostgreSQL connection string as `GOVFIX_DATABASE_URL` in the app and worker environments; never commit database passwords. `SUPABASE_URL` is the HTTP API URL and cannot replace the PostgreSQL connection string. When `SUPABASE_URL` is set, startup refuses a missing/non-PostgreSQL database setting to prevent accidental SQLite use. SQLite remains available for isolated tests and explicitly selected local demos. The current no-environment fallback is still SQLite; it does not establish a Supabase connection.
+
+
+## Local Supabase connection troubleshooting
+
+For a local machine without IPv6 routing, copy **Connect → Direct → Session pooler → URI** from the Supabase dashboard. Keep its exact pooler hostname and `postgres.PROJECT_REF` username; the direct `db.PROJECT_REF.supabase.co` host may have only an IPv6 DNS record and fail local hostname resolution. Use port `5432`, URL-encode password characters, and append `?sslmode=require` (or `&sslmode=require` if parameters already exist).
+
+Keep exactly one `GOVFIX_DATABASE_URL` assignment in `.env`. A later assignment overrides an earlier one. Reload the environment before running migrations and restart both API and worker afterward. Adding SSL alone cannot fix an IPv6/DNS connection failure. See [Supabase connection options](https://supabase.com/docs/guides/database/connecting-to-postgres).
