@@ -253,11 +253,11 @@ Set these variables on **govfix-web** if enabling live voice:
 
 - `ELEVENLABS_API_KEY`
 - `GOVFIX_ELEVENLABS_AGENT_EN`, `GOVFIX_ELEVENLABS_AGENT_HI`, `GOVFIX_ELEVENLABS_AGENT_MR`
-- `GOVFIX_ELEVENLABS_WEBHOOK_SECRET`
+- `GOVFIX_ELEVENLABS_WEBHOOK_SECRET` for post-call transcripts (optional for starting voice)
 
 Configure the signed ElevenLabs webhook to
-`https://YOUR-WEB-HOST/v1/webhooks/elevenlabs`. Update any agent origin restrictions
-to allow the Render HTTPS origin. Follow [voice access](./voice-access.md) for
+`https://YOUR-WEB-HOST/v1/webhooks/elevenlabs`. Use private agents with signed-URL
+authentication. Follow [voice access](./voice-access.md) for
 agent provisioning, consent and verification. Text intake remains available when
 voice credentials are absent. Voice credentials are never frontend build variables.
 

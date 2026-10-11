@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import logging
 from datetime import timedelta
 from typing import Annotated, Literal
 from urllib.parse import parse_qs, urlparse
@@ -19,6 +20,7 @@ from govfix.auth import Actor, load_actor
 from govfix.database import as_utc, utcnow, write_transaction
 from govfix.errors import Refusal
 from govfix.models import VoiceSession
+from govfix.observability import emit
 from govfix.schemas import Input, Submit
 from govfix.workflow import project_case
 
@@ -58,7 +60,19 @@ class VoiceConfirm(Input):
 def signed_url(settings, language):
     agent = getattr(settings, f"elevenlabs_agent_{language}")
     if not settings.elevenlabs_api_key or not agent:
-        raise Refusal("VOICE_UNAVAILABLE", "Voice is unavailable. Please use the text form.", 503)
+        missing = []
+        if not settings.elevenlabs_api_key:
+            missing.append("ELEVENLABS_API_KEY")
+        if not agent:
+            missing.append(f"GOVFIX_ELEVENLABS_AGENT_{language.upper()}")
+        emit(
+            "voice_configuration_missing", level=logging.WARNING, language=language, missing=missing
+        )
+        raise Refusal(
+            "VOICE_UNAVAILABLE",
+            "Voice is not configured for this language. Please use Report New Grievance.",
+            503,
+        )
     try:
         result = ElevenLabs(
             api_key=settings.elevenlabs_api_key, timeout=10
@@ -75,6 +89,14 @@ def signed_url(settings, language):
             raise ValueError("Invalid provider response")
         return {"signed_url": url, "conversation_id": conversation_id}
     except (ApiError, httpx.HTTPError, ValueError, KeyError, AttributeError, TypeError) as exc:
+        status = getattr(exc, "status_code", None)
+        emit(
+            "voice_provider_unavailable",
+            level=logging.WARNING,
+            language=language,
+            error_type=type(exc).__name__,
+            provider_status=status if isinstance(status, int) else None,
+        )
         raise Refusal(
             "VOICE_UNAVAILABLE", "Voice is unavailable. Please use the text form.", 503
         ) from exc

@@ -59,7 +59,7 @@ export function VoiceAccess({
         setReview(null);
         setChecked(false);
         setError(
-          "Voice session expired. Start again or use New grievance for text submission.",
+          "Voice session expired. Start again or use Report New Grievance for text submission.",
         );
       },
       Math.max(0, Date.parse(expiresAt) - Date.now()),
@@ -197,7 +197,7 @@ export function VoiceAccess({
       }
       if (current === generation.current)
         setError(
-          `${(err as Error).message} The text form remains available under New grievance.`,
+          `${(err as Error).message} The text form remains available under Report New Grievance.`,
         );
     } finally {
       if (current === generation.current) setBusy(false);
@@ -252,7 +252,7 @@ export function VoiceAccess({
       <h2 className="text-balance text-xl font-semibold">Voice assistance</h2>
       <p className="text-pretty text-sm text-slate-600">
         Describe a grievance or ask for the status of your case. Voice needs a
-        verified citizen account. You can always use New grievance to submit by
+        verified citizen account. You can always use Report New Grievance to submit by
         text.
       </p>
       <div className="flex flex-wrap items-end gap-4">

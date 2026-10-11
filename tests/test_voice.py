@@ -302,3 +302,56 @@ def test_provider_invalid_response_falls_back(monkeypatch):
     with pytest.raises(Refusal) as refusal:
         signed_url(Settings(elevenlabs_api_key="private", elevenlabs_agent_en="agent-test"), "en")
     assert refusal.value.status == 503
+
+
+def test_missing_voice_configuration_reports_only_variable_names(monkeypatch):
+    import pytest
+
+    from govfix.settings import Settings
+    from govfix.voice import signed_url
+
+    signals = []
+    monkeypatch.setattr(
+        "govfix.voice.emit", lambda event, **fields: signals.append((event, fields))
+    )
+    monkeypatch.setattr(
+        "govfix.voice.ElevenLabs",
+        lambda **_: pytest.fail("Missing configuration must not contact ElevenLabs"),
+    )
+    with pytest.raises(Refusal, match="not configured"):
+        signed_url(Settings(), "mr")
+    assert signals[0][0] == "voice_configuration_missing"
+    assert signals[0][1]["missing"] == ["ELEVENLABS_API_KEY", "GOVFIX_ELEVENLABS_AGENT_MR"]
+
+
+def test_provider_authentication_diagnostics_do_not_expose_secrets(monkeypatch):
+    from types import SimpleNamespace
+
+    import pytest
+    from elevenlabs.core.api_error import ApiError
+
+    from govfix.settings import Settings
+    from govfix.voice import signed_url
+
+    secret = "private-provider-secret"
+    signals = []
+
+    def sign(**_):
+        raise ApiError(status_code=401, body={"detail": secret})
+
+    monkeypatch.setattr(
+        "govfix.voice.emit", lambda event, **fields: signals.append((event, fields))
+    )
+    monkeypatch.setattr(
+        "govfix.voice.ElevenLabs",
+        lambda **_: SimpleNamespace(
+            conversational_ai=SimpleNamespace(conversations=SimpleNamespace(get_signed_url=sign))
+        ),
+    )
+    with pytest.raises(Refusal) as refusal:
+        signed_url(Settings(elevenlabs_api_key=secret, elevenlabs_agent_en="agent-test"), "en")
+    assert refusal.value.status == 503
+    assert signals[0][0] == "voice_provider_unavailable"
+    assert signals[0][1]["provider_status"] == 401
+    assert secret not in str(signals)
+    assert secret not in refusal.value.message

@@ -1,6 +1,6 @@
 # Phase 5: P0 voice access
 
-The citizen dashboard supports ElevenLabs microphone conversations in English, Hindi, and Marathi. The local workflow and provider contracts are tested; live speech accuracy, account provisioning, and multilingual read-back still require a configured ElevenLabs account and pilot speakers. Plugin discovery in this implementation session returned no callable ElevenLabs account tools. The ElevenLabs agents and client-tool skills informed the integration; the official JavaScript and Python SDKs provide the application connection.
+The citizen dashboard supports ElevenLabs microphone conversations in English, Hindi, and Marathi. The local workflow and provider contracts are tested; live speech accuracy, account provisioning, and multilingual read-back still require a configured ElevenLabs account and pilot speakers. The ElevenLabs plugin can review workspace agents; use the provisioning script for the complete private-agent configuration, including client tools and retention settings. The official JavaScript and Python SDKs provide the application connection.
 
 ## Setup
 
@@ -9,6 +9,25 @@ The citizen dashboard supports ElevenLabs microphone conversations in English, H
 3. Run `uv run python scripts/provision_voice.py --apply --voice-id YOUR_ACCOUNT_VOICE_ID` to create three private demo agents. It reads existing agents before creation and preserves any agent with a matching name. Review existing configurations manually before using them. Optional `--llm` selects an account-supported model; otherwise provider defaults apply.
 4. Export the three returned `GOVFIX_ELEVENLABS_AGENT_EN`, `_HI`, and `_MR` values. The API does not load `.env` automatically. Run `uv run govfix init-db`, build the client, and restart the API.
 5. Configure a post-call transcription webhook in ElevenLabs pointing to the public HTTPS `/v1/webhooks/elevenlabs` URL. Export its HMAC secret as `GOVFIX_ELEVENLABS_WEBHOOK_SECRET`. Enable retries. No audio webhook is needed.
+
+### Troubleshooting “Voice is unavailable” on Render
+
+The `.env` file on your computer is not uploaded to Render. In the web service's
+**Environment** page, add `ELEVENLABS_API_KEY` and the selected language's agent ID:
+`GOVFIX_ELEVENLABS_AGENT_EN`, `GOVFIX_ELEVENLABS_AGENT_HI`, or
+`GOVFIX_ELEVENLABS_AGENT_MR`. Copy real IDs printed by the provisioning script.
+Save the changes and redeploy the service. Do not use `VITE_` names for these values.
+
+For setup, the API key needs ElevenAgents write access, Voices read access, and
+User access for key validation. Provision agents in the same ElevenLabs workspace
+as the key. Keep signed-URL authentication enabled. The webhook secret is for
+post-call transcript delivery; it is not required to start the microphone session.
+
+Render logs distinguish `voice_configuration_missing` (lists missing variable
+names) from `voice_provider_unavailable` (provider HTTP status and error type).
+For a provider 401/403, check the key's validity and ElevenAgents permissions;
+for a 404, check the agent ID and workspace. The logs never include the API key,
+signed URL, or provider error body. Test with a verified citizen account.
 
 Sources: [signed URL authentication](https://elevenlabs.io/docs/eleven-agents/customization/authentication), [JavaScript SDK](https://elevenlabs.io/docs/eleven-agents/libraries/java-script), and [signed webhook contracts](https://elevenlabs.io/docs/eleven-api/resources/webhooks).
 
