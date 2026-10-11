@@ -95,6 +95,7 @@ class Case(Base):
     current_deadline: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     escalation_level: Mapped[int] = mapped_column(Integer, default=0)
     version: Mapped[int] = mapped_column(Integer, default=1)
+    next_sla_check: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
 
 
 class Assignment(Base):
@@ -174,4 +175,40 @@ class OutboxMessage(Base):
     payload: Mapped[dict] = mapped_column(JSON)
     status: Mapped[str] = mapped_column(String(20), default="PENDING")
     attempts: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_error: Mapped[str | None] = mapped_column(String(100))
+    delivered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    __table_args__ = (Index("ix_outbox_due", "status", "next_attempt_at"),)
+
+
+class SlaThreshold(Base):
+    """One immutable threshold event per case and pinned policy, across extensions."""
+
+    __tablename__ = "sla_thresholds"
+    __table_args__ = (
+        UniqueConstraint("case_id", "policy_version", "threshold_key", name="uq_sla_threshold"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    case_id: Mapped[str] = mapped_column(ForeignKey("grievances.id"), index=True)
+    policy_version: Mapped[str] = mapped_column(ForeignKey("policy_versions.version"))
+    threshold_key: Mapped[str] = mapped_column(String(100))
+    event_id: Mapped[str] = mapped_column(ForeignKey("audit_events.id"), unique=True)
+    threshold_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    deadline: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class Notification(Base):
+    """Durable in-app delivery; a unique message/recipient pair prevents duplicate delivery."""
+
+    __tablename__ = "notifications"
+    __table_args__ = (
+        UniqueConstraint("message_id", "recipient_id", name="uq_notification_recipient"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    message_id: Mapped[str] = mapped_column(ForeignKey("outbox_messages.id"))
+    recipient_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    case_id: Mapped[str] = mapped_column(ForeignKey("grievances.id"))
+    kind: Mapped[str] = mapped_column(String(100))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)

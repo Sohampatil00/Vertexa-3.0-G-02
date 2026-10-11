@@ -174,6 +174,10 @@ def validate_policy(policy: object) -> dict:
         threshold_keys.add(key)
         percent = threshold.get("percent_of_sla")
         _positive_number(percent, f"threshold {key} percent_of_sla")
+        _require(percent <= 10000, "threshold percentage cannot exceed 10000")
+        _require(
+            threshold["recipient_role"] != "WORKFLOW_ENGINE", "threshold needs a human recipient"
+        )
         _require(percent > previous_percent, "threshold percentages must increase")
         previous_percent = percent
         _require(

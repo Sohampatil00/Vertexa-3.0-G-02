@@ -2,7 +2,7 @@
 
 import hashlib
 import json
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from pydantic import ValidationError
 from sqlalchemy import select
@@ -24,6 +24,7 @@ from govfix.models import (
     new_id,
 )
 from govfix.schemas import COMMAND_SCHEMAS
+from govfix.sla import record_due, recorded_thresholds, schedule_next, threshold_time
 
 STAFF_ROLES = {"INTAKE_OFFICER", "DISPATCHER", "OFFICER", "SUPERVISOR", "WARD_HEAD", "AUDITOR"}
 OPERATION_EDGES = {
@@ -65,6 +66,7 @@ def snapshot(case: Case | None) -> dict | None:
         "ward": case.ward,
         "department": case.department,
         "current_deadline": as_utc(case.current_deadline).isoformat(),
+        "escalation_level": case.escalation_level,
     }
 
 
@@ -72,8 +74,8 @@ def project_case(case: Case, policy: dict) -> dict:
     submitted = as_utc(case.submitted_at)
     deadline = as_utc(case.current_deadline)
     observed = as_utc(case.terminal_at) if case.terminal_at else utcnow()
-    warning = next(t["percent_of_sla"] for t in policy["thresholds"] if t["key"] == "WARNING")
-    warning_at = submitted + (deadline - submitted) * (warning / 100)
+    warning = next(t for t in policy["thresholds"] if t["key"] == "WARNING")
+    warning_at = threshold_time(case, warning)
     sla_status = (
         "OVERDUE" if observed >= deadline else ("WARNING" if observed >= warning_at else "ON_TRACK")
     )
@@ -123,6 +125,7 @@ class Workflow:
         reason=None,
         channel="TEXT",
         details=None,
+        occurred_at=None,
     ):
         event = AuditEvent(
             id=new_id(),
@@ -139,6 +142,7 @@ class Workflow:
             before=before,
             after=snapshot(case),
             details=details or {},
+            occurred_at=occurred_at or utcnow(),
         )
         session.add(event)
         session.flush()
@@ -232,21 +236,34 @@ class Workflow:
                         before=before,
                     )
                 else:
-                    if case.workflow_state != OPERATION_EDGES[operation][0]:
+                    if (
+                        operation not in {"deadline-extension", "notification-retry"}
+                        and case.workflow_state != OPERATION_EDGES[operation][0]
+                    ):
                         raise Refusal(
                             "INVALID_TRANSITION",
                             "This action is not allowed in the current state.",
                             409,
                         )
-                    target = self.target(operation, command)
-                    roles = next(
-                        (
-                            edge["roles"]
-                            for edge in policy["transitions"]
-                            if edge["from"] == case.workflow_state and edge["to"] == target
-                        ),
-                        None,
-                    )
+                    if operation in {"deadline-extension", "notification-retry"}:
+                        if operation == "deadline-extension" and case.workflow_state in {
+                            "CLOSED",
+                            "REJECTED",
+                        }:
+                            raise Refusal(
+                                "INVALID_TRANSITION", "Terminal cases cannot be extended.", 409
+                            )
+                        target, roles = case.workflow_state, ["SUPERVISOR"]
+                    else:
+                        target = self.target(operation, command)
+                        roles = next(
+                            (
+                                edge["roles"]
+                                for edge in policy["transitions"]
+                                if edge["from"] == case.workflow_state and edge["to"] == target
+                            ),
+                            None,
+                        )
                     if roles is None:
                         raise Refusal(
                             "INVALID_TRANSITION",
@@ -267,10 +284,24 @@ class Workflow:
                         )
                     if role == "CITIZEN" and case.citizen_id != actor.id:
                         raise Refusal("CASE_ACCESS_DENIED", "Case not found.", 404)
+                    if operation == "deadline-extension":
+                        deadline = as_utc(datetime.fromisoformat(command.new_deadline))
+                        now = utcnow()
+                        if deadline <= max(as_utc(case.current_deadline), now) or deadline - as_utc(
+                            case.submitted_at
+                        ) > timedelta(days=3650):
+                            raise Refusal(
+                                "INVALID_DEADLINE",
+                                "Choose a later future deadline within ten years of submission.",
+                                422,
+                            )
+                        # Record any already-crossed thresholds before the new deadline can move them.
+                        record_due(session, case, policy, now, self)
+                        before = snapshot(case)
                     self.apply(session, actor, case, operation, command, policy)
                     case.workflow_state = target
                     case.version += 1
-                    if target in {"CLOSED", "REJECTED"}:
+                    if target in {"CLOSED", "REJECTED"} and operation in {"verification", "reject"}:
                         case.terminal_at = utcnow()
                         self.end_assignment(session, case)
                     session.flush()
@@ -289,7 +320,20 @@ class Workflow:
                         before=before,
                         details=details,
                     )
-                    if target == "RESOLUTION_SUBMITTED":
+                    if operation == "deadline-extension":
+                        session.add(
+                            OutboxMessage(
+                                event_id=event.id,
+                                kind="DEADLINE_EXTENDED",
+                                payload={
+                                    "case_id": case.public_id,
+                                    "recipient_id": case.citizen_id,
+                                    "old_deadline": before["current_deadline"],
+                                    "new_deadline": as_utc(case.current_deadline).isoformat(),
+                                },
+                            )
+                        )
+                    if operation == "resolution":
                         self.system_transition(
                             session,
                             case,
@@ -298,7 +342,7 @@ class Workflow:
                             "request-verification",
                             "CITIZEN_VERIFICATION_REQUEST",
                         )
-                    if target == "DISPUTED":
+                    if operation == "verification" and target == "DISPUTED":
                         self.system_transition(
                             session,
                             case,
@@ -333,6 +377,7 @@ class Workflow:
                 and key.strip()
                 and len(key) <= 200
                 and record is None
+                and status < 500
                 and (not case_id or may_see)
             ):
                 session.add(
@@ -385,6 +430,7 @@ class Workflow:
             escalation_level=0,
             version=1,
         )
+        schedule_next(case, policy, set())
         session.add(case)
         session.flush()
         return case
@@ -430,7 +476,27 @@ class Workflow:
         case.owner_id = officer_id
 
     def apply(self, session, actor, case, operation, command, policy):
-        if operation == "validate":
+        if operation == "notification-retry":
+            message = session.scalar(
+                select(OutboxMessage)
+                .join(AuditEvent)
+                .where(OutboxMessage.id == command.message_id, AuditEvent.case_id == case.id)
+                .with_for_update(of=OutboxMessage)
+            )
+            if message is None:
+                raise Refusal("NOTIFICATION_NOT_FOUND", "Notification not found.", 404)
+            if message.status != "FAILED":
+                raise Refusal(
+                    "NOTIFICATION_NOT_FAILED", "Only failed deliveries can be retried.", 409
+                )
+            message.status = "PENDING"
+            message.attempts = 0
+            message.next_attempt_at = utcnow()
+            message.last_error = None
+        elif operation == "deadline-extension":
+            case.current_deadline = as_utc(datetime.fromisoformat(command.new_deadline))
+            schedule_next(case, policy, recorded_thresholds(session, case))
+        elif operation == "validate":
             if command.jurisdiction != policy["municipality"]:
                 raise Refusal(
                     "INVALID_POLICY_VALUE", "The jurisdiction does not match this policy.", 422

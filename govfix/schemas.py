@@ -1,8 +1,9 @@
 """Strict command inputs; roles and official timestamps never come from clients."""
 
+from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, SecretStr
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
 
 class Input(BaseModel):
@@ -65,6 +66,24 @@ class Review(Command):
     reason: str = Field(min_length=1, max_length=2000)
 
 
+class DeadlineExtension(Command):
+    new_deadline: str = Field(min_length=20, max_length=50)
+    reason: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("new_deadline")
+    @classmethod
+    def aware_deadline(cls, value):
+        date = datetime.fromisoformat(value)
+        if date.tzinfo is None or date.utcoffset() is None:
+            raise ValueError("The deadline must include a timezone offset")
+        return value
+
+
+class NotificationRetry(Command):
+    message_id: str = Field(min_length=36, max_length=36)
+    reason: str = Field(min_length=1, max_length=2000)
+
+
 COMMAND_SCHEMAS = {
     "submit": Submit,
     "validate": Validate,
@@ -74,4 +93,6 @@ COMMAND_SCHEMAS = {
     "resolution": Resolution,
     "verification": Verification,
     "review": Review,
+    "deadline-extension": DeadlineExtension,
+    "notification-retry": NotificationRetry,
 }

@@ -17,6 +17,7 @@ from govfix.auth import Actor, authenticate, login, token_hash
 from govfix.database import as_utc, make_engine, make_sessions, write_transaction
 from govfix.errors import Refusal
 from govfix.models import AuditEvent, AuthSession, Case, PolicyVersion, new_id
+from govfix.notifications import register_notifications
 from govfix.operations import register_operations
 from govfix.schemas import COMMAND_SCHEMAS, Login
 from govfix.settings import Settings
@@ -52,7 +53,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             with sessions() as session:
                 revision = session.execute(text("SELECT version_num FROM alembic_version")).scalar()
                 if (
-                    revision != "0003"
+                    revision != "0004"
                     or session.get(PolicyVersion, settings.policy_version) is None
                 ):
                     raise RuntimeError("Run 'uv run govfix init-db' before starting the API")
@@ -399,6 +400,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                             ],
                         }
                     )
+            if actor.has_role("SUPERVISOR", case):
+                if case.workflow_state not in {"CLOSED", "REJECTED"}:
+                    options.append(
+                        {
+                            "operation": "deadline-extension",
+                            "target": case.workflow_state,
+                            "required_fields": ["new_deadline", "reason"],
+                        }
+                    )
+                options.append(
+                    {
+                        "operation": "notification-retry",
+                        "target": case.workflow_state,
+                        "required_fields": ["message_id", "reason"],
+                    }
+                )
             return {
                 "actions": options,
                 "case_version": case.version,
@@ -422,6 +439,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     register_operations(
         app, sessions, settings, workflow, require_actor, read_case, visibility_filter
     )
+
+    register_notifications(app, sessions, require_actor, read_case, visibility_filter)
 
     @app.get("/", include_in_schema=False)
     def home():

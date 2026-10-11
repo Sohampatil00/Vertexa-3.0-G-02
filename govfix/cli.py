@@ -2,6 +2,8 @@
 
 import argparse
 import getpass
+import json
+import time
 from pathlib import Path
 
 from alembic import command
@@ -14,6 +16,7 @@ from govfix.database import make_engine, make_sessions, write_transaction
 from govfix.models import PolicyVersion, RoleGrant, User
 from govfix.policy import PolicyError, load_policy
 from govfix.settings import Settings
+from govfix.worker import Worker
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -82,6 +85,10 @@ def main():
         action="store_true",
         help="Record administrator-established demo identity verification",
     )
+    worker = subparsers.add_parser("worker", help="Monitor SLAs and deliver in-app notifications")
+    worker.add_argument("--once", action="store_true", help="Process one bounded batch and exit")
+    worker.add_argument("--poll-seconds", type=float, default=30)
+    worker.add_argument("--batch-size", type=int, default=100)
     args = parser.parse_args()
     password = (
         getpass.getpass("Password (12+ characters): ") if args.operation == "create-user" else None
@@ -90,6 +97,19 @@ def main():
     engine = make_engine(settings.database_url)
     sessions = make_sessions(engine)
     try:
+        if args.operation == "worker":
+            if not 1 <= args.poll_seconds <= 3600 or not 1 <= args.batch_size <= 1000:
+                raise ValueError("Poll interval must be 1–3600 seconds; batch size 1–1000")
+            runner = Worker(sessions, settings)
+            try:
+                while True:
+                    print(json.dumps(runner.run_once(args.batch_size)), flush=True)
+                    if args.once:
+                        break
+                    time.sleep(args.poll_seconds)
+            except KeyboardInterrupt:
+                pass
+            return
         if args.operation == "init-db":
             migrate(settings.database_url)
         with write_transaction(sessions) as session:
