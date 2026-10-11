@@ -288,6 +288,7 @@ def test_exclusive_storage_preserves_existing_object(tmp_path):
 
 def test_private_store_cannot_be_configured_under_static():
     from pathlib import Path
+
     from govfix.evidence import EvidenceStore
     from govfix.settings import Settings
 
