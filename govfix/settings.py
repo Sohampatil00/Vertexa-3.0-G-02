@@ -16,6 +16,12 @@ class Settings:
     supabase_service_role_key: str | None = None
     supabase_storage_bucket: str = "evidence"
 
+    elevenlabs_webhook_secret: str | None = None
+    elevenlabs_api_key: str | None = None
+    elevenlabs_agent_en: str | None = None
+    elevenlabs_agent_hi: str | None = None
+    elevenlabs_agent_mr: str | None = None
+
     def __post_init__(self):
         if not 1 <= self.evidence_max_bytes <= 20 * 1024 * 1024:
             raise ValueError("evidence_max_bytes must be between 1 byte and 20 MiB")
@@ -25,6 +31,11 @@ class Settings:
     @classmethod
     def from_env(cls):
         return cls(
+            elevenlabs_webhook_secret=os.getenv("GOVFIX_ELEVENLABS_WEBHOOK_SECRET"),
+            elevenlabs_api_key=os.getenv("ELEVENLABS_API_KEY"),
+            elevenlabs_agent_en=os.getenv("GOVFIX_ELEVENLABS_AGENT_EN"),
+            elevenlabs_agent_hi=os.getenv("GOVFIX_ELEVENLABS_AGENT_HI"),
+            elevenlabs_agent_mr=os.getenv("GOVFIX_ELEVENLABS_AGENT_MR"),
             database_url=os.getenv("GOVFIX_DATABASE_URL", "sqlite:///./govfix.db"),
             policy_version=os.getenv("GOVFIX_POLICY_VERSION", "demo-pilot-v1"),
             evidence_directory=os.getenv("GOVFIX_EVIDENCE_DIRECTORY", "./var/evidence"),

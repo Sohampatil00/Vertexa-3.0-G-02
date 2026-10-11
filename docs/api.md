@@ -2,7 +2,7 @@
 
 **Status:** Phases 1–4 implement case operations, private evidence, SLA history, notifications, explicit citizen verification, and supervisor rework. `/v1/auth/login` and `/v1/auth/logout` provide local account sessions. Voice endpoints remain planned. Run the [backend](./backend.md) to inspect generated OpenAPI at `/docs` and `/openapi.json`.
 
-Current submission requires a configured category and ward as well as description, location, and confirmation, so a provisional demo deadline can be pinned immediately. Validation confirms those values; correction cannot silently change the original deadline. Voice commands remain refused until a verified voice-session implementation exists.
+Current submission requires a configured category and ward as well as description, location, and confirmation, so a provisional demo deadline can be pinned immediately. Validation confirms those values; correction cannot silently change the original deadline. Direct voice commands remain refused; Phase 5 submission uses the verified voice-session routes described below.
 
 ## Conventions
 
@@ -52,11 +52,14 @@ Phase 4 adds `GET /v1/cases/{id}/resolution`, returning the latest accepted reso
 
 | Method and path | Purpose |
 |---|---|
-| `POST /v1/voice/session` | Create a short-lived, case-scoped session after user verification and consent. |
-| `POST /v1/voice/intent` | Submit a constrained, explicitly confirmed action intent mapped to one governed command; backend repeats all checks. |
+| `POST /v1/voice/session` | Verified citizen, explicit consent, en/hi/mr language; returns session ID, expiry and a private single-use signed URL. |
+| `POST /v1/voice/{id}/draft` | Validate four intake fields and retain the browser transcript snapshot separately; return a review hash. |
+| `POST /v1/voice/{id}/confirm` | Explicit screen confirmation and matching draft hash; atomically submit once and link the voice audit. |
+| `GET /v1/voice/{id}/status/{case_id}` | Read only the session citizen’s own case reference, state and current deadline. |
+| `POST /v1/voice/{id}/cancel` | End the session and refuse subsequent submissions. |
 | `POST /v1/webhooks/elevenlabs` | Verify provider signature, deduplicate conversation/event ID, store permitted post-call metadata; never directly mutate a case from a summary. |
 
-For status lookup, the voice agent uses the same authorized case read projection. If an answer is not present in the API response, the agent should say it cannot verify the fact.
+The voice agent receives a minimal authorized status projection. See [voice setup and safeguards](./voice-access.md). If an answer is not present in the API response, the agent should say it cannot verify the fact.
 
 ## Response and refusal shape
 

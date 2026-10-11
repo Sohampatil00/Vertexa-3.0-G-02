@@ -216,3 +216,21 @@ class Notification(Base):
     case_id: Mapped[str] = mapped_column(ForeignKey("grievances.id"))
     kind: Mapped[str] = mapped_column(String(100))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class VoiceSession(Base):
+    __tablename__ = "voice_sessions"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    actor_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    language: Mapped[str] = mapped_column(String(2))
+    policy_version: Mapped[str] = mapped_column(ForeignKey("policy_versions.version"))
+    provider_conversation_id: Mapped[str] = mapped_column(String(100), unique=True)
+    provider_transcript: Mapped[list | None] = mapped_column(JSON)
+    consent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    cancelled: Mapped[bool] = mapped_column(Boolean, default=False)
+    transcript: Mapped[str | None] = mapped_column(Text)
+    draft: Mapped[dict | None] = mapped_column(JSON)
+    draft_hash: Mapped[str | None] = mapped_column(String(64))
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    result: Mapped[dict | None] = mapped_column(JSON)

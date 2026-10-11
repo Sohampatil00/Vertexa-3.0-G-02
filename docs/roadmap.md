@@ -13,6 +13,8 @@
 | 5b. P1 voice operations | Outbound citizen verification, officer dictation, and spoken timeline explanations | Explicit intent and identity checks pass for every action; failed or ambiguous calls leave case state unchanged |
 | 6. Pilot hardening | Security review, accessibility sessions, load/retry tests, observability, backup/restore exercise | [Validation gates](./validation.md) pass and pilot owner accepts known limits |
 
+Phase 5 application integration is implemented locally; provider provisioning and live multilingual validation remain open. See [voice access](./voice-access.md). The next P0 step is Phase 6 pilot hardening after completing the live voice gate; Phase 5b remains optional P1 work.
+
 ## Build order within P0
 
 1. Define effective policy version and audited transition transaction before building multiple user interfaces.

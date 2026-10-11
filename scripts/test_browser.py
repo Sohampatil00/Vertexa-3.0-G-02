@@ -1,5 +1,6 @@
 """Exercise the operations UI against a temporary SQLite database and private storage."""
 
+import json
 import os
 import secrets
 import socket
@@ -7,7 +8,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.request import urlopen
 
@@ -24,10 +25,110 @@ from govfix.worker import Worker
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_voice_sdk(page, case, handlers):
+    """Exercise real SDK callbacks with fake ASR/tool events, never a paid call."""
+    page.context.grant_permissions(["microphone"])
+    sockets, confirmations, drafts = [], [], []
+    review = {
+        "description": case["description"],
+        "location": case["location"],
+        "category": case["category"],
+        "ward": case["ward"],
+    }
+
+    def endpoint(route):
+        path = route.request.url.rsplit("/", 1)[-1]
+        if path == "session":
+            result = {
+                "session_id": "mock-session",
+                "signed_url": "wss://api.elevenlabs.io/v1/convai/conversation?conversation_id=mock-conversation",
+                "expires_at": (datetime.now(UTC) + timedelta(minutes=15)).isoformat(),
+            }
+        elif path == "draft":
+            drafts.append(route.request.post_data_json)
+            result = {"draft": review, "draft_hash": "a" * 64}
+        elif path == "confirm":
+            confirmations.append(route.request.post_data_json)
+            result = {"case": case}
+        else:
+            result = {"cancelled": True}
+        route.fulfill(json=result)
+
+    def websocket(socket):
+        sockets.append(socket)
+
+        def message(raw):
+            value = json.loads(raw)
+            if value.get("type") == "conversation_initiation_client_data":
+                socket.send(
+                    json.dumps(
+                        {
+                            "type": "conversation_initiation_metadata",
+                            "conversation_initiation_metadata_event": {
+                                "conversation_id": "mock-conversation",
+                                "agent_output_audio_format": "pcm_16000",
+                                "user_input_audio_format": "pcm_16000",
+                            },
+                        }
+                    )
+                )
+
+        socket.on_message(message)
+
+    page.route("**/v1/voice/**", endpoint)
+    handlers[:] = [websocket]
+    page.get_by_role("button", name="Start voice", exact=True).click()
+    expect(page.get_by_role("status").filter(has_text="Microphone active")).to_be_visible(
+        timeout=15000
+    )
+    socket = sockets[0]
+    socket.send(
+        json.dumps(
+            {
+                "type": "user_transcript",
+                "user_transcription_event": {
+                    "user_transcript": "बस थांब्याजवळ खड्डा आहे",
+                    "event_id": 1,
+                },
+            }
+        )
+    )
+    socket.send(
+        json.dumps(
+            {
+                "type": "client_tool_call",
+                "client_tool_call": {
+                    "tool_name": "prepare_grievance",
+                    "tool_call_id": "mock-tool",
+                    "event_id": 2,
+                    "parameters": review,
+                },
+            }
+        )
+    )
+    expect(page.get_by_role("heading", name="Review your grievance")).to_be_visible()
+    assert drafts[0]["transcript"] == "बस थांब्याजवळ खड्डा आहे"
+    expect(page.get_by_role("button", name="Confirm voice grievance")).to_be_disabled()
+    assert not confirmations
+    page.get_by_role("button", name="Stop voice and review").click()
+    expect(page.get_by_role("status").filter(has_text="Voice stopped")).to_be_visible()
+    page.get_by_label("I reviewed the read-back and these exact details are correct.").check()
+    page.get_by_role("button", name="Confirm voice grievance").click()
+    page.get_by_role("button", name="Submit grievance", exact=True).click()
+    expect(page.get_by_role("heading", name="Review your grievance")).not_to_be_visible()
+    assert confirmations == [{"confirmation": True, "draft_hash": "a" * 64}]
+    page.unroute("**/v1/voice/**", endpoint)
+
+
 def run_browser(url, password, photo, worker):
     with sync_playwright() as playwright:
-        browser = playwright.chromium.launch(headless=True)
+        browser = playwright.chromium.launch(
+            headless=True,
+            args=["--use-fake-ui-for-media-stream", "--use-fake-device-for-media-stream"],
+        )
         page = browser.new_page(timezone_id="UTC", viewport={"width": 1440, "height": 1000})
+        handlers = []
+        page.route_web_socket("**", lambda socket: handlers[0](socket))
         errors = []
         page.on("pageerror", lambda exc: errors.append(str(exc)))
         page.goto(url)
@@ -51,11 +152,27 @@ def run_browser(url, password, photo, worker):
             expect(page.get_by_role("heading", name="Case timeline")).to_be_visible()
 
         login("citizen")
+        expect(page.get_by_role("heading", name="Voice assistance")).to_be_visible()
+        expect(page.get_by_role("button", name="Start voice", exact=True)).to_be_disabled()
+        page.get_by_label("Voice language").select_option("mr")
+        page.get_by_label("I consent to sending microphone audio", exact=False).check()
+        page.get_by_role("button", name="Start voice", exact=True).click()
+        expect(
+            page.get_by_role("alert").filter(has_text="text form remains available")
+        ).to_be_visible()
+        expect(page.get_by_role("status").filter(has_text="Microphone off.")).to_be_visible()
         page.get_by_role("button", name="New grievance", exact=True).first.click()
         page.get_by_label("Description").fill("Pothole near demo bus stop")
         page.get_by_label("Location").fill("Demo main road")
         page.get_by_label("I confirm that these details accurately describe my grievance.").check()
-        page.get_by_role("button", name="Confirm submission").click()
+        with page.expect_response(
+            lambda response: (
+                response.url.endswith("/v1/cases") and response.request.method == "POST"
+            )
+        ) as submission:
+            page.get_by_role("button", name="Confirm submission").click()
+        created = submission.value.json()["case"]
+        test_voice_sdk(page, created, handlers)
         expect(page.get_by_role("heading", name="Pothole near demo bus stop")).to_be_visible()
         sign_out()
         login("intake")
@@ -232,7 +349,8 @@ def run_browser(url, password, photo, worker):
         assert errors == [], errors
         browser.close()
         print(
-            "Browser workflow passed: citizen → intake → dispatcher → officer → supervisor; "
+            "Browser workflow passed: simulated voice, fallback and text workflow; "
+            "citizen → intake → dispatcher → officer → supervisor; "
             "SLA escalation, verification wait, dispute, rework, acceptance, "
             "delivery retry, extension, citizen inbox, "
             "mobile layout and private download verified."
@@ -273,7 +391,11 @@ def main():
             sock.bind(("127.0.0.1", 0))
             port = sock.getsockname()[1]
         env = {
-            **os.environ,
+            **{
+                key: value
+                for key, value in os.environ.items()
+                if key != "ELEVENLABS_API_KEY" and not key.startswith("GOVFIX_ELEVENLABS_")
+            },
             "GOVFIX_DATABASE_URL": url,
             "GOVFIX_EVIDENCE_DIRECTORY": str(root / "private"),
             "GOVFIX_POLICY_VERSION": "demo-pilot-v1",

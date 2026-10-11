@@ -1,6 +1,6 @@
 # Implementation tracker
 
-**As of 11 October 2026:** Phases 1–4 are implemented locally with a fictional `DEMO_ONLY` policy and provisioned accounts. Municipal policy approval, production identity verification, external notification providers, production storage, voice integration, and deployment remain open.
+**As of 11 October 2026:** Phases 1–4 and the Phase 5 application integration are implemented locally with a fictional `DEMO_ONLY` policy and provisioned accounts. Municipal policy approval, production identity verification, external notification providers, production storage, live ElevenLabs provisioning/language validation, and deployment remain open.
 
 ## Present in the repository
 
@@ -18,7 +18,7 @@
 | Private evidence upload and completion | Verified locally | [Upload API](../govfix/operations.py), [private store](../govfix/evidence.py), [tests](../tests/test_operations.py); production object storage remains open |
 | SLA monitoring, escalation, notification retry and deadline extension | Verified locally | [SLA scheduler](../govfix/sla.py), [worker](../govfix/worker.py), [tests](../tests/test_sla.py), [operations guide](./sla-operations.md) |
 | Unanswered verification alert | Verified locally | Pinned policy window, one audited alert per cycle, supervisor inbox and scoped dashboard count; [guide](./citizen-verification.md) |
-| ElevenLabs integration | Not started | Voice commands are refused until verified voice sessions are implemented |
+| ElevenLabs integration | Application and mocked provider contracts verified; live calls pending | [Voice guide](./voice-access.md), [boundary tests](../tests/test_voice.py), signed transcript webhook, and browser outage fallback |
 | CI | Configured; remote execution not verified | [SQLite/PostgreSQL workflow](../.github/workflows/backend.yml) |
 | Deployment and production safeguards | Not started | See [security/privacy requirements](./security-privacy.md) |
 
@@ -28,14 +28,14 @@ On macOS with Python 3.12.14, 11 October 2026:
 
 | Command | Result |
 |---|---|
-| `uv run pytest -q` | 111 tests passed against SQLite; 2 PostgreSQL lock tests skipped |
-| `uv run --with pgserver python scripts/test_postgres.py` | 113 tests passed against a disposable PostgreSQL instance; process and data cleaned up |
+| `uv run pytest -q` | 122 tests passed against SQLite; 2 PostgreSQL lock tests skipped |
+| `uv run --with pgserver python scripts/test_postgres.py` | 124 tests passed against a disposable PostgreSQL instance; process and data cleaned up |
 | `uv run ruff check .` | Passed |
 | `uv run ruff format --check .` | Passed |
 | `uv run govfix init-db` and `uv run alembic check` | Migrations applied, demo policy imported, and no schema drift detected |
 | `npm run build --prefix web` | TypeScript check and production build passed |
-| `uv run python scripts/test_browser.py` | Full text workflow, SLA escalation, verification wait, dispute, rework, acceptance, failed-delivery retry, extension, citizen inbox, private download, and mobile layout passed |
-| Live HTTP smoke | `/health`, `/docs`, and `/openapi.json` passed after migration 0005 |
+| `uv run python scripts/test_browser.py` | Mocked SDK microphone/transcript/tool callbacks and screen confirmation, voice outage fallback, full text workflow, SLA escalation, verification wait, dispute, rework, acceptance, failed-delivery retry, extension, citizen inbox, private download, and mobile layout passed |
+| Live HTTP smoke | `/health`, `/docs`, and `/openapi.json` passed after migration 0006 |
 
 Tests cover a submitted → validated → assigned → in-progress case, direct assigned → closed refusal, wrong role/owner, missing or incomplete evidence, cross-citizen and cross-ward access, session expiration/revocation, duplicate requests, concurrent requests by different actors, policy pinning, append-only database protections, audit-failure rollback, and the full backend resolution/dispute graph using trusted evidence fixtures. These tests do not establish that all [P0 release gates](./validation.md) have passed.
 

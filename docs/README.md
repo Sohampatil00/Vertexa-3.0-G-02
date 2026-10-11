@@ -23,3 +23,5 @@ The [root README](../README.md) introduces the project. The [PRD](../prd.md) is 
 [SLA operations](./sla-operations.md) explains the Phase 3 worker, extensions, in-app delivery, and failure recovery.
 
 [Citizen verification](./citizen-verification.md) explains Phase 4 acceptance, disputes, supervised rework, and unanswered verification alerts.
+
+Phase 5 setup and safeguards: [Voice access](./voice-access.md).

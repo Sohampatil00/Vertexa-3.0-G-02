@@ -17,6 +17,7 @@ import {
   type Resolution,
   type User,
 } from "./api";
+import { VoiceAccess } from "./voice";
 import "./style.css";
 function App() {
   const [token, setToken] = useState(""); // Sessions stay in memory and disappear when the tab closes/reloads.
@@ -283,6 +284,9 @@ function Workspace({
             </div>
           ))}
         </section>
+      )}
+      {citizen && policy && (
+        <VoiceAccess token={token} policy={policy} saved={refreshed} />
       )}
       <Inbox
         token={token}

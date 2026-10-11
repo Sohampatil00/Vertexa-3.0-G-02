@@ -21,6 +21,7 @@ from govfix.notifications import register_notifications
 from govfix.operations import register_operations
 from govfix.schemas import COMMAND_SCHEMAS, Login
 from govfix.settings import Settings
+from govfix.voice import register_voice
 from govfix.workflow import STAFF_ROLES, Workflow, operation_for_edge, project_case, visible
 
 bearer = HTTPBearer(auto_error=False)
@@ -62,7 +63,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             with sessions() as session:
                 revision = session.execute(text("SELECT version_num FROM alembic_version")).scalar()
                 if (
-                    revision != "0005"
+                    revision != "0006"
                     or session.get(PolicyVersion, settings.policy_version) is None
                 ):
                     raise RuntimeError("Run 'uv run govfix init-db' before starting the API")
@@ -95,6 +96,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             return authenticate(session, token)
 
     def transport_audit(request: Request, reason: str, actor: Actor | None = None, channel="TEXT"):
+        voice_request = request.url.path.startswith("/v1/voice/")
         operation = (
             "submit" if request.url.path == "/v1/cases" else request.path_params.get("operation")
         )
@@ -103,7 +105,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             operation = request.url.path.rsplit("/", 1)[-1]
         if operation == "evidence":
             operation = "evidence-upload"
-        if request.method != "POST" or operation not in {*COMMAND_SCHEMAS, "evidence-upload"}:
+        if voice_request:
+            operation = "voice-" + request.url.path.rsplit("/", 1)[-1]
+            channel = "VOICE"
+        if request.method != "POST" or (
+            not voice_request and operation not in {*COMMAND_SCHEMAS, "evidence-upload"}
+        ):
             return
         with write_transaction(sessions) as session:
             case = session.scalar(
@@ -504,6 +511,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app, sessions, settings, workflow, require_actor, read_case, visibility_filter
     )
 
+    register_voice(app, sessions, settings, workflow, require_actor, read_case)
     register_notifications(app, sessions, require_actor, read_case, visibility_filter)
 
     @app.get("/", include_in_schema=False)
