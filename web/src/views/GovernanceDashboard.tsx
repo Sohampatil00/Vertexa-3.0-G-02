@@ -70,13 +70,22 @@ export function GovernanceDashboard({
         sla_status: c.sla_status,
       })),
     };
-    const blob = new Blob([JSON.stringify(digest, null, 2)], {
+    const content = JSON.stringify(digest, null, 2);
+    const filename = `govfix-audit-digest-${new Date().toISOString().slice(0, 10)}.json`;
+    const android = (window as Window & {
+      GovFixAndroid?: { saveAuditDigest: (json: string, filename: string) => void };
+    }).GovFixAndroid;
+    if (android) {
+      android.saveAuditDigest(content, filename);
+      return;
+    }
+    const blob = new Blob([content], {
       type: "application/json",
     });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `govfix-audit-digest-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = filename;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }

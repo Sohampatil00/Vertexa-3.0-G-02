@@ -19,10 +19,12 @@ export function NotificationsView({
   token,
   role,
   onOpenCase,
+  onBackToDashboard,
 }: {
   token: string;
   role: DashboardRole;
   onOpenCase: (id: string) => void;
+  onBackToDashboard?: () => void;
 }) {
   const [items, setItems] = useState<Notice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,20 +63,33 @@ export function NotificationsView({
 
   return (
     <div className="flex flex-col w-full gap-6">
-      <div className="flex items-center justify-between pb-2 border-b border-[#d9cdba]/50">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-[#0b1c30]">
-            {role === "CITIZEN"
-              ? "My report notifications"
-              : "Workflow Notifications & SLA Alerts"}
-          </h1>
-          <p className="text-xs text-[#434655]">
-            {role === "CITIZEN"
-              ? "Updates and resolution requests for your reports."
-              : "Intake handoffs, deadline alerts, and other case notifications."}
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#d9cdba]/50">
+        <div className="flex items-center gap-3">
+          {onBackToDashboard && (
+            <button
+              type="button"
+              onClick={onBackToDashboard}
+              className="px-3 py-1.5 rounded-lg border border-[#d9cdba] bg-white hover:bg-[#eff4ff] text-[#0b1c30] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs shrink-0"
+              title="Return to your main dashboard"
+            >
+              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+              <span>Back to Dashboard</span>
+            </button>
+          )}
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-[#0b1c30]">
+              {role === "CITIZEN"
+                ? "My report notifications"
+                : "Workflow Notifications & SLA Alerts"}
+            </h1>
+            <p className="text-xs text-[#434655]">
+              {role === "CITIZEN"
+                ? "Updates and resolution requests for your reports."
+                : "Intake handoffs, deadline alerts, and other case notifications."}
+            </p>
+          </div>
         </div>
-        <span className="font-mono text-xs bg-[#eff4ff] px-2.5 py-1 rounded border border-[#d9cdba]">
+        <span className="self-start sm:self-center font-mono text-xs bg-[#eff4ff] px-2.5 py-1 rounded border border-[#d9cdba]">
           Updates every 15s
         </span>
       </div>

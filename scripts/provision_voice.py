@@ -113,14 +113,17 @@ def main():
     parser.add_argument(
         "--apply", action="store_true", help="Create agents in the connected account"
     )
+    parser.add_argument(
+        "--update", action="store_true", help="Update existing agents with latest prompt and configuration"
+    )
     parser.add_argument("--voice-id", default=os.getenv("GOVFIX_ELEVENLABS_VOICE_ID"))
     parser.add_argument("--llm", default=os.getenv("GOVFIX_ELEVENLABS_LLM"))
     args = parser.parse_args()
     configs = {language: configuration(language, args.voice_id, args.llm) for language in GREETINGS}
-    if not args.apply:
+    if not args.apply and not args.update:
         print(json.dumps(configs, ensure_ascii=False, indent=2))
         return
-    if not os.getenv("ELEVENLABS_API_KEY") or not args.voice_id:
+    if not os.getenv("ELEVENLABS_API_KEY") or (not args.voice_id and not args.update):
         parser.error("Set ELEVENLABS_API_KEY and provide an account voice ID before applying")
     client = ElevenLabs(api_key=os.environ["ELEVENLABS_API_KEY"], timeout=20)
     existing, cursor = {}, None
@@ -134,8 +137,16 @@ def main():
         name = config["name"]
         agent_id = existing.get(name)
         if agent_id:
-            client.conversational_ai.agents.get(agent_id)
-            print(f"Existing {name}: {agent_id}; configuration preserved. Review it in ElevenLabs.")
+            if args.update:
+                client.conversational_ai.agents.update(
+                    agent_id=agent_id,
+                    conversation_config=config["conversation_config"],
+                    platform_settings=config["platform_settings"],
+                )
+                print(f"Updated {name}: {agent_id} with latest prompt and dynamic language configuration.")
+            else:
+                client.conversational_ai.agents.get(agent_id)
+                print(f"Existing {name}: {agent_id}; configuration preserved. Review it in ElevenLabs.")
         else:
             agent_id = client.conversational_ai.agents.create(**config).agent_id
             client.conversational_ai.agents.get(agent_id)

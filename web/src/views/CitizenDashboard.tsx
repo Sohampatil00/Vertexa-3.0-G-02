@@ -232,6 +232,23 @@ export function CitizenDashboard({
                       {item.id}
                     </span>
                     <StatusBadge state={item.workflow_state} />
+                    {item.latitude !== null && item.longitude !== null && (
+                      <span className="inline-flex items-center gap-1 rounded bg-[#eff4ff] px-2 py-0.5 text-[11px] font-medium text-[#0037b0]">
+                        <span className="material-symbols-outlined text-[13px]">
+                          near_me
+                        </span>
+                        GPS
+                      </span>
+                    )}
+                    {typeof window !== "undefined" &&
+                      localStorage.getItem(`govfix_photo_${item.id}`) && (
+                        <span className="inline-flex items-center gap-1 rounded bg-[#eff4ff] px-2 py-0.5 text-[11px] font-medium text-[#0037b0]">
+                          <span className="material-symbols-outlined text-[13px]">
+                            photo_camera
+                          </span>
+                          Photo
+                        </span>
+                      )}
                   </div>
                   <h3 className="text-sm font-semibold text-[#0b1c30]">
                     {item.description}

@@ -69,7 +69,11 @@ uv run uvicorn govfix.api:app --host 127.0.0.1 --port 8000 --no-proxy-headers --
 
 Open the [operations interface](http://127.0.0.1:8000/app/) or [API documentation](http://127.0.0.1:8000/docs). Provision accounts and follow the first case path in [backend.md](./docs/backend.md). Run `uv run pytest -q` for the test suite. The project database is Supabase PostgreSQL. Set `GOVFIX_DATABASE_URL` to your private Supabase PostgreSQL connection string before starting the app; SQLite remains a test/local-demo fallback. All current policy values are fictional demonstration rules.
 
-The web interface includes English, Hindi, and Marathi language options and a high-contrast toggle on sign-in and dashboard pages. Both preferences persist in the browser. Interface text is translated locally; citizen-entered content stays in its original language.
+The web interface includes English, Hindi, and Marathi language options on sign-in and dashboard pages. The language preference persists in the browser. Interface text is translated locally; citizen-entered content stays in its original language.
+
+## Android app
+
+The [Android project](./android/README.md) opens the same GovFix interface and API in an installable app. It supports the existing citizen and staff workflows, including device location, microphone access, photo selection or capture, and saving evidence images. The app starts with the project's Render URL and lets you change the server address for another HTTPS deployment or local development. The backend must be reachable from the device.
 
 Run `uv run govfix worker --poll-seconds 30` in a separate terminal to monitor deadlines and verification waits and deliver in-app notifications. See [SLA operations](./docs/sla-operations.md) and [citizen verification](./docs/citizen-verification.md).
 

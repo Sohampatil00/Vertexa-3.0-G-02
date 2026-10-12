@@ -122,39 +122,6 @@ button:disabled[class*="bg-[#f77f00]"] {
   color: #fff !important;
 }
 
-/* Keep the contrast preference consistent across all role views and dialogs. */
-html[data-contrast="high"],
-html[data-contrast="high"] body,
-html[data-contrast="high"] #root,
-html[data-contrast="high"] #root :where(*),
-html[data-contrast="high"] [data-radix-portal] :where(*) {
-  background-color: #000 !important;
-  color: #fff !important;
-  border-color: #fff !important;
-  box-shadow: none !important;
-  text-shadow: none !important;
-}
-
-html[data-contrast="high"] #root :where(button, a, select, input, textarea),
-html[data-contrast="high"] [data-radix-portal] :where(button, a, select, input, textarea) {
-  border: 2px solid #ffeb3b !important;
-}
-
-html[data-contrast="high"] #root :where(button, a, .material-symbols-outlined),
-html[data-contrast="high"] [data-radix-portal] :where(button, a, .material-symbols-outlined) {
-  color: #ffeb3b !important;
-}
-
-html[data-contrast="high"] #root :where(input, textarea)::placeholder {
-  color: #ddd !important;
-  opacity: 1;
-}
-
-html[data-contrast="high"] :where(button, a, select, input, textarea):focus-visible {
-  outline: 3px solid #ffeb3b !important;
-  outline-offset: 3px;
-}
-
 /* Keep keyboard focus visible and respect the user's motion preference. */
 :focus-visible {
   outline: 3px solid #0037b0;

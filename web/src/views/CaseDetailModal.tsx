@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import * as AlertDialog from "@radix-ui/react-alert-dialog";
 import type {
   Case,
@@ -67,6 +67,25 @@ export function CaseDetailModal({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [revision, setRevision] = useState(0);
+  const [showCitizenPhoto, setShowCitizenPhoto] = useState(false);
+
+  const citizenPhoto = useMemo(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(`govfix_photo_${item.id}`);
+      return raw
+        ? (JSON.parse(raw) as {
+            name: string;
+            size: number;
+            dataUrl: string;
+            type: string;
+            attachedAt?: string;
+          })
+        : null;
+    } catch {
+      return null;
+    }
+  }, [item.id]);
 
   // Command execution
   const [busy, setBusy] = useState(false);
@@ -445,11 +464,80 @@ export function CaseDetailModal({
                     </span>
                   </div>
 
-                  {evidence.length === 0 ? (
+                  {evidence.length === 0 && !citizenPhoto ? (
                     <p className="text-xs text-[#434655] italic">
                       No evidence uploaded yet.
                     </p>
-                  ) : (
+                  ) : null}
+
+                  {citizenPhoto && (
+                    <div className="mb-3 rounded-lg border border-[#b4cbff] bg-[#f0f5ff] p-3 text-xs">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="flex items-center gap-1.5 font-bold text-[#0037b0]">
+                          <span className="material-symbols-outlined text-[16px]">
+                            photo_camera
+                          </span>
+                          Citizen Incident Photo
+                        </span>
+                        <span className="text-[11px] text-[#434655]">
+                          {(citizenPhoto.size / 1024).toFixed(0)} KB · Initial report
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={citizenPhoto.dataUrl}
+                          alt="Citizen incident ground photo"
+                          className="h-16 w-16 rounded object-cover border border-[#d9cdba] bg-white"
+                        />
+                        <div className="min-w-0 flex-1 space-y-0.5">
+                          <p className="truncate font-semibold text-[#0b1c30]">
+                            {citizenPhoto.name}
+                          </p>
+                          <p className="text-[11px] text-[#434655]">
+                            Uploaded by citizen during grievance drafting.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setShowCitizenPhoto(true)}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#0037b0] hover:underline"
+                          >
+                            <span className="material-symbols-outlined text-[13px]">
+                              open_in_new
+                            </span>
+                            View full photo
+                          </button>
+                        </div>
+                      </div>
+                      {showCitizenPhoto && (
+                        <Modal
+                          title="Citizen incident photo"
+                          description="Full size incident photo"
+                          onClose={() => setShowCitizenPhoto(false)}
+                          className="max-w-4xl"
+                        >
+                          <div className="flex items-center justify-between border-b border-[#d9cdba] p-4">
+                            <span className="text-sm font-semibold">Citizen incident photo</span>
+                            <button
+                              type="button"
+                              onClick={() => setShowCitizenPhoto(false)}
+                              className="rounded border border-[#d9cdba] px-3 py-2 text-xs font-semibold"
+                            >
+                              Close
+                            </button>
+                          </div>
+                          <div className="overflow-auto p-4">
+                            <img
+                              src={citizenPhoto.dataUrl}
+                              alt="Full size citizen incident photo"
+                              className="mx-auto max-h-[70dvh] max-w-full object-contain"
+                            />
+                          </div>
+                        </Modal>
+                      )}
+                    </div>
+                  )}
+
+                  {evidence.length > 0 && (
                     <ul className="space-y-2">
                       {evidence.map((file) => (
                         <li
@@ -1029,7 +1117,7 @@ function UploadEvidence({
       <span className="font-bold text-[#0b1c30] block">
         Upload Ground Evidence Photo
       </span>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <select
           name="kind"
           className="p-2 rounded bg-white border border-[#d9cdba]"
@@ -1080,10 +1168,28 @@ function DownloadEvidence({
         headers: { Authorization: `Bearer ${token}`, ...roleHeaders(role) },
       });
       if (!response.ok) throw new Error("Download failed");
-      const url = URL.createObjectURL(await response.blob());
+      const blob = await response.blob();
+      const filename = `${file.kind.toLowerCase()}.${file.content_type.split("/")[1] || "jpg"}`;
+      const android = (window as Window & {
+        GovFixAndroid?: {
+          saveEvidence: (dataUrl: string, mimeType: string, filename: string) => void;
+        };
+      }).GovFixAndroid;
+      if (android) {
+        if (blob.size > 20 * 1024 * 1024) throw new Error("Evidence is too large to save");
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(new Error("Could not read evidence"));
+          reader.readAsDataURL(blob);
+        });
+        android.saveEvidence(dataUrl, file.content_type, filename);
+        return;
+      }
+      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `${file.kind.toLowerCase()}.${file.content_type.split("/")[1] || "jpg"}`;
+      link.download = filename;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch {
@@ -1120,6 +1226,7 @@ function EvidencePreview({
 }) {
   const [preview, setPreview] = useState("");
   const [error, setError] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   useEffect(() => {
     const controller = new AbortController();
     let live = true;
@@ -1150,18 +1257,45 @@ function EvidencePreview({
     };
   }, [token, role, caseId, file.id, file.content_type]);
   return preview ? (
-    <a
-      href={preview}
-      target="_blank"
-      rel="noreferrer"
-      aria-label="View evidence photo"
-    >
-      <img
-        src={preview}
-        alt="Resolution evidence photo"
-        className="max-h-40 w-48 max-w-full rounded object-contain"
-      />
-    </a>
+    <>
+      <button
+        type="button"
+        onClick={() => setExpanded(true)}
+        aria-label="View evidence photo"
+      >
+        <img
+          src={preview}
+          alt="Resolution evidence photo"
+          className="max-h-40 w-48 max-w-full rounded object-contain"
+        />
+      </button>
+      {expanded && (
+        <Modal
+          title="Resolution evidence photo"
+          description="Full size evidence photo"
+          onClose={() => setExpanded(false)}
+          className="max-w-4xl"
+        >
+          <div className="flex items-center justify-between border-b border-[#d9cdba] p-4">
+            <span className="text-sm font-semibold">Resolution evidence photo</span>
+            <button
+              type="button"
+              onClick={() => setExpanded(false)}
+              className="rounded border border-[#d9cdba] px-3 py-2 text-xs font-semibold"
+            >
+              Close
+            </button>
+          </div>
+          <div className="overflow-auto p-4">
+            <img
+              src={preview}
+              alt="Full size resolution evidence"
+              className="mx-auto max-h-[70dvh] max-w-full object-contain"
+            />
+          </div>
+        </Modal>
+      )}
+    </>
   ) : error ? (
     <span role="status">Photo preview unavailable. Try Download.</span>
   ) : null;

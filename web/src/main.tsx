@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
+import "./androidBridge";
 import { createRoot } from "react-dom/client";
 import { Header } from "./components/Header";
 import {
-  Sidebar,
   DASHBOARD_ROLES,
   type DashboardView,
 } from "./components/Sidebar";
@@ -358,17 +358,38 @@ function Workspace({
     latitude?: number;
     longitude?: number;
     accuracy_m?: number;
+    photo?: {
+      name: string;
+      size: number;
+      dataUrl: string;
+      type: string;
+    };
   }) {
     setBusy(true);
     try {
+      const { photo, ...submitPayload } = data;
       const result = await command(
         token,
         null,
         "submit",
-        data,
+        submitPayload,
         crypto.randomUUID(),
         activeRole,
       );
+      if (photo && result.case) {
+        try {
+          const photoRecord = JSON.stringify({
+            name: photo.name,
+            size: photo.size,
+            dataUrl: photo.dataUrl,
+            type: photo.type,
+            attachedAt: new Date().toISOString(),
+          });
+          localStorage.setItem(`govfix_photo_${result.case.id}`, photoRecord);
+        } catch {
+          // Ignore storage quota limits
+        }
+      }
       setShowNewGrievance(false);
       setRevision((r) => r + 1);
       setSelectedCase(result.case);
@@ -399,23 +420,18 @@ function Workspace({
         logout={logout}
         busy={busy}
         notificationCount={notificationCount}
+        currentView={currentView}
+        activeDashboard={activeDashboard}
+        onSelectView={selectView}
         onOpenNotifications={() => selectView("notifications")}
         activeRole={activeRole}
-      />
-
-      {/* Left Navigation Sidebar with Role Switch Sandbox */}
-      <Sidebar
-        currentView={currentView}
-        onSelectView={selectView}
-        busy={busy}
-        user={user}
       />
 
       {/* Main Dashboard Workspace */}
       <main
         id="main-content"
         tabIndex={-1}
-        className="md:pl-72 md:pt-24 min-h-dvh bg-[#f8f9ff] px-4 py-6 pb-16 min-w-0"
+        className="pt-20 sm:pt-24 min-h-dvh bg-[#f8f9ff] px-4 sm:px-6 lg:px-8 py-6 pb-16 min-w-0"
       >
         <div className="max-w-7xl mx-auto">
           {error && (
@@ -527,6 +543,7 @@ function Workspace({
                   token={token}
                   role={activeRole}
                   onOpenCase={openCaseById}
+                  onBackToDashboard={() => selectView(activeDashboard)}
                 />
               )}
             </>

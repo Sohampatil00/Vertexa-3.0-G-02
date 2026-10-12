@@ -26,6 +26,7 @@ The **GovFix API is the sole authority** for case mutations. Browser and voice c
 | Component | Responsibility | Proposed implementation |
 |---|---|---|
 | Web application | Citizen and staff interfaces, accessible text fallback | React with TypeScript, Vite and Tailwind; Phase 2 implemented |
+| Android application | Packaged mobile access, device permissions, and local file selection | Java WebView shell in `android/` loads the deployed `/app/` interface and uses the same governed API |
 | API | Auth context, workflow service, policy evaluation, case queries, assignment, evidence metadata, audit writes | FastAPI with Python 3.12, SQLAlchemy, and Alembic; Phase 1 implemented |
 | Database | Cases, versioned policies, assignments, SLA state, event history | Supabase PostgreSQL; SQLite for tests/local demos; Phase 1 schema implemented |
 | Object storage | Private evidence and optional voice artifacts | Private local files for the demo; authenticated downloads. S3-compatible production storage remains planned |

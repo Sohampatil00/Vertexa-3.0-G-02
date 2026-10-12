@@ -8,15 +8,40 @@ interface HomePageProps {
   error: string;
 }
 
+export const DEMO_CREDENTIALS: Record<string, string> = {
+  "pilot-citizen": "QDVrMs89WesVQw0h6296JFeN",
+  "pilot-intake": "0XpYJNq0rWBt9cZdEo3ZuVpy",
+  "pilot-dispatcher": "tEIvAZB5q1JDkcS2sLPQebE8",
+  "pilot-officer": "9f5d82u-VZRzuSS26ZBOkdzm",
+  "pilot-supervisor": "uWkjOWioyfUgixWUFvAhucXP",
+  "pilot-ward-head": "k2LqEk7q6Tg-xncnNDJDriZT",
+  "pilot-auditor": "btLHNd8BdYa2Kz9CSlKR9n0O",
+};
+
+export const DEMO_ROLES = [
+  { role: "Citizen", username: "pilot-citizen", pass: "QDVrMs89WesVQw0h6296JFeN", icon: "person", badge: "Public" },
+  { role: "Intake Officer", username: "pilot-intake", pass: "0XpYJNq0rWBt9cZdEo3ZuVpy", icon: "inbox", badge: "Intake" },
+  { role: "Dispatcher", username: "pilot-dispatcher", pass: "tEIvAZB5q1JDkcS2sLPQebE8", icon: "alt_route", badge: "Dispatch" },
+  { role: "Field Officer", username: "pilot-officer", pass: "9f5d82u-VZRzuSS26ZBOkdzm", icon: "engineering", badge: "Field" },
+  { role: "Supervisor", username: "pilot-supervisor", pass: "uWkjOWioyfUgixWUFvAhucXP", icon: "verified", badge: "Supervisor" },
+  { role: "Ward Head", username: "pilot-ward-head", pass: "k2LqEk7q6Tg-xncnNDJDriZT", icon: "account_balance", badge: "Ward Exec" },
+  { role: "Auditor", username: "pilot-auditor", pass: "btLHNd8BdYa2Kz9CSlKR9n0O", icon: "policy", badge: "Audit" },
+] as const;
+
 export function HomePage({ login, busy, error }: HomePageProps) {
   const [activeTab, setActiveTab] = useState<"workflow" | "pillars" | "voice" | "roles" | "sla">("workflow");
-  const [activeRoleTab, setActiveRoleTab] = useState<"citizen" | "officer" | "supervisor" | "auditor">("citizen");
+  const [activeRoleTab, setActiveRoleTab] = useState<
+    "citizen" | "intake" | "dispatcher" | "officer" | "supervisor" | "ward_head" | "auditor"
+  >("citizen");
   const [trackedId, setTrackedId] = useState("");
   const [searchResult, setSearchResult] = useState<string | null>(null);
   const [readiness, setReadiness] = useState<{ status: string; checks?: Record<string, boolean> } | null>(null);
 
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showCredTable, setShowCredTable] = useState(false);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/ready")
@@ -29,15 +54,16 @@ export function HomePage({ login, busy, error }: HomePageProps) {
       });
   }, []);
 
-  function fillCredentials(username: string, pass: string = "demo123") {
+  function fillCredentials(username: string, pass?: string) {
+    const finalPass = pass || DEMO_CREDENTIALS[username] || "";
     setUsernameInput(username);
-    setPasswordInput(pass);
+    setPasswordInput(finalPass);
     const form = document.getElementById("portal-login-form") as HTMLFormElement;
     if (form) {
       const userField = form.elements.namedItem("username") as HTMLInputElement;
       const passField = form.elements.namedItem("password") as HTMLInputElement;
       if (userField) userField.value = username;
-      if (passField) passField.value = pass;
+      if (passField) passField.value = finalPass;
     }
   }
 
@@ -160,6 +186,30 @@ export function HomePage({ login, busy, error }: HomePageProps) {
       ],
       sampleUser: "pilot-citizen",
     },
+    intake: {
+      title: "Intake Officer Queue",
+      badge: "Triage & Handoff",
+      desc: "Verify jurisdiction, policy categorization, and validate or reject new civic submissions.",
+      features: [
+        "Inspect newly submitted citizen complaints within seconds of filing.",
+        "Confirm municipal boundary and statutory category classification.",
+        "Reject unsound complaints with auditable, structured reasoning codes.",
+        "Pass validated cases to the central dispatch queue.",
+      ],
+      sampleUser: "pilot-intake",
+    },
+    dispatcher: {
+      title: "Dispatcher Console",
+      badge: "Central Operations",
+      desc: "Assign validated grievances to field officers based on ward, department, and current load.",
+      features: [
+        "Live view of unassigned complaints across municipal wards.",
+        "Filter and match eligible field officers by department and zone.",
+        "Set custom assignment notes and dispatch instructions.",
+        "Monitor assignment acceptance against real-time SLA deadlines.",
+      ],
+      sampleUser: "pilot-dispatcher",
+    },
     officer: {
       title: "Field Officer Operations",
       badge: "Field Work",
@@ -183,6 +233,18 @@ export function HomePage({ login, busy, error }: HomePageProps) {
         "Approve statutory deadline extensions while preserving prior breach history.",
       ],
       sampleUser: "pilot-supervisor",
+    },
+    ward_head: {
+      title: "Ward Head Oversight",
+      badge: "Ward Leadership",
+      desc: "Comprehensive executive dashboard for ward-wide escalation monitoring and operational visibility.",
+      features: [
+        "Ward-level statutory SLA compliance analytics and overdue tracking.",
+        "Inspect all cases in WARD-A with drilldown to resolution proof.",
+        "Receive automated alerts when grievances breach statutory thresholds.",
+        "Supervise dispute resolutions and department performance metrics.",
+      ],
+      sampleUser: "pilot-ward-head",
     },
     auditor: {
       title: "Independent Governance & Audit",
@@ -213,21 +275,24 @@ export function HomePage({ login, busy, error }: HomePageProps) {
       <header className="sticky top-0 z-40 bg-white border-b border-slate-200 px-4 lg:px-8 py-3.5 transition-all">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           {/* Logo & Civic Branding */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0037b0] flex items-center justify-center text-white shadow-md">
-              <span className="material-symbols-outlined text-[24px]">account_balance</span>
+          <div className="flex items-center gap-3.5">
+            <div className="flex items-center justify-center py-1.5 px-3 bg-white rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all shrink-0">
+              <img
+                src="/app/civicvoice-logo.png"
+                alt="CivicVoice Logo"
+                className="h-9 sm:h-11 w-auto object-contain shrink-0"
+              />
             </div>
-            <div>
+            <div className="hidden sm:block">
               <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg tracking-tight text-[#0b1c30]">GovFix</span>
-                <span className="px-2 py-0.5 rounded-full bg-orange-100 text-amber-900 font-mono text-[10px] font-bold tracking-wider uppercase">
+                <span className="px-2.5 py-0.5 rounded-full bg-orange-100 text-amber-900 font-mono text-[10px] font-bold tracking-wider uppercase border border-orange-200">
                   Municipal Redressal
                 </span>
-                <span className="hidden sm:inline-block px-2 py-0.5 rounded bg-blue-100 text-blue-900 font-mono text-[10px] font-bold">
+                <span className="hidden md:inline-block px-2 py-0.5 rounded bg-blue-100 text-blue-900 font-mono text-[10px] font-bold border border-blue-200">
                   Pilot v3
                 </span>
               </div>
-              <p className="hidden md:block text-[11px] text-slate-700 font-medium leading-tight">
+              <p className="hidden md:block text-[11px] text-slate-700 font-medium leading-tight mt-1">
                 Deterministic Grievance State Machine & Public SLA Engine
               </p>
             </div>
@@ -364,7 +429,7 @@ export function HomePage({ login, busy, error }: HomePageProps) {
                       Secure Session
                     </span>
                   </div>
-                  <h2 className="text-xl font-bold text-[#0b1c30] mt-1">Sign in to GovFix</h2>
+                  <h2 className="text-xl font-bold text-[#0b1c30] mt-1">Sign in to CivicVoice</h2>
                   <p className="text-xs text-slate-700 mt-1">
                     Authenticate using pilot citizen, officer, or auditor credentials.
                   </p>
@@ -372,60 +437,73 @@ export function HomePage({ login, busy, error }: HomePageProps) {
 
                 {/* Quick-Fill Demo Account Selector */}
                 <div className="mb-5 p-3 rounded-xl bg-slate-50 border border-slate-200">
-                  <p className="text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[14px] text-amber-800">touch_app</span>
-                    <span>Quick Demo Role Fill:</span>
-                  </p>
-                  <div className="grid grid-cols-3 gap-1.5">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[10px] font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1">
+                      <span className="material-symbols-outlined text-[14px] text-amber-800">touch_app</span>
+                      <span>Quick Demo Role Fill:</span>
+                    </p>
                     <button
                       type="button"
-                      onClick={() => fillCredentials("pilot-citizen", "demo123")}
-                      className="px-2 py-1.5 rounded-lg bg-white hover:bg-blue-50 border border-blue-200 text-[11px] font-bold text-blue-900 transition-colors text-left"
-                      title="Citizen role"
+                      onClick={() => setShowCredTable(!showCredTable)}
+                      className="text-[10px] text-[#0037b0] hover:underline font-semibold flex items-center gap-0.5 cursor-pointer"
                     >
-                      👤 Citizen
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fillCredentials("pilot-intake", "demo123")}
-                      className="px-2 py-1.5 rounded-lg bg-white hover:bg-blue-50 border border-blue-200 text-[11px] font-bold text-blue-900 transition-colors text-left"
-                      title="Intake Officer role"
-                    >
-                      📥 Intake
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fillCredentials("pilot-dispatcher", "demo123")}
-                      className="px-2 py-1.5 rounded-lg bg-white hover:bg-blue-50 border border-blue-200 text-[11px] font-bold text-blue-900 transition-colors text-left"
-                      title="Dispatcher role"
-                    >
-                      🔀 Dispatcher
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fillCredentials("pilot-officer", "demo123")}
-                      className="px-2 py-1.5 rounded-lg bg-white hover:bg-blue-50 border border-blue-200 text-[11px] font-bold text-blue-900 transition-colors text-left"
-                      title="Field Officer role"
-                    >
-                      🛠️ Officer
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fillCredentials("pilot-supervisor", "demo123")}
-                      className="px-2 py-1.5 rounded-lg bg-white hover:bg-blue-50 border border-blue-200 text-[11px] font-bold text-blue-900 transition-colors text-left"
-                      title="Supervisor role"
-                    >
-                      👔 Supervisor
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => fillCredentials("pilot-auditor", "demo123")}
-                      className="px-2 py-1.5 rounded-lg bg-white hover:bg-blue-50 border border-blue-200 text-[11px] font-bold text-blue-900 transition-colors text-left"
-                      title="Auditor role"
-                    >
-                      🔍 Auditor
+                      {showCredTable ? "Hide table ▲" : "View ID & Pass ▼"}
                     </button>
                   </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                    {DEMO_ROLES.map((d) => (
+                      <button
+                        key={d.username}
+                        type="button"
+                        onClick={() => fillCredentials(d.username, d.pass)}
+                        className={`px-2 py-1.5 rounded-lg border text-[11px] font-bold transition-all text-left flex items-center gap-1.5 cursor-pointer ${
+                          usernameInput === d.username
+                            ? "bg-[#eff4ff] border-[#0037b0] text-[#0037b0] shadow-xs"
+                            : "bg-white hover:bg-blue-50 border-blue-200 text-blue-900"
+                        }`}
+                        title={`${d.role}: ${d.username}`}
+                      >
+                        <span className="material-symbols-outlined text-[14px] shrink-0 text-[#f77f00]">{d.icon}</span>
+                        <span className="truncate">{d.role}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Demo Credentials Table / Quick Reference */}
+                  {showCredTable && (
+                    <div className="mt-3 pt-3 border-t border-slate-200 overflow-x-auto">
+                      <table className="w-full text-[10px] text-left">
+                        <thead>
+                          <tr className="text-slate-500 uppercase border-b border-slate-200 text-[9px]">
+                            <th className="pb-1 font-semibold">Role</th>
+                            <th className="pb-1 font-semibold">Login ID</th>
+                            <th className="pb-1 font-semibold">Password</th>
+                            <th className="pb-1 font-semibold text-right">Fill</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-mono">
+                          {DEMO_ROLES.map((d) => (
+                            <tr key={d.username} className="hover:bg-white/80">
+                              <td className="py-1 font-sans font-semibold text-slate-800">{d.role}</td>
+                              <td className="py-1 text-slate-700"><code>{d.username}</code></td>
+                              <td className="py-1 text-slate-600 truncate max-w-[120px]" title={d.pass}>
+                                <code>{d.pass}</code>
+                              </td>
+                              <td className="py-1 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => fillCredentials(d.username, d.pass)}
+                                  className="text-[10px] text-[#0037b0] hover:underline font-sans font-bold cursor-pointer"
+                                >
+                                  Fill
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
 
                 {/* Login Form (Maintains 100% of Accessibility & Test Contracts) */}
@@ -438,22 +516,35 @@ export function HomePage({ login, busy, error }: HomePageProps) {
                       maxLength={100}
                       value={usernameInput}
                       onChange={(e) => setUsernameInput(e.target.value)}
-                      placeholder="e.g. pilot-citizen or pilot-auditor"
-                      className="w-full text-xs p-2.5 rounded-lg bg-white border border-slate-300 text-[#0b1c30] focus:ring-2 focus:ring-[#f77f00] focus:outline-none transition-all"
+                      placeholder="e.g. pilot-citizen or pilot-supervisor"
+                      className="w-full text-xs p-2.5 rounded-lg bg-white border border-slate-300 text-[#0b1c30] focus:ring-2 focus:ring-[#f77f00] focus:outline-none transition-all font-mono"
                     />
                   </Field>
 
                   <Field label="Password">
-                    <input
-                      name="password"
-                      type="password"
-                      autoComplete="current-password"
-                      required
-                      maxLength={128}
-                      value={passwordInput}
-                      onChange={(e) => setPasswordInput(e.target.value)}
-                      className="w-full text-xs p-2.5 rounded-lg bg-white border border-slate-300 text-[#0b1c30] focus:ring-2 focus:ring-[#f77f00] focus:outline-none transition-all"
-                    />
+                    <div className="relative">
+                      <input
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="current-password"
+                        required
+                        maxLength={128}
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                        className="w-full text-xs p-2.5 pr-9 rounded-lg bg-white border border-slate-300 text-[#0b1c30] focus:ring-2 focus:ring-[#f77f00] focus:outline-none transition-all font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
+                        title={showPassword ? "Hide password" : "Show password"}
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        <span className="material-symbols-outlined text-[18px]">
+                          {showPassword ? "visibility_off" : "visibility"}
+                        </span>
+                      </button>
+                    </div>
                   </Field>
 
                   <ErrorText message={error} />
@@ -470,10 +561,13 @@ export function HomePage({ login, busy, error }: HomePageProps) {
                       • <strong>Citizen:</strong> submit grievances, track SLA, verify resolution
                     </p>
                     <p>
-                      • <strong>Officer / Supervisor:</strong> triage, dispatch, execute, rework
+                      • <strong>Intake / Dispatch:</strong> validate jurisdiction and assign officers
                     </p>
                     <p>
-                      • <strong>Auditor:</strong> inspect immutable governance ledger
+                      • <strong>Officer / Supervisor:</strong> execute work, upload proof, rework disputes
+                    </p>
+                    <p>
+                      • <strong>Ward Head / Auditor:</strong> statutory oversight and immutable audit ledger
                     </p>
                   </div>
                 </form>
@@ -697,7 +791,7 @@ export function HomePage({ login, busy, error }: HomePageProps) {
               Role Scoping & Isolation
             </span>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0b1c30] mt-2 mb-3">
-              Four Dedicated Role Workspaces
+              Tailored Role Workspaces
             </h2>
             <p className="text-xs sm:text-sm text-slate-700">
               Every user role has a tailor-made interface. Multi-role accounts strictly isolate active dashboard permissions.
@@ -706,17 +800,17 @@ export function HomePage({ login, busy, error }: HomePageProps) {
 
           {/* Role Selector Tabs */}
           <div className="flex justify-center gap-2 mb-8 flex-wrap">
-            {(["citizen", "officer", "supervisor", "auditor"] as const).map((r) => (
+            {(["citizen", "intake", "dispatcher", "officer", "supervisor", "ward_head", "auditor"] as const).map((r) => (
               <button
                 key={r}
                 onClick={() => setActiveRoleTab(r)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer ${
+                className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold capitalize transition-all cursor-pointer ${
                   activeRoleTab === r
                     ? "bg-[#0b1c30] text-white shadow-sm"
                     : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-100"
                 }`}
               >
-                {r} Console
+                {r.replace("_", " ")} Console
               </button>
             ))}
           </div>
@@ -731,10 +825,10 @@ export function HomePage({ login, busy, error }: HomePageProps) {
                 <h3 className="text-xl font-bold text-[#0b1c30] mt-1">{rolePreviews[activeRoleTab].title}</h3>
               </div>
               <button
-                onClick={() => fillCredentials(rolePreviews[activeRoleTab].sampleUser, "demo123")}
-                className="px-3 py-1.5 rounded-lg bg-[#f77f00] hover:bg-[#d96e00] text-white text-xs font-bold transition-all"
+                onClick={() => fillCredentials(rolePreviews[activeRoleTab].sampleUser, DEMO_CREDENTIALS[rolePreviews[activeRoleTab].sampleUser])}
+                className="px-3 py-1.5 rounded-lg bg-[#f77f00] hover:bg-[#d96e00] text-white text-xs font-bold transition-all cursor-pointer"
               >
-                Log in as {activeRoleTab}
+                Log in as {activeRoleTab.replace("_", " ")}
               </button>
             </div>
             <p className="text-xs text-slate-700 mb-6">{rolePreviews[activeRoleTab].desc}</p>
@@ -848,11 +942,13 @@ export function HomePage({ login, busy, error }: HomePageProps) {
       <footer className="bg-[#0b1c30] text-slate-300 py-12 px-4 lg:px-8 border-t border-slate-800 text-xs">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="md:col-span-2">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-lg bg-[#f77f00] flex items-center justify-center text-white">
-                <span className="material-symbols-outlined text-[18px]">account_balance</span>
-              </div>
-              <span className="font-bold text-base text-white">GovFix Municipal Redressal</span>
+            <div className="flex items-center gap-2.5 mb-3">
+              <img
+                src="/app/civicvoice-logo.png"
+                alt="CivicVoice Logo"
+                className="h-8 w-auto object-contain bg-white/95 p-1 rounded-lg"
+              />
+              <span className="font-bold text-base text-white">CivicVoice Municipal Redressal</span>
             </div>
             <p className="text-slate-300 max-w-md leading-relaxed text-[11px]">
               An open, deterministic municipal grievance redressal platform. Built on Python 3.12, FastAPI, PostgreSQL (Supabase), SQLAlchemy 2.0, ElevenLabs Conversational AI, and React.
@@ -892,7 +988,7 @@ export function HomePage({ login, busy, error }: HomePageProps) {
           </div>
         </div>
         <div className="max-w-7xl mx-auto pt-6 border-t border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-slate-300 font-mono">
-          <span>© 2026 GovFix Civic Systems. All grievance transitions logged with SHA-256 idempotency.</span>
+          <span>© 2026 CivicVoice Systems. All grievance transitions logged with SHA-256 idempotency.</span>
           <span>Policy: DEMO-PILOT-V3 • Supabase PostgreSQL</span>
         </div>
       </footer>

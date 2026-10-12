@@ -1,26 +1,39 @@
 import { useEffect, useState } from "react";
 import { demoCopy } from "./demoCopy";
+import { homepageCopy } from "./homepageCopy";
 
 export type PageLanguage = "en" | "hi" | "mr";
 
 const languageKey = "govfix-page-language";
-const contrastKey = "govfix-high-contrast";
 
 // Only application copy belongs here. Translation stays in the browser and uses
 // exact known UI phrases; it never sends case details to a translation service.
 const copy: Record<string, [string, string]> = {
   ...demoCopy,
+  ...homepageCopy,
+  "CivicVoice Municipal Operations": [
+    "सिविकवॉयस नगरपालिका संचालन",
+    "सिव्हिकव्हॉइस नगरपालिका कामकाज",
+  ],
   "GovFix Municipal Operations": [
-    "गोवफिक्स नगरपालिका संचालन",
-    "गोवफिक्स नगरपालिका कामकाज",
+    "सिविकवॉयस नगरपालिका संचालन",
+    "सिव्हिकव्हॉइस नगरपालिका कामकाज",
   ],
   "Fictional Demo Municipality": [
     "काल्पनिक डेमो नगर पालिका",
     "काल्पनिक प्रात्यक्षिक नगरपालिका",
   ],
+  "CivicVoice Central Grievance Dispatch & Public SLA Engine": [
+    "सिविकवॉयस केंद्रीय शिकायत प्रबंधन और सार्वजनिक समय-सीमा प्रणाली",
+    "सिव्हिकव्हॉइस केंद्रीय तक्रार व्यवस्थापन आणि सार्वजनिक वेळमर्यादा प्रणाली",
+  ],
   "GovFix Central Grievance Dispatch & Public SLA Engine": [
-    "गोवफिक्स केंद्रीय शिकायत प्रबंधन और सार्वजनिक समय-सीमा प्रणाली",
-    "गोवफिक्स केंद्रीय तक्रार व्यवस्थापन आणि सार्वजनिक वेळमर्यादा प्रणाली",
+    "सिविकवॉयस केंद्रीय शिकायत प्रबंधन और सार्वजनिक समय-सीमा प्रणाली",
+    "सिव्हिकव्हॉइस केंद्रीय तक्रार व्यवस्थापन आणि सार्वजनिक वेळमर्यादा प्रणाली",
+  ],
+  "CivicVoice Municipal Grievance Portal": [
+    "सिविकवॉयस नगरपालिका शिकायत पोर्टल",
+    "सिव्हिकव्हॉइस नगरपालिका तक्रार पोर्टल",
   ],
   "Deterministic Grievance State Machine & Public SLA Engine": [
     "नियम आधारित शिकायत प्रक्रिया और सार्वजनिक समय-सीमा प्रणाली",
@@ -29,7 +42,8 @@ const copy: Record<string, [string, string]> = {
   Demo: ["डेमो", "प्रात्यक्षिक"],
   "Demo policy": ["डेमो नीति", "प्रात्यक्षिक धोरण"],
   "Statutory Access Portal": ["आधिकारिक प्रवेश पोर्टल", "अधिकृत प्रवेश पोर्टल"],
-  "Sign in to GovFix": ["गोवफिक्स में प्रवेश करें", "गोवफिक्समध्ये प्रवेश करा"],
+  "Sign in to CivicVoice": ["सिविकवॉयस में प्रवेश करें", "सिव्हिकव्हॉइसमध्ये प्रवेश करा"],
+  "Sign in to GovFix": ["सिविकवॉयस में प्रवेश करें", "सिव्हिकव्हॉइसमध्ये प्रवेश करा"],
   "Authenticate using pilot citizen, officer, or auditor credentials.": [
     "पायलट नागरिक, अधिकारी या लेखा परीक्षक के खाते से प्रवेश करें।",
     "प्रायोगिक नागरिक, अधिकारी किंवा लेखापरीक्षक खात्याने प्रवेश करा.",
@@ -43,7 +57,8 @@ const copy: Record<string, [string, string]> = {
   "Authenticating…": ["प्रवेश की जाँच जारी…", "प्रवेश तपासत आहे…"],
   "Sign in to Operations": ["संचालन में प्रवेश करें", "कामकाजात प्रवेश करा"],
   "Sign out": ["बाहर निकलें", "बाहेर पडा"],
-  "Sign out of GovFix": ["गोवफिक्स से बाहर निकलें", "गोवफिक्समधून बाहेर पडा"],
+  "Sign out of CivicVoice": ["सिविकवॉयस से बाहर निकलें", "सिव्हिकव्हॉइसमधून बाहेर पडा"],
+  "Sign out of GovFix": ["सिविकवॉयस से बाहर निकलें", "सिव्हिकव्हॉइसमधून बाहेर पडा"],
   "Citizen:": ["नागरिक:", "नागरिक:"],
   "Officer / Supervisor:": ["अधिकारी / पर्यवेक्षक:", "अधिकारी / पर्यवेक्षक:"],
   "Auditor:": ["लेखा परीक्षक:", "लेखापरीक्षक:"],
@@ -581,9 +596,13 @@ const copy: Record<string, [string, string]> = {
     "क्षेत्र पथकाने काम पूर्ण झाल्याचे नोंदवून पुरावा दिला आहे.",
   ],
   "Full Record": ["पूरा रिकॉर्ड", "पूर्ण नोंद"],
+  "CivicVoice Citizen SLA Guarantee & Oversight Charter": [
+    "सिविकवॉयस नागरिक समय-सीमा और निगरानी नीति",
+    "सिव्हिकव्हॉइस नागरिक वेळमर्यादा आणि देखरेख धोरण",
+  ],
   "GovFix Citizen SLA Guarantee & Oversight Charter": [
-    "गोवफिक्स नागरिक समय-सीमा और निगरानी नीति",
-    "गोवफिक्स नागरिक वेळमर्यादा आणि देखरेख धोरण",
+    "सिविकवॉयस नागरिक समय-सीमा और निगरानी नीति",
+    "सिव्हिकव्हॉइस नागरिक वेळमर्यादा आणि देखरेख धोरण",
   ],
   "Grievance Categories": ["शिकायत के प्रकार", "तक्रारींचे प्रकार"],
   "Ground Execution Protocol Strict": [
@@ -596,10 +615,15 @@ const copy: Record<string, [string, string]> = {
       "मैं ब्राउज़र की आवाज़ सेवा से माइक्रोफ़ोन प्रसंस्करण के लिए सहमत हूँ। जमा करने से पहले लिखे विवरण की जाँच करूँगा/करूँगी।",
       "ब्राउझरच्या आवाज सेवेकडून मायक्रोफोन प्रक्रिया करण्यास माझी संमती आहे. सादर करण्यापूर्वी लिहिलेला मजकूर तपासेन.",
     ],
+  "I consent to sending microphone audio to ElevenLabs for voice processing and storing the complaint transcript and reviewed draft in CivicVoice. Do not share passwords or identity documents.":
+    [
+      "मैं आवाज़ प्रसंस्करण के लिए ElevenLabs को माइक्रोफ़ोन ऑडियो भेजने और शिकायत का पाठ व जाँचा हुआ मसौदा सिविकवॉयस में रखने पर सहमत हूँ। पासवर्ड या पहचान दस्तावेज़ साझा न करें।",
+      "आवाज प्रक्रियेसाठी ElevenLabs कडे मायक्रोफोन ऑडिओ पाठवण्यास आणि तक्रारीचा मजकूर व तपासलेला मसुदा सिव्हिकव्हॉइसमध्ये ठेवण्यास माझी संमती आहे. संकेतशब्द किंवा ओळखपत्रे सांगू नका.",
+    ],
   "I consent to sending microphone audio to ElevenLabs for voice processing and storing the complaint transcript and reviewed draft in GovFix. Do not share passwords or identity documents.":
     [
-      "मैं आवाज़ प्रसंस्करण के लिए ElevenLabs को माइक्रोफ़ोन ऑडियो भेजने और शिकायत का पाठ व जाँचा हुआ मसौदा गोवफिक्स में रखने पर सहमत हूँ। पासवर्ड या पहचान दस्तावेज़ साझा न करें।",
-      "आवाज प्रक्रियेसाठी ElevenLabs कडे मायक्रोफोन ऑडिओ पाठवण्यास आणि तक्रारीचा मजकूर व तपासलेला मसुदा गोवफिक्समध्ये ठेवण्यास माझी संमती आहे. संकेतशब्द किंवा ओळखपत्रे सांगू नका.",
+      "मैं आवाज़ प्रसंस्करण के लिए ElevenLabs को माइक्रोफ़ोन ऑडियो भेजने और शिकायत का पाठ व जाँचा हुआ मसौदा सिविकवॉयस में रखने पर सहमत हूँ। पासवर्ड या पहचान दस्तावेज़ साझा न करें।",
+      "आवाज प्रक्रियेसाठी ElevenLabs कडे मायक्रोफोन ऑडिओ पाठवण्यास आणि तक्रारीचा मजकूर व तपासलेला मसुदा सिव्हिकव्हॉइसमध्ये ठेवण्यास माझी संमती आहे. संकेतशब्द किंवा ओळखपत्रे सांगू नका.",
     ],
   "I reviewed the read-back and these exact details are correct.": [
     "मैंने दोहराई गई जानकारी जाँची है और ये विवरण सही हैं।",
@@ -620,9 +644,13 @@ const copy: Record<string, [string, string]> = {
   Inspect: ["देखें", "पाहा"],
   "Keep reviewing": ["समीक्षा जारी रखें", "पाहणी सुरू ठेवा"],
   "Level 1 Escalation Alert": ["स्तर 1 चेतावनी", "पातळी 1 इशारा"],
+  "Live civic dispatch tracker under CivicVoice Service Level Agreement": [
+    "सिविकवॉयस समय-सीमा के अंतर्गत कार्य की सीधी जानकारी",
+    "सिव्हिकव्हॉइस वेळमर्यादेनुसार कामाची थेट माहिती",
+  ],
   "Live civic dispatch tracker under GovFix Service Level Agreement": [
-    "गोवफिक्स समय-सीमा के अंतर्गत कार्य की सीधी जानकारी",
-    "गोवफिक्स वेळमर्यादेनुसार कामाची थेट माहिती",
+    "सिविकवॉयस समय-सीमा के अंतर्गत कार्य की सीधी जानकारी",
+    "सिव्हिकव्हॉइस वेळमर्यादेनुसार कामाची थेट माहिती",
   ],
   "Loading SLA history…": [
     "समय-सीमा रिकॉर्ड लोड हो रहा है…",
@@ -799,13 +827,132 @@ const translatedAttributes = new WeakMap<
   Map<string, { source: string; shown: string }>
 >();
 
+function translateDynamic(trimmed: string, language: PageLanguage): string | null {
+  const isHi = language === "hi";
+
+  // OpenStreetMap pinned spot
+  if (trimmed.startsWith("Pinned spot on OpenStreetMap:")) {
+    const loc = trimmed.slice("Pinned spot on OpenStreetMap:".length).trim();
+    return isHi
+      ? `OpenStreetMap पर चिह्नित स्थान: ${loc}`
+      : `OpenStreetMap वर चिन्हांकित ठिकाण: ${loc}`;
+  }
+
+  // Live Location Attached (Device GPS / Network)
+  if (trimmed.startsWith("Live Location Attached")) {
+    return isHi
+      ? trimmed
+          .replace("Live Location Attached", "लाइव स्थान संलग्न")
+          .replace("Device GPS", "उपकरण जीपीएस")
+          .replace("Network", "नेटवर्क")
+      : trimmed
+          .replace("Live Location Attached", "थेट ठिकाण जोडले")
+          .replace("Device GPS", "डिव्हाइस जीपीएस")
+          .replace("Network", "नेटवर्क");
+  }
+
+  // Demo target: X hours · dept
+  if (trimmed.startsWith("Demo target:")) {
+    return isHi
+      ? trimmed
+          .replace("Demo target:", "डेमो लक्ष्य:")
+          .replace("hours", "घंटे")
+          .replace("public works", "सार्वजनिक निर्माण")
+          .replace("sanitation", "स्वच्छता")
+          .replace("electrical", "विद्युत विभाग")
+          .replace("water supply", "जल आपूर्ति")
+          .replace("drainage", "जल निकासी")
+      : trimmed
+          .replace("Demo target:", "प्रात्यक्षिक लक्ष्य:")
+          .replace("hours", "तास")
+          .replace("public works", "सार्वजनिक बांधकाम")
+          .replace("sanitation", "स्वच्छता")
+          .replace("electrical", "विद्युत विभाग")
+          .replace("water supply", "पाणीपुरवठा")
+          .replace("drainage", "जलनिस्सारण");
+  }
+
+  // Use "..." as location text
+  if (trimmed.startsWith('Use "') && trimmed.endsWith('" as location text')) {
+    const loc = trimmed.slice(5, -18);
+    return isHi
+      ? `"${loc}" को स्थान विवरण के रूप में उपयोग करें`
+      : `"${loc}" ठिकाण तपशील म्हणून वापरा`;
+  }
+
+  // Ready to submit
+  if (trimmed.includes("Ready to submit")) {
+    return isHi
+      ? trimmed.replace("Ready to submit", "जमा करने के लिए तैयार")
+      : trimmed.replace("Ready to submit", "सादर करण्यासाठी तयार");
+  }
+
+  // State: XXX
+  if (trimmed.startsWith("State: ")) {
+    const state = trimmed.slice(7);
+    return isHi ? `स्थिति: ${state}` : `स्थिती: ${state}`;
+  }
+
+  // Log in as XXX
+  if (trimmed.startsWith("Log in as ")) {
+    const role = trimmed.slice(10);
+    const roleName =
+      role === "citizen" ? "नागरिक"
+      : role === "officer" ? "अधिकारी"
+      : role === "supervisor" ? "पर्यवेक्षक"
+      : (isHi ? "लेखा परीक्षक" : "लेखापरीक्षक");
+    return isHi ? `${roleName} के रूप में प्रवेश करें` : `${roleName} म्हणून प्रवेश करा`;
+  }
+
+  // XXX Console
+  if (trimmed.endsWith(" Console")) {
+    const role = trimmed.slice(0, -8);
+    const roleName =
+      role === "citizen" ? "नागरिक"
+      : role === "officer" ? "अधिकारी"
+      : role === "supervisor" ? "पर्यवेक्षक"
+      : (isHi ? "लेखा परीक्षक" : "लेखापरीक्षक");
+    return isHi ? `${roleName} कंसोल` : `${roleName} कन्सोल`;
+  }
+
+  // API: XXX
+  if (trimmed.startsWith("API: ")) {
+    return isHi ? `एपीआई: ${trimmed.slice(5)}` : `एपीआय: ${trimmed.slice(5)}`;
+  }
+
+  // Case tracking simulator output
+  if (trimmed.startsWith("Grievance #") && trimmed.includes("Status:")) {
+    return isHi
+      ? trimmed
+          .replace("Grievance #", "शिकायत #")
+          .replace("Status:", "स्थिति:")
+          .replace("remaining", "शेष")
+          .replace("Assigned:", "आवंटित:")
+          .replace("Last audit:", "अंतिम ऑडिट:")
+      : trimmed
+          .replace("Grievance #", "तक्रार #")
+          .replace("Status:", "स्थिती:")
+          .replace("remaining", "उर्वरित")
+          .replace("Assigned:", "नेमलेले:")
+          .replace("Last audit:", "शेवटची तपासणी:");
+  }
+
+  return null;
+}
+
 function translate(value: string, language: PageLanguage): string {
   const match = /^(\s*)(.*?)(\s*)$/s.exec(value);
   if (!match || language === "en") return value;
-  const entry = copy[match[2]];
-  return entry
-    ? `${match[1]}${entry[language === "hi" ? 0 : 1]}${match[3]}`
-    : value;
+  const trimmed = match[2];
+  const entry = copy[trimmed];
+  if (entry) {
+    return `${match[1]}${entry[language === "hi" ? 0 : 1]}${match[3]}`;
+  }
+  const dynamic = translateDynamic(trimmed, language);
+  if (dynamic) {
+    return `${match[1]}${dynamic}${match[3]}`;
+  }
+  return value;
 }
 
 function translateElement(root: Node, language: PageLanguage) {
@@ -859,18 +1006,18 @@ export function AccessibilityControls() {
     const saved = localStorage.getItem(languageKey);
     return saved === "hi" || saved === "mr" ? saved : "en";
   });
-  const [contrast, setContrast] = useState(
-    () => localStorage.getItem(contrastKey) === "true",
-  );
 
   useEffect(() => {
     document.documentElement.lang = language;
     document.title = {
-      en: "GovFix · Municipal Grievance & SLA Operations",
-      hi: "गोवफिक्स · नगरपालिका शिकायत और समय-सीमा संचालन",
-      mr: "गोवफिक्स · नगरपालिका तक्रार आणि वेळमर्यादा कामकाज",
+      en: "CivicVoice · Municipal Grievance & SLA Operations",
+      hi: "सिविकवॉयस · नगरपालिका शिकायत और समय-सीमा संचालन",
+      mr: "सिव्हिकव्हॉइस · नगरपालिका तक्रार आणि वेळमर्यादा कामकाज",
     }[language];
     localStorage.setItem(languageKey, language);
+    window.dispatchEvent(
+      new CustomEvent("govfix-language-change", { detail: language })
+    );
     const root = document.body;
     let queued = false;
     const refresh = () => {
@@ -893,44 +1040,31 @@ export function AccessibilityControls() {
     return () => observer.disconnect();
   }, [language]);
 
-  useEffect(() => {
-    document.documentElement.dataset.contrast = contrast ? "high" : "normal";
-    localStorage.setItem(contrastKey, String(contrast));
-  }, [contrast]);
-
-  const labels = {
-    en: ["Page language", "High contrast", "Standard contrast"],
-    hi: ["पृष्ठ की भाषा", "उच्च कंट्रास्ट", "सामान्य कंट्रास्ट"],
-    mr: ["पानाची भाषा", "उच्च विरोधाभास", "सामान्य विरोधाभास"],
+  const languageLabel = {
+    en: "Page language",
+    hi: "पृष्ठ की भाषा",
+    mr: "पानाची भाषा",
   }[language];
 
   return (
     <div
       data-no-translate
-      className="flex flex-wrap items-center justify-end gap-2 text-xs"
+      className="flex flex-wrap items-center justify-end gap-2 text-sm"
     >
       <label className="sr-only" htmlFor="page-language">
-        {labels[0]}
+        {languageLabel}
       </label>
       <select
         id="page-language"
-        aria-label={labels[0]}
+        aria-label={languageLabel}
         value={language}
         onChange={(event) => setLanguage(event.target.value as PageLanguage)}
-        className="rounded-md border border-[#747686] bg-white px-2 py-1.5 text-[#0b1c30] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0037b0]"
+        className="rounded-lg border-2 border-[#747686] bg-white px-3 py-2 text-sm sm:text-base font-semibold text-[#0b1c30] shadow-sm hover:border-[#0037b0] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0037b0]"
       >
         <option value="en">English</option>
         <option value="hi">हिन्दी</option>
         <option value="mr">मराठी</option>
       </select>
-      <button
-        type="button"
-        aria-pressed={contrast}
-        onClick={() => setContrast((current) => !current)}
-        className="rounded-md border border-[#747686] bg-white px-2 py-1.5 font-semibold text-[#0b1c30] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0037b0]"
-      >
-        {contrast ? labels[2] : labels[1]}
-      </button>
     </div>
   );
 }

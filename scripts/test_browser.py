@@ -201,7 +201,7 @@ def run_browser(url, password, photo, worker):
         page.on("pageerror", lambda exc: errors.append(str(exc)))
         page.goto(url)
         page.wait_for_load_state("networkidle")
-        expect(page.get_by_role("heading", name="Sign in to GovFix")).to_be_visible()
+        expect(page.get_by_role("heading", name=re.compile(r"Sign in to (CivicVoice|GovFix)"))).to_be_visible()
         check_accessibility(page, "login")
 
         def login(username):
