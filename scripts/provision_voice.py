@@ -114,7 +114,9 @@ def main():
         "--apply", action="store_true", help="Create agents in the connected account"
     )
     parser.add_argument(
-        "--update", action="store_true", help="Update existing agents with latest prompt and configuration"
+        "--update",
+        action="store_true",
+        help="Update existing agents with latest prompt and configuration",
     )
     parser.add_argument("--voice-id", default=os.getenv("GOVFIX_ELEVENLABS_VOICE_ID"))
     parser.add_argument("--llm", default=os.getenv("GOVFIX_ELEVENLABS_LLM"))
@@ -143,10 +145,10 @@ def main():
                     conversation_config=config["conversation_config"],
                     platform_settings=config["platform_settings"],
                 )
-                print(f"Updated {name}: {agent_id} with latest prompt and dynamic language configuration.")
+                print(f"Updated {name}: {agent_id} with prompt and language config.")
             else:
                 client.conversational_ai.agents.get(agent_id)
-                print(f"Existing {name}: {agent_id}; configuration preserved. Review it in ElevenLabs.")
+                print(f"Existing {name}: {agent_id}; configuration preserved.")
         else:
             agent_id = client.conversational_ai.agents.create(**config).agent_id
             client.conversational_ai.agents.get(agent_id)

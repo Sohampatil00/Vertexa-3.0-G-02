@@ -201,7 +201,9 @@ def run_browser(url, password, photo, worker):
         page.on("pageerror", lambda exc: errors.append(str(exc)))
         page.goto(url)
         page.wait_for_load_state("networkidle")
-        expect(page.get_by_role("heading", name=re.compile(r"Sign in to (CivicVoice|GovFix)"))).to_be_visible()
+        expect(
+            page.get_by_role("heading", name=re.compile(r"Sign in to (CivicVoice|GovFix)"))
+        ).to_be_visible()
         check_accessibility(page, "login")
 
         def login(username):
@@ -309,7 +311,7 @@ def run_browser(url, password, photo, worker):
         expect(
             page.get_by_text("Demo intake validated this grievance", exact=False)
         ).to_be_visible()
-        page.get_by_role("button", name="Dispatcher", exact=True).click()
+        page.get_by_role("button", name="Back to Dashboard", exact=True).click()
         open_case()
         page.get_by_role("button", name="assign", exact=True).click()
         page.get_by_label("Assign to Officer").select_option(label="Demo officer")
@@ -351,7 +353,7 @@ def run_browser(url, password, photo, worker):
         assert "resolution" in page.evaluate("window.testSpokenText")
         sign_out()
         login("mixed")
-        expect(page.get_by_label("Switch dashboard").locator("option")).to_have_count(5)
+        expect(page.get_by_label("Switch dashboard").locator("option")).to_have_count(4)
         page.get_by_label("Switch dashboard").select_option("citizen-overview")
         expect(page.get_by_role("heading", name="No grievances registered")).to_be_visible()
         page.get_by_label("Switch dashboard").select_option("field-officer")

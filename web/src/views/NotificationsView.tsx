@@ -69,10 +69,13 @@ export function NotificationsView({
             <button
               type="button"
               onClick={onBackToDashboard}
+              aria-label="Back to Dashboard"
               className="px-3 py-1.5 rounded-lg border border-[#d9cdba] bg-white hover:bg-[#eff4ff] text-[#0b1c30] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs shrink-0"
               title="Return to your main dashboard"
             >
-              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+              <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                arrow_back
+              </span>
               <span>Back to Dashboard</span>
             </button>
           )}

@@ -67,7 +67,7 @@ export function Header({
         </div>
       </button>
 
-      <div className="flex items-center gap-2 sm:gap-3">
+      <nav aria-label="Dashboard navigation" className="flex items-center gap-2 sm:gap-3">
         <AccessibilityControls />
 
         {user && (
@@ -79,7 +79,9 @@ export function Header({
                 className="hidden sm:flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-[#eff4ff] border border-[#d9cdba] text-[#0037b0] hover:bg-[#dce9ff] transition-colors cursor-pointer"
                 title="Return to your dashboard"
               >
-                <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                <span className="material-symbols-outlined text-[16px]" aria-hidden="true">
+                  arrow_back
+                </span>
                 <span>Dashboard</span>
               </button>
             )}
@@ -167,7 +169,7 @@ export function Header({
             </div>
           </>
         )}
-      </div>
+      </nav>
     </header>
   );
 }

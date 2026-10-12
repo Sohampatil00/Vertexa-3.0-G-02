@@ -39,7 +39,6 @@ export function HomePage({ login, busy, error }: HomePageProps) {
 
   const [usernameInput, setUsernameInput] = useState("");
   const [passwordInput, setPasswordInput] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [showCredTable, setShowCredTable] = useState(false);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
@@ -522,29 +521,16 @@ export function HomePage({ login, busy, error }: HomePageProps) {
                   </Field>
 
                   <Field label="Password">
-                    <div className="relative">
-                      <input
-                        name="password"
-                        type={showPassword ? "text" : "password"}
-                        autoComplete="current-password"
-                        required
-                        maxLength={128}
-                        value={passwordInput}
-                        onChange={(e) => setPasswordInput(e.target.value)}
-                        className="w-full text-xs p-2.5 pr-9 rounded-lg bg-white border border-slate-300 text-[#0b1c30] focus:ring-2 focus:ring-[#f77f00] focus:outline-none transition-all font-mono"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none cursor-pointer"
-                        title={showPassword ? "Hide password" : "Show password"}
-                        aria-label={showPassword ? "Hide password" : "Show password"}
-                      >
-                        <span className="material-symbols-outlined text-[18px]">
-                          {showPassword ? "visibility_off" : "visibility"}
-                        </span>
-                      </button>
-                    </div>
+                    <input
+                      name="password"
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      maxLength={128}
+                      value={passwordInput}
+                      onChange={(e) => setPasswordInput(e.target.value)}
+                      className="w-full text-xs p-2.5 rounded-lg bg-white border border-slate-300 text-[#0b1c30] focus:ring-2 focus:ring-[#f77f00] focus:outline-none transition-all font-mono"
+                    />
                   </Field>
 
                   <ErrorText message={error} />
